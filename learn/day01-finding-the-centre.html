@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Finding the centre</title>
+<meta name="description" content="Mean, median and mode, explained with interactive examples. Day 1 of learning ML from scratch.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F6F8FA; --panel:#FFFFFF; --ink:#1B2A41; --soft:#55657C; --rule:#D5DDE6;
+  --mean:#0F7C80; --median:#C98B0B; --mode:#6B4FBB; --warn:#B3261E;
+  --people:#8FA3BC; --people-2:#A9B8CB;
+  --display:"Bricolage Grotesque",system-ui,sans-serif;
+  --body:"Source Serif 4",Georgia,serif;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --paper:#111821; --panel:#18222E; --ink:#E6EDF5; --soft:#9FB0C4; --rule:#2C3A4B;
+    --mean:#3CC2C6; --median:#F0B53B; --mode:#A58BF0; --warn:#F2766C;
+    --people:#566A82; --people-2:#6B7F97;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 1.125rem/1.7 var(--body)}
+a{color:inherit;text-underline-offset:3px}
+.wrap{max-width:46rem;margin-left:auto;margin-right:auto;padding-left:1rem;padding-right:1rem}
+.wide{max-width:60rem;margin-left:auto;margin-right:auto;padding-left:1rem;padding-right:1rem}
+header.top{padding-top:1.25rem;padding-bottom:1.25rem;font:600 .95rem/1 var(--display);color:var(--soft)}
+header.top a{text-decoration:none}
+h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0}
+h1{font-size:clamp(2.6rem,7vw,4.6rem);font-weight:800;letter-spacing:-.02em;margin:.5rem 0 1rem}
+h2{font-size:clamp(1.7rem,4vw,2.3rem);font-weight:800;letter-spacing:-.01em;margin:0 0 .75rem}
+h3{font-size:1.15rem;font-weight:600;margin:0 0 .25rem}
+p{margin:0 0 1rem;max-width:68ch}
+.lede{font-size:1.25rem;color:var(--soft)}
+section{padding:3.5rem 0;border-top:1px solid var(--rule)}
+section:first-of-type{border-top:0}
+.key{display:inline-flex;align-items:center;gap:.4rem;font:600 .95rem var(--display);white-space:nowrap}
+.key i{width:.9rem;height:.9rem;border-radius:50%;display:inline-block}
+.k-mean i{background:var(--mean)} .k-median i{background:var(--median)} .k-mode i{background:var(--mode)}
+.k-mean{color:var(--mean)} .k-median{color:var(--median)} .k-mode{color:var(--mode)}
+.figure{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:1.25rem;margin:1.5rem 0}
+.figure svg{width:100%;height:auto;display:block}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.scroll svg{min-width:600px}
+.tablewrap{overflow-x:auto}
+.controls{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:1rem}
+button{font:600 .95rem var(--display);color:var(--ink);background:transparent;border:1.5px solid var(--rule);border-radius:999px;padding:.5rem 1rem;cursor:pointer}
+button:hover{border-color:var(--soft)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--mean);outline-offset:2px}
+.readout{display:flex;flex-wrap:wrap;gap:1.5rem;margin-top:1rem;font-family:var(--display)}
+.readout div{display:flex;flex-direction:column}
+.readout span{font-size:.85rem;color:var(--soft)}
+.readout b{font-size:1.6rem;font-weight:800}
+.note{font-size:1.05rem;color:var(--soft);margin-top:.75rem;min-height:1.7em}
+input[type=range]{width:100%;accent-color:var(--mean)}
+input[type=text]{width:100%;font:400 1.05rem var(--body);color:var(--ink);background:var(--paper);border:1.5px solid var(--rule);border-radius:10px;padding:.65rem .8rem}
+.error{color:var(--warn);font-size:.95rem;min-height:1.5em;margin-top:.35rem}
+table{width:100%;border-collapse:collapse;font-size:1rem;margin:1rem 0}
+th,td{text-align:left;padding:.65rem .5rem;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:600 .95rem var(--display);color:var(--soft)}
+td.y{color:var(--mean);font-weight:600} td.n{color:var(--soft)}
+.guide{display:grid;gap:.75rem;margin:1.25rem 0}
+.guide div{border-left:4px solid var(--rule);padding:.25rem 0 .25rem 1rem}
+.guide .g-mode{border-color:var(--mode)} .guide .g-median{border-color:var(--median)} .guide .g-mean{border-color:var(--mean)}
+pre{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:1rem;overflow-x:auto;font:400 .9rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.cols{display:grid;gap:1rem}
+footer{padding-top:2.5rem;padding-bottom:3rem;border-top:1px solid var(--rule);color:var(--soft);font-size:1rem}
+.hero-fig{margin-top:1.5rem}
+@media (prefers-reduced-motion:no-preference){
+  .anim line,.anim text.lbl{transition:all .35s ease}
+}
+</style>
+</head>
+<body>
+
+<header class="wrap top"><a href="../">Raghav Bandreddi</a> / <a href="./">Explained</a> / Day 1</header>
+
+<main>
+<section class="wrap" aria-labelledby="h-hero">
+  <h1 id="h-hero">Finding the centre</h1>
+  <p class="lede">Seven people stand in a line. Which height is typical? There are three honest answers, and each one lies in a different situation.</p>
+  <p>Throughout this page, <span class="key k-mean"><i></i>mean</span>, <span class="key k-median"><i></i>median</span> and <span class="key k-mode"><i></i>mode</span> keep the same colours.</p>
+</section>
+
+<div class="wide hero-fig">
+  <div class="figure">
+    <div class="scroll"><svg id="lineup" class="anim" viewBox="0 0 760 360" role="img" aria-labelledby="lineup-t">
+      <title id="lineup-t">People of different heights standing in a line, with the mean and median height drawn as horizontal lines</title>
+    </svg></div>
+    <div class="controls">
+      <button id="add-tall" type="button">Add a basketball player (229 cm)</button>
+      <button id="add-small" type="button">Add a child (95 cm)</button>
+      <button id="reset-lineup" type="button">Reset the line</button>
+    </div>
+    <div class="readout" aria-live="polite">
+      <div><span>Mean</span><b class="k-mean" id="l-mean"></b></div>
+      <div><span>Median</span><b class="k-median" id="l-median"></b></div>
+      <div><span>Gap between them</span><b id="l-gap"></b></div>
+    </div>
+    <p class="note" id="l-note"></p>
+  </div>
+</div>
+
+<section class="wrap" aria-labelledby="h-def">
+  <h2 id="h-def">Three ways to say “typical”</h2>
+  <p><b class="k-mean">Mean</b>: add everything up and divide by how many there are. Think of a seesaw: the mean is the point where the line balances. Every value pulls on it, so one very heavy weight far away drags the balance point toward it.</p>
+  <p><b class="k-median">Median</b>: sort the values and take the one in the middle. With an even count, average the two middle ones. It's the person in the middle of a queue: how far away the last person stands doesn't move them.</p>
+  <p><b class="k-mode">Mode</b>: the value that appears most often. It's the only one of the three that still works when the values are words instead of numbers.</p>
+  <p>In the line-up above, heights are spread fairly evenly around the middle, so the mean and median almost agree. Add the basketball player and watch: the mean jumps more than the median, because the mean feels every centimetre of that one person.</p>
+</section>
+
+<section class="wrap" aria-labelledby="h-types">
+  <h2 id="h-types">First, what kind of data is it?</h2>
+  <p>The type of data decides which measures you are even allowed to compute.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Type</th><th>Example</th><th>Mean</th><th>Median</th><th>Mode</th></tr></thead>
+    <tbody>
+      <tr><td>Continuous number</td><td>height, time, temperature</td><td class="y">yes</td><td class="y">yes</td><td class="n">rarely useful</td></tr>
+      <tr><td>Discrete number</td><td>siblings, dice roll</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td></tr>
+      <tr><td>Ordered category</td><td>star rating, grade</td><td class="n">debatable</td><td class="y">yes</td><td class="y">yes</td></tr>
+      <tr><td>Unordered category</td><td>city, programming language</td><td class="n">no</td><td class="n">no</td><td class="y">yes</td></tr>
+    </tbody>
+  </table></div>
+  <p>Why is the mode “rarely useful” for heights? Measure precisely enough and nobody is exactly 172.000 cm, so every value appears once. For continuous data the mode becomes the peak of the distribution's curve, an idea that comes back with density functions on Day 5.</p>
+</section>
+
+<section class="wrap" aria-labelledby="h-salary">
+  <h2 id="h-salary">Why the average salary lies</h2>
+  <p>Five people work at a small company. Four of them earn between €30k and €38k. The fifth is the CEO. Drag the CEO's salary and watch which measure keeps describing the people who actually work there.</p>
+</section>
+<div class="wide">
+  <div class="figure">
+    <div class="scroll"><svg id="salary" class="anim" viewBox="0 0 760 300" role="img" aria-labelledby="salary-t">
+      <title id="salary-t">Salaries of five employees as horizontal bars, with mean and median marked on the axis</title>
+    </svg></div>
+    <label for="ceo" style="font:600 .95rem var(--display);display:block;margin-top:1rem">CEO salary: <span id="ceo-out"></span></label>
+    <input id="ceo" type="range" min="40" max="2000" step="10" value="200">
+    <div class="readout" aria-live="polite">
+      <div><span>Mean</span><b class="k-mean" id="s-mean"></b></div>
+      <div><span>Median</span><b class="k-median" id="s-median"></b></div>
+    </div>
+    <p class="note" id="s-note"></p>
+  </div>
+</div>
+<section class="wrap" style="border-top:0;padding-top:0">
+  <p>This is why news reports and governments quote the median household income. Whenever a few extreme values can appear on one side (salaries, house prices, website load times), the median is the safer summary. The mean is not wrong; it answers a different question: if all the money were shared out equally, how much would each person get?</p>
+</section>
+
+<section class="wrap" aria-labelledby="h-mode">
+  <h2 id="h-mode">When only the mode makes sense</h2>
+  <p>Ask a class which programming language they like best. You can't add up “Python” and “Rust” and divide by two, and there's no natural order to find a middle in. The only question left is: which answer came up most often? Click to add votes.</p>
+</section>
+<div class="wide">
+  <div class="figure">
+    <div class="scroll"><svg id="votes" viewBox="0 0 760 260" role="img" aria-labelledby="votes-t">
+      <title id="votes-t">Bar chart of votes for favourite programming language, with the most common answer highlighted</title>
+    </svg></div>
+    <div class="controls" id="vote-buttons"></div>
+    <div class="controls"><button id="reset-votes" type="button">Reset the votes</button></div>
+    <div class="readout" aria-live="polite">
+      <div><span>Mode</span><b class="k-mode" id="v-mode"></b></div>
+      <div><span>Mean</span><b id="v-mean" style="color:var(--soft)">not defined for words</b></div>
+    </div>
+    <p class="note" id="v-note"></p>
+  </div>
+</div>
+<section class="wrap" style="border-top:0;padding-top:0">
+  <p>Try making two languages tie. A dataset can have more than one mode, which is why my <code>mode</code> function returns a list, not a single value.</p>
+</section>
+
+<section class="wrap" aria-labelledby="h-guide">
+  <h2 id="h-guide">Choosing one</h2>
+  <div class="guide">
+    <div class="g-mode"><h3>Are the values categories?</h3><p>Use the <b class="k-mode">mode</b>. Favourite language, city, colour.</p></div>
+    <div class="g-median"><h3>Numbers, but skewed or with outliers?</h3><p>Use the <b class="k-median">median</b>. Rent in Bielefeld, salaries, response times.</p></div>
+    <div class="g-mean"><h3>Numbers, roughly symmetric?</h3><p>Use the <b class="k-mean">mean</b>, because it uses every value. Heights of 1,000 adults, exam scores in a big class.</p></div>
+  </div>
+  <p>A useful habit: compute both the mean and the median. If they're close, the data is roughly symmetric. If the mean is much higher than the median, a few large values are pulling it up.</p>
+</section>
+
+<section class="wrap" aria-labelledby="h-try">
+  <h2 id="h-try">Try your own numbers</h2>
+  <p>Type numbers separated by commas. Repeated values stack on top of each other.</p>
+</section>
+<div class="wide">
+  <div class="figure">
+    <label for="own" style="font:600 .95rem var(--display);display:block;margin-bottom:.4rem">Your data</label>
+    <input id="own" type="text" value="2, 3, 3, 4, 100" autocomplete="off" spellcheck="false" aria-describedby="own-err">
+    <div class="error" id="own-err" role="alert"></div>
+    <div class="scroll"><svg id="dots" class="anim" viewBox="0 0 760 200" role="img" aria-labelledby="dots-t">
+      <title id="dots-t">Dot plot of your numbers with mean and median marked</title>
+    </svg></div>
+    <div class="readout" aria-live="polite">
+      <div><span>Mean</span><b class="k-mean" id="o-mean"></b></div>
+      <div><span>Median</span><b class="k-median" id="o-median"></b></div>
+      <div><span>Mode</span><b class="k-mode" id="o-mode"></b></div>
+    </div>
+    <p class="note" id="o-note"></p>
+  </div>
+</div>
+
+<section class="wrap" aria-labelledby="h-code">
+  <h2 id="h-code">The code behind it</h2>
+  <p>I wrote these three functions from scratch in Python on Day 1 of my <a href="https://github.com/RaGHaV-186/ml-from-scratch">ml-from-scratch</a> repo. The interactive figures on this page run the same logic, ported to JavaScript.</p>
+</section>
+<div class="wide">
+  <div class="cols">
+<pre><code># Python (my original)
+def mean(xs: list[float]) -> float:
+    if len(xs) == 0:
+        raise ValueError("mean() requires at least one value")
+    return sum(xs) / len(xs)
+
+
+def median(xs: list[float]) -> float:
+    if len(xs) == 0:
+        raise ValueError("median() requires at least one value")
+    s = sorted(xs)
+    n = len(s)
+    mid = n // 2
+    if n % 2 == 1:
+        return s[mid]
+    else:
+        return (s[mid - 1] + s[mid]) / 2
+
+
+def mode(xs: list[float]) -> list[float]:
+    if len(xs) == 0:
+        raise ValueError("mode() requires at least one value")
+    counts = {}
+    for num in xs:
+        if num not in counts:
+            counts[num] = 1
+        else:
+            counts[num] += 1
+
+    highest = max(counts.values())
+    return [num for num, c in counts.items() if c == highest]</code></pre>
+<pre><code>// JavaScript (the port this page runs)
+function mean(xs) {
+  if (xs.length === 0) throw new Error("mean() requires at least one value");
+  return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
+
+function median(xs) {
+  if (xs.length === 0) throw new Error("median() requires at least one value");
+  // sort a copy with a numeric compare:
+  // plain .sort() compares as text, so [10, 9, 100] -> [10, 100, 9]
+  const s = [...xs].sort((a, b) => a - b);
+  const n = s.length;
+  const mid = Math.floor(n / 2);
+  if (n % 2 === 1) return s[mid];
+  return (s[mid - 1] + s[mid]) / 2;
+}
+
+function mode(xs) {
+  if (xs.length === 0) throw new Error("mode() requires at least one value");
+  const counts = new Map();
+  for (const num of xs) counts.set(num, (counts.get(num) || 0) + 1);
+  const highest = Math.max(...counts.values());
+  return [...counts].filter(([, c]) => c === highest).map(([num]) => num);
+}</code></pre>
+  </div>
+</div>
+<section class="wrap" style="border-top:0;padding-top:0">
+  <p>Two details worth noticing. <code>median</code> sorts a copy, so the caller's list is never changed. And <code>mode</code> returns every value that ties for the top count, so if every value appears exactly once, it returns all of them: a sign that the mode tells you nothing about that dataset.</p>
+</section>
+</main>
+
+<footer class="wrap">
+  <p>Day 1 of a 21-week path through the maths and code behind machine learning, built from scratch. <a href="./">More explanations</a>, <a href="../">back to my site</a>, or see the code on <a href="https://github.com/RaGHaV-186/ml-from-scratch">GitHub</a>.</p>
+</footer>
+
+<script>
+/* ---------- core logic (port of my Python) ---------- */
+function mean(xs) {
+  if (xs.length === 0) throw new Error("mean() requires at least one value");
+  return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
+function median(xs) {
+  if (xs.length === 0) throw new Error("median() requires at least one value");
+  const s = [...xs].sort((a, b) => a - b);
+  const n = s.length, mid = Math.floor(n / 2);
+  if (n % 2 === 1) return s[mid];
+  return (s[mid - 1] + s[mid]) / 2;
+}
+function mode(xs) {
+  if (xs.length === 0) throw new Error("mode() requires at least one value");
+  const counts = new Map();
+  for (const num of xs) counts.set(num, (counts.get(num) || 0) + 1);
+  const highest = Math.max(...counts.values());
+  return [...counts].filter(([, c]) => c === highest).map(([num]) => num);
+}
+
+/* ---------- helpers ---------- */
+const NS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+function el(tag, attrs, parent, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text !== undefined) e.textContent = text;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+const fmt = (v, d = 1) => Number(v.toFixed(d)).toLocaleString("en-GB");
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+/* ---------- line-up of people ---------- */
+const BASE = [158, 165, 170, 172, 175, 181, 186];
+let lineup = [...BASE];
+function drawLineup() {
+  const svg = $("lineup");
+  svg.querySelectorAll(":not(title)").forEach(n => n.remove());
+  const W = 760, ground = 320, top = 30, maxCm = 240;
+  const y = cm => ground - (cm / maxCm) * (ground - top);
+  const left = 64, right = 600;
+  // ruler
+  for (let cm = 0; cm <= 225; cm += 25) {
+    el("line", {x1: 40, x2: 48, y1: y(cm), y2: y(cm), stroke: css("--rule"), "stroke-width": 2}, svg);
+    el("text", {x: 34, y: y(cm) + 4, "text-anchor": "end", "font-size": 12, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, cm);
+  }
+  el("line", {x1: 44, x2: 44, y1: y(0), y2: y(225), stroke: css("--rule"), "stroke-width": 2}, svg);
+  el("line", {x1: 44, x2: W - 10, y1: ground, y2: ground, stroke: css("--rule"), "stroke-width": 2}, svg);
+  // people (sorted so the picture reads like a queue)
+  const sorted = [...lineup].sort((a, b) => a - b);
+  const step = (right - left) / sorted.length;
+  sorted.forEach((cm, i) => {
+    const cx = left + step * (i + 0.5);
+    const h = ground - y(cm);
+    const r = Math.max(7, h * 0.075);
+    const headCy = y(cm) + r;
+    const torsoTop = headCy + r + 3, torsoH = h * 0.40, torsoW = Math.min(step * 0.62, h * 0.2 + 10);
+    const legTop = torsoTop + torsoH, legW = torsoW * 0.36;
+    const fill = i % 2 ? css("--people") : css("--people-2");
+    const outlier = cm === 229 || cm === 95;
+    const f = outlier ? css("--ink") : fill;
+    el("circle", {cx, cy: headCy, r, fill: f}, svg);
+    el("rect", {x: cx - torsoW / 2, y: torsoTop, width: torsoW, height: torsoH, rx: torsoW * 0.3, fill: f}, svg);
+    el("rect", {x: cx - torsoW / 2 + 1, y: legTop - 4, width: legW, height: ground - legTop + 4, rx: legW / 2, fill: f}, svg);
+    el("rect", {x: cx + torsoW / 2 - legW - 1, y: legTop - 4, width: legW, height: ground - legTop + 4, rx: legW / 2, fill: f}, svg);
+    el("text", {x: cx, y: ground + 22, "text-anchor": "middle", "font-size": 13, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, cm);
+  });
+  // mean and median lines
+  const m = mean(lineup), md = median(lineup);
+  const ym = y(m), yd = y(md);
+  const close = Math.abs(ym - yd) < 16;
+  el("line", {x1: 48, x2: right + 6, y1: ym, y2: ym, stroke: css("--mean"), "stroke-width": 3, "stroke-dasharray": "8 6"}, svg);
+  el("line", {x1: 48, x2: right + 6, y1: yd, y2: yd, stroke: css("--median"), "stroke-width": 3}, svg);
+  el("text", {class: "lbl", x: right + 14, y: (close && ym <= yd ? ym - 6 : ym + 5), "font-size": 15, "font-weight": 700, fill: css("--mean"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, "mean " + fmt(m) + " cm");
+  el("text", {class: "lbl", x: right + 14, y: (close && ym <= yd ? yd + 18 : (close ? yd - 6 : yd + 5)), "font-size": 15, "font-weight": 700, fill: css("--median"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, "median " + fmt(md) + " cm");
+  $("l-mean").textContent = fmt(m) + " cm";
+  $("l-median").textContent = fmt(md) + " cm";
+  $("l-gap").textContent = fmt(Math.abs(m - md)) + " cm";
+  const hasTall = lineup.includes(229), hasSmall = lineup.includes(95);
+  let note = "Heights are spread evenly, so the two measures nearly agree.";
+  if (hasTall && hasSmall) note = "One very tall and one very small person roughly cancel out in the mean. The median barely notices either of them.";
+  else if (hasTall) note = "One tall person pulled the mean up by " + fmt(m - mean(BASE)) + " cm. The median moved by only " + fmt(md - median(BASE)) + " cm.";
+  else if (hasSmall) note = "One small person pulled the mean down by " + fmt(mean(BASE) - m) + " cm. The median moved by only " + fmt(median(BASE) - md) + " cm.";
+  $("l-note").textContent = note;
+}
+$("add-tall").onclick = () => { if (!lineup.includes(229)) lineup.push(229); drawLineup(); };
+$("add-small").onclick = () => { if (!lineup.includes(95)) lineup.push(95); drawLineup(); };
+$("reset-lineup").onclick = () => { lineup = [...BASE]; drawLineup(); };
+
+/* ---------- salaries ---------- */
+const STAFF = [["Anna", 30], ["Ben", 32], ["Chiara", 35], ["Deniz", 38]];
+function drawSalary() {
+  const ceo = Number($("ceo").value);
+  const people = [...STAFF, ["CEO", ceo]];
+  const vals = people.map(p => p[1]);
+  const m = mean(vals), md = median(vals);
+  const svg = $("salary");
+  svg.querySelectorAll(":not(title)").forEach(n => n.remove());
+  const L = 80, R = 730, rowH = 40, top = 20;
+  const max = Math.max(...vals, m) * 1.05;
+  const x = v => L + (v / max) * (R - L);
+  people.forEach(([name, v], i) => {
+    const yy = top + i * rowH;
+    el("text", {x: L - 10, y: yy + 22, "text-anchor": "end", "font-size": 15, fill: css("--ink"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, name);
+    el("rect", {x: L, y: yy + 6, width: Math.max(2, x(v) - L), height: 24, rx: 5, fill: name === "CEO" ? css("--ink") : css("--people")}, svg);
+    el("text", {x: x(v) + 8, y: yy + 23, "font-size": 13, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, "€" + fmt(v, 0) + "k");
+  });
+  const axisY = top + people.length * rowH + 10;
+  el("line", {x1: L, x2: R, y1: axisY, y2: axisY, stroke: css("--rule"), "stroke-width": 2}, svg);
+  [["mean", m, css("--mean"), "8 6"], ["median", md, css("--median"), ""]].forEach(([lbl, v, c, dash], k) => {
+    el("line", {x1: x(v), x2: x(v), y1: top, y2: axisY + 6, stroke: c, "stroke-width": 3, "stroke-dasharray": dash}, svg);
+    const tx = Math.min(Math.max(x(v), L + 40), R - 40);
+    el("text", {class: "lbl", x: tx, y: axisY + 26 + k * 20, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: c, "font-family": "Bricolage Grotesque, sans-serif"}, svg, lbl + " €" + fmt(v, 0) + "k");
+  });
+  $("ceo-out").textContent = "€" + fmt(ceo, 0) + "k";
+  $("s-mean").textContent = "€" + fmt(m, 0) + "k";
+  $("s-median").textContent = "€" + fmt(md, 0) + "k";
+  const below = vals.filter(v => v < m).length;
+  $("s-note").textContent = below >= 4
+    ? "The mean says a typical salary is €" + fmt(m, 0) + "k, yet " + below + " of the 5 people earn less than that. The median still points at a real person's salary."
+    : "With the CEO's salary close to everyone else's, the mean and median tell a similar story.";
+}
+$("ceo").addEventListener("input", drawSalary);
+
+/* ---------- language votes ---------- */
+const LANGS = ["Python", "JavaScript", "Java", "C++", "Rust"];
+const START = {Python: 6, JavaScript: 4, Java: 3, "C++": 2, Rust: 1};
+let votes = {...START};
+function drawVotes() {
+  const answers = LANGS.flatMap(l => Array(votes[l]).fill(l));
+  const modes = answers.length ? mode(answers) : [];
+  const svg = $("votes");
+  svg.querySelectorAll(":not(title)").forEach(n => n.remove());
+  const L = 110, R = 700, top = 14, rowH = 46;
+  const max = Math.max(...LANGS.map(l => votes[l]), 1);
+  LANGS.forEach((l, i) => {
+    const yy = top + i * rowH;
+    const isMode = modes.includes(l);
+    el("text", {x: L - 12, y: yy + 24, "text-anchor": "end", "font-size": 15, "font-weight": isMode ? 700 : 400, fill: isMode ? css("--mode") : css("--ink"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, l);
+    el("rect", {x: L, y: yy + 6, width: Math.max(2, (votes[l] / max) * (R - L)), height: 28, rx: 6, fill: isMode ? css("--mode") : css("--people")}, svg);
+    el("text", {x: L + (votes[l] / max) * (R - L) + 8, y: yy + 25, "font-size": 14, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, votes[l]);
+  });
+  $("v-mode").textContent = modes.length ? modes.join(" and ") : "none yet";
+  $("v-note").textContent = modes.length > 1
+    ? "A tie: this dataset has " + modes.length + " modes. Both answers are equally “typical”."
+    : (modes.length ? modes[0] + " is the most common answer, with " + votes[modes[0]] + " of " + answers.length + " votes." : "");
+}
+LANGS.forEach(l => {
+  const b = document.createElement("button");
+  b.type = "button"; b.textContent = "Vote " + l;
+  b.onclick = () => { votes[l]++; drawVotes(); };
+  $("vote-buttons").appendChild(b);
+});
+$("reset-votes").onclick = () => { votes = {...START}; drawVotes(); };
+
+/* ---------- your own numbers ---------- */
+function drawOwn() {
+  const raw = $("own").value.trim();
+  const err = $("own-err");
+  const svg = $("dots");
+  const parts = raw.split(/[,;\s]+/).filter(Boolean);
+  const nums = parts.map(Number);
+  if (!parts.length || nums.some(n => !Number.isFinite(n))) {
+    err.textContent = parts.length ? "Use numbers only, separated by commas, like 4, 7, 7, 12." : "Enter at least one number.";
+    return;
+  }
+  err.textContent = "";
+  svg.querySelectorAll(":not(title)").forEach(n => n.remove());
+  const m = mean(nums), md = median(nums), mo = mode(nums);
+  const allTie = mo.length === new Set(nums).size && nums.length > 1 && mo.length > 1;
+  const lo = Math.min(...nums), hi = Math.max(...nums);
+  const span = hi - lo || 1;
+  const L = 40, R = 720, base = 140;
+  const x = v => L + ((v - lo) / span) * (R - L);
+  el("line", {x1: L - 10, x2: R + 10, y1: base + 12, y2: base + 12, stroke: css("--rule"), "stroke-width": 2}, svg);
+  const stack = new Map();
+  [...nums].sort((a, b) => a - b).forEach(v => {
+    const k = stack.get(v) || 0; stack.set(v, k + 1);
+    const isMode = !allTie && mo.includes(v);
+    el("circle", {cx: x(v), cy: base - k * 18, r: 7, fill: isMode ? css("--mode") : css("--people")}, svg);
+  });
+  let lastX = -Infinity;
+  [...stack.keys()].forEach(v => {
+    if (x(v) - lastX < 28) return;
+    lastX = x(v);
+    el("text", {x: x(v), y: base + 32, "text-anchor": "middle", "font-size": 12, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, fmt(v, 2));
+  });
+  [["mean", m, css("--mean"), "8 6", 22], ["median", md, css("--median"), "", 40]].forEach(([lbl, v, c, dash, ty]) => {
+    el("line", {x1: x(v), x2: x(v), y1: 10 + ty, y2: base + 14, stroke: c, "stroke-width": 3, "stroke-dasharray": dash}, svg);
+    const tx = Math.min(Math.max(x(v), L + 30), R - 30);
+    el("text", {class: "lbl", x: tx, y: ty, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: c, "font-family": "Bricolage Grotesque, sans-serif"}, svg, lbl + " " + fmt(v, 2));
+  });
+  $("o-mean").textContent = fmt(m, 2);
+  $("o-median").textContent = fmt(md, 2);
+  $("o-mode").textContent = allTie ? "every value ties" : mo.map(v => fmt(v, 2)).join(", ");
+  const gap = Math.abs(m - md), sd = Math.sqrt(nums.reduce((a, v) => a + (v - m) ** 2, 0) / nums.length) || 1;
+  $("o-note").textContent = nums.length < 2 ? "With one value, all three measures are that value."
+    : gap / sd > 0.3 ? "The mean and median are far apart: something is pulling the mean " + (m > md ? "up" : "down") + ". The median is the safer summary here."
+    : "The mean and median are close, so the data is roughly symmetric. Either works.";
+}
+$("own").addEventListener("input", drawOwn);
+
+/* ---------- start ---------- */
+function drawAll() { drawLineup(); drawSalary(); drawVotes(); drawOwn(); }
+drawAll();
+window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
+</script>
+</body>
+</html>

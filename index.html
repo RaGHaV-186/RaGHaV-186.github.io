@@ -1,664 +1,198 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Raghav Bandreddi | AI &amp; ML Engineer</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=JetBrains+Mono:wght@400;700;800&display=swap" rel="stylesheet">
-  <script>MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},svg:{fontCache:'global'}};</script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
-  <style>
-    :root{
-      --bg:#070707;--bg-alt:#111;--text:#f4f4f0;--muted:#6b6b6b;--border:#232323;
-      --red:#da291c;--gold:#d4af37;--green:#7dd87d;
-      --font-main:'Space Grotesk',sans-serif;--font-mono:'JetBrains Mono',monospace;--bar:26px;
-    }
-    body.theme-vermithor{--gold:#cd7f32;--red:#ff3300;--bg:#160000;--bg-alt:#240404;--border:#4a0000}
-    *{box-sizing:border-box;margin:0;padding:0}
-    html{scroll-behavior:smooth;font-size:16px;scroll-padding-top:calc(var(--bar) + 62px)}
-    body{background:var(--bg);color:var(--text);font-family:var(--font-main);line-height:1.6;overflow-x:hidden;transition:background .5s,border-color .5s;padding-bottom:var(--bar)}
-    a{color:var(--gold);text-decoration:none;transition:.2s}
-    a:hover{color:var(--red)}
-    ul{list-style:none}
-    button{cursor:pointer;font-family:inherit}
-    :focus-visible{outline:2px solid var(--gold);outline-offset:3px}
-    .mono{font-family:var(--font-mono)}
-    .muted{color:var(--muted)}
-    em{color:var(--gold);font-style:italic}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raghav Bandreddi</title>
+<meta name="description" content="Raghav Bandreddi, M.Sc. AI and Data Science student in Germany, learning machine learning from first principles and publishing every step.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.hero{padding-top:2.5rem;padding-bottom:3rem}
+.hero h1{font-size:clamp(3rem,10vw,6.2rem);font-weight:800;letter-spacing:-.035em;line-height:.95;margin:0 0 1.5rem}
+.hero .lede{font-size:clamp(1.25rem,2.6vw,1.5rem);line-height:1.5;max-width:34ch;margin-bottom:1rem}
+.status{display:inline-flex;align-items:center;gap:.5rem;font:600 1rem var(--display);color:var(--accent)}
+.status::before{content:"";width:.6rem;height:.6rem;border-radius:50%;background:var(--accent)}
 
-    .film-grain{position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.07;mix-blend-mode:soft-light;
-      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-    .letterbox{position:fixed;left:0;width:100vw;height:var(--bar);background:#000;z-index:9000;border-bottom:1px solid var(--border)}
-    .letterbox.bottom{top:auto;bottom:0;border-bottom:none;border-top:1px solid var(--border)}
+/* the 147-day path */
+.path{margin-top:.5rem}
+.path-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:.5rem 1.5rem;margin-bottom:1rem}
+.path-head b{font:800 clamp(1.6rem,4vw,2.1rem)/1 var(--display)}
+.grid{display:flex;gap:6px;overflow-x:auto;padding-bottom:.25rem}
+.phase-block{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;gap:3px}
+.cell{width:clamp(11px,2.6vw,26px);aspect-ratio:1;border-radius:3px;background:var(--rule);display:block}
+.cell.done{background:var(--done)}
+.cell.now{background:var(--paper);box-shadow:inset 0 0 0 2.5px var(--accent)}
+.cell.has{position:relative;background:var(--accent)}
+.cell.has:hover{transform:scale(1.25)}
+.phases{list-style:none;margin:1.25rem 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.4rem 1.5rem;font:400 .95rem var(--display);color:var(--soft)}
+.phases li.current{color:var(--ink);font-weight:600}
+.legend{display:flex;flex-wrap:wrap;gap:1.25rem;margin-top:1rem;font:400 .9rem var(--display);color:var(--soft)}
+.legend span{display:inline-flex;align-items:center;gap:.4rem}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
 
-    /* nav */
-    nav{position:sticky;top:var(--bar);z-index:500;display:flex;justify-content:space-between;align-items:center;
-      padding:.8rem 1.6rem;background:rgba(7,7,7,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
-    .nav-logo{display:flex;align-items:center;gap:.55rem;font-family:var(--font-mono);font-weight:800;letter-spacing:1px}
-    .nav-logo .lb,.nav-logo .rb{width:7px;height:22px;border:2px solid var(--text)}
-    .nav-logo .lb{border-right:none}.nav-logo .rb{border-left:none}
-    .nav-logo .g{color:var(--gold)}.nav-logo .r{color:var(--red)}
-    .nav-links{display:none;gap:1.5rem;align-items:center}
-    @media(min-width:900px){.nav-links{display:flex}}
-    .nav-links a{color:var(--muted);font-family:var(--font-mono);font-size:.76rem;text-transform:uppercase;letter-spacing:.05em}
-    .nav-links a:hover{color:var(--gold)}
-    .nav-cv{border:1px solid var(--gold);color:var(--gold)!important;padding:.4rem .8rem;letter-spacing:.05em}
-    .nav-cv:hover{background:var(--gold);color:#000!important}
-
-    .scene-marker{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:1.6rem;display:flex;align-items:center;gap:1rem}
-    .scene-marker::before,.scene-marker::after{content:'';flex:1;height:1px;background:var(--border)}
-    .scene-marker.solo::after{display:none}
-
-    .container{max-width:1200px;margin:0 auto;padding:5.5rem 1.6rem;position:relative;z-index:10}
-    h1,h2,h3{font-weight:700}
-    section+section{margin-top:2rem}
-
-    /* tensor logo */
-    .tensor-wrapper{display:inline-flex;align-items:center;font-family:var(--font-mono);font-size:2.4rem;font-weight:800;margin-bottom:2rem;padding:.8rem;border:1px solid rgba(255,255,255,.05);position:relative}
-    .bracket{width:11px;height:92px;border:4px solid var(--text)}
-    .bracket.left{border-right:none;margin-right:1.3rem}.bracket.right{border-left:none;margin-left:1.3rem}
-    .tensor-matrix{display:grid;grid-template-columns:1fr 1fr;gap:.9rem 1.8rem;text-align:center;line-height:1}
-    .t-r,.t-1{color:var(--gold)}.t-b,.t-8{color:var(--red)}
-    #ai-network{position:absolute;top:0;left:0;width:100%;height:100%;z-index:-1;opacity:.4;pointer-events:none}
-
-    /* hero */
-    header{min-height:80vh;display:flex;flex-direction:column;justify-content:center;position:relative}
-    header h1{font-size:clamp(2.8rem,7vw,5rem);line-height:1.02;margin-bottom:1.2rem;text-transform:uppercase;letter-spacing:-.02em}
-    .hero-tag{font-family:var(--font-mono);color:var(--muted);max-width:60ch;font-size:1.02rem;line-height:1.9}
-    .hero-tag b{color:var(--gold);font-weight:500}
-    .hero-actions{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:2rem}
-    .btn{font-family:var(--font-mono);font-size:.82rem;letter-spacing:.03em;padding:.75rem 1.3rem;border:1px solid var(--border);color:var(--text);background:transparent;transition:.25s}
-    .btn:hover{border-color:var(--gold);color:var(--gold)}
-    .btn.solid{background:var(--gold);color:#000;border-color:var(--gold);font-weight:700}
-    .btn.solid:hover{background:var(--red);border-color:var(--red);color:#fff}
-    .avail{display:inline-flex;align-items:center;gap:.6rem;margin-top:1.8rem;font-family:var(--font-mono);font-size:.74rem;color:var(--muted);border:1px solid var(--border);padding:.45rem .9rem;border-radius:20px}
-    .avail .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s infinite}
-    @keyframes pulse{0%{opacity:1}50%{opacity:.4}100%{opacity:1}}
-
-    /* mission control (daily engine) */
-    .mc{background:var(--bg-alt);border:1px solid var(--border);border-left:4px solid var(--gold);padding:2rem;position:relative}
-    .mc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap;margin-bottom:.4rem}
-    .mc h3{color:#fff;font-size:1.4rem;text-transform:uppercase;letter-spacing:-.01em}
-    .mc .day-badge{font-family:var(--font-mono);font-size:.72rem;color:var(--gold);border:1px solid var(--border);padding:.3rem .7rem;white-space:nowrap}
-    .mc .mc-sub{font-family:var(--font-mono);font-size:.8rem;color:var(--muted);margin-bottom:1.6rem}
-    .obj{display:flex;align-items:flex-start;gap:1rem;padding:.9rem 0;border-top:1px solid var(--border)}
-    .obj:first-child{border-top:none}
-    .obj .box{width:20px;height:20px;border:2px solid var(--muted);flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:.2s}
-    .obj.done .box{background:var(--gold);border-color:var(--gold)}
-    .obj.done .box::after{content:'\2713';color:#000;font-size:13px;font-weight:800}
-    .obj .meta{min-width:0}
-    .obj .k{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;color:var(--red);margin-bottom:.15rem}
-    .obj .t{font-size:.98rem}
-    .obj.done .t{color:var(--muted);text-decoration:line-through}
-    .obj.editable{cursor:pointer}
-    .obj.editable:hover .box{border-color:var(--gold)}
-    .mc-foot{display:flex;gap:.6rem;align-items:center;margin-top:1.4rem;flex-wrap:wrap}
-    .mc-note{font-family:var(--font-mono);font-size:.68rem;color:var(--muted)}
-    .hidden{display:none!important}
-
-    /* tactics / roadmap */
-    .pitch{position:relative;padding:3.5rem 1.5rem;border:2px solid var(--border);background:var(--bg-alt);
-      background-image:linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:40px 40px;overflow:hidden}
-    .pitch::after{content:'';position:absolute;top:50%;left:0;width:100%;height:1px;background:rgba(218,41,28,.25)}
-    .pitch::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:140px;height:140px;border:1px solid rgba(218,41,28,.25);border-radius:50%}
-    .formation{display:grid;gap:1.4rem;position:relative;z-index:2;grid-template-areas:". st st ." "aml amc amc amr" ". cdl cdr ." "lcb lcb rcb rcb"}
-    @media(max-width:640px){.formation{grid-template-areas:"st st" "amc amc" "aml amr" "cdl cdr" "lcb rcb"}}
-    .node{background:var(--bg);border:1px solid var(--border);padding:1.2rem;text-align:center;position:relative;transition:.25s}
-    .node:hover{border-color:var(--red);transform:translateY(-4px)}
-    .node::before{content:attr(data-pos);position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--red);color:#fff;font-family:var(--font-mono);font-size:.58rem;padding:2px 6px;font-weight:700;letter-spacing:1px}
-    .node .ph{font-family:var(--font-mono);font-size:.62rem;color:var(--muted);letter-spacing:.05em}
-    .node h4{color:var(--gold);font-size:1.02rem;text-transform:uppercase;margin:.3rem 0}
-    .node p{font-size:.8rem;color:var(--muted)}
-    .n-st{grid-area:st;border-bottom:3px solid var(--red)}
-    .n-amc{grid-area:amc}.n-aml{grid-area:aml}.n-amr{grid-area:amr}
-    .n-cdl{grid-area:cdl}.n-cdr{grid-area:cdr}.n-lcb{grid-area:lcb}.n-rcb{grid-area:rcb}
-    .arc-link{margin-top:1.4rem;display:inline-block;font-family:var(--font-mono);font-size:.8rem}
-
-    details.arc{margin-top:1.2rem;border:1px solid var(--border);background:var(--bg-alt)}
-    details.arc>summary{list-style:none;cursor:pointer;padding:1.1rem 1.3rem;font-family:var(--font-mono);font-size:.85rem;color:var(--gold);display:flex;align-items:center;gap:.7rem}
-    details.arc>summary::-webkit-details-marker{display:none}
-    .arc-inner{padding:0 1.1rem 1.1rem}
-    .arc-month{border-top:1px solid var(--border);padding:1rem 0}
-    .arc-month .amh{font-family:var(--font-mono);font-size:.7rem;color:var(--red);letter-spacing:.08em;text-transform:uppercase;margin-bottom:.5rem}
-    .arc-week{display:grid;grid-template-columns:110px 1fr;gap:1rem;font-size:.85rem;padding:.35rem 0}
-    @media(max-width:560px){.arc-week{grid-template-columns:1fr;gap:.1rem}}
-    .arc-week .w{font-family:var(--font-mono);font-size:.72rem;color:var(--gold)}
-    .arc-week .t{color:var(--muted)}
-    details.pat{border-top:1px solid var(--border)}
-    details.pat>summary{list-style:none;cursor:pointer;padding:.7rem 0;display:flex;align-items:center;gap:.7rem;font-family:var(--font-mono);font-size:.82rem}
-    details.pat>summary::-webkit-details-marker{display:none}
-    .pat .pnum{color:var(--red);font-size:.68rem;border:1px solid var(--border);padding:1px 6px}
-    .pat .pstate{margin-left:auto;font-size:.64rem;padding:2px 7px;border:1px solid var(--border);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
-    .pat .pstate.done{color:var(--green);border-color:var(--green)}
-    .pat .pstate.current{color:var(--gold);border-color:var(--gold)}
-    .prob{display:flex;gap:.7rem;padding:.22rem 0 .22rem 1.3rem;font-size:.8rem;color:var(--muted);font-family:var(--font-mono)}
-    .prob .pi{color:var(--muted);min-width:26px}
-    .prob.done .pi{color:var(--green)}
-    .prob.current{color:#fff}.prob.current .pi{color:var(--gold)}
-
-    /* skills */
-    .skills-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--border);border:1px solid var(--border)}
-    .skill-cat{background:var(--bg-alt);padding:1.5rem}
-    .skill-cat h4{font-family:var(--font-mono);font-size:.72rem;color:var(--red);letter-spacing:.06em;text-transform:uppercase;margin-bottom:.9rem}
-    .chips{display:flex;flex-wrap:wrap;gap:.4rem}
-    .chip{font-family:var(--font-mono);font-size:.74rem;color:var(--text);border:1px solid var(--border);background:var(--bg);padding:.28rem .6rem}
-
-    /* chess identity board */
-    .board{display:grid;grid-template-columns:repeat(2,1fr);border:8px solid var(--bg-alt);outline:1px solid var(--border);position:relative}
-    @media(min-width:768px){.board{grid-template-columns:repeat(4,1fr)}}
-    .square{aspect-ratio:1;padding:1.4rem;display:flex;flex-direction:column;justify-content:space-between;position:relative;transition:.25s;border:2px solid transparent}
-    .square:hover{border-color:rgba(212,175,55,.4);z-index:3}
-    .square.active-move{border-color:var(--gold);box-shadow:inset 0 0 20px rgba(212,175,55,.2)}
-    .square:nth-child(odd){background:var(--bg)}.square:nth-child(even){background:var(--bg-alt)}
-    @media(min-width:768px){
-      .square:nth-child(8n+1),.square:nth-child(8n+3),.square:nth-child(8n+6),.square:nth-child(8n+8){background:var(--bg)}
-      .square:nth-child(8n+2),.square:nth-child(8n+4),.square:nth-child(8n+5),.square:nth-child(8n+7){background:var(--bg-alt)}
-    }
-    .square::after{content:attr(data-square);position:absolute;bottom:6px;right:8px;font-family:var(--font-mono);font-size:.7rem;color:rgba(255,255,255,.18);font-weight:700}
-    .sq-title{font-family:var(--font-mono);font-size:.7rem;color:var(--gold);margin-bottom:.6rem}
-    .square h3{color:#fff;font-size:1.1rem;text-transform:none}
-    .square p,.square a{color:var(--muted);font-size:.82rem}
-    #secret{position:absolute;inset:0;background:rgba(7,7,7,.96);backdrop-filter:blur(8px);z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;opacity:0;pointer-events:none;transition:.4s;border:2px solid var(--gold);padding:2rem}
-    #secret.on{opacity:1;pointer-events:auto}
-    .secret-grid{display:grid;grid-template-columns:1fr;gap:1rem;max-width:640px;margin-top:1.4rem;text-align:left}
-    @media(min-width:640px){.secret-grid{grid-template-columns:1fr 1fr}}
-    .secret-card{background:var(--bg-alt);border:1px solid var(--border);padding:1.2rem}
-    .secret-card h4{color:var(--gold);font-family:var(--font-mono);font-size:.82rem;margin-bottom:.5rem}
-    .secret-card p{color:var(--muted);font-size:.86rem}
-    #tennis{position:absolute;width:18px;height:18px;background:#ccff00;border-radius:50%;bottom:20px;left:-40px;box-shadow:inset -4px -4px 8px rgba(0,0,0,.3)}
-    @keyframes fetch{0%{left:-40px;bottom:20px}25%{bottom:140px;left:25%}50%{bottom:20px;left:50%}75%{bottom:90px;left:75%}100%{bottom:20px;left:110%}}
-    .throw{animation:fetch 1.8s cubic-bezier(.25,1,.5,1) forwards}
-
-    /* cricket tracker */
-    .cricket{display:flex;gap:1.5rem;border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.4rem 0;position:relative;flex-wrap:wrap}
-    .stumps{position:relative;display:flex;gap:4px;padding-right:1.5rem;border-right:1px solid var(--border)}
-    .stump{width:6px;background:var(--gold);height:70px;border-radius:3px 3px 0 0}
-    .tk-wrap{flex:1;min-width:260px;overflow-x:auto}
-    .tk-top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;flex-wrap:wrap;margin-bottom:.6rem}
-    .tk-stats{font-family:var(--font-mono);font-size:.72rem;color:var(--muted);display:flex;gap:1.2rem}
-    .tk-stats b{color:var(--gold);font-size:1.05rem}
-    table.tracker{width:100%;border-collapse:collapse}
-    table.tracker th,table.tracker td{padding:.6rem .3rem;text-align:center;border-bottom:1px solid var(--bg-alt)}
-    table.tracker th:first-child,table.tracker td:first-child{text-align:left;font-family:var(--font-mono);font-size:.78rem}
-    table.tracker th{color:var(--muted);font-size:.72rem;font-weight:400;font-family:var(--font-mono)}
-    .dot{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid var(--border);background:var(--bg);transition:.3s}
-    .dot.done{background:var(--gold);border-color:var(--gold);box-shadow:0 0 8px rgba(212,175,55,.4)}
-    .dot.done-past{background:var(--muted);border-color:var(--muted)}
-    .badge-wrap{perspective:900px}
-    .badge-inner{width:3rem;height:3rem;position:relative;transition:transform .6s;transform-style:preserve-3d;cursor:pointer}
-    .badge-wrap:hover .badge-inner{transform:rotateY(180deg)}
-    .badge-front,.badge-back{position:absolute;inset:0;backface-visibility:hidden;display:flex;align-items:center;justify-content:center;border-radius:50%;font-family:var(--font-mono);font-weight:700}
-    .badge-front{background:var(--bg);color:var(--gold);border:2px solid var(--gold)}
-    .badge-back{transform:rotateY(180deg);background:var(--red);color:#fff;border:2px solid var(--red);font-size:.55rem;text-align:center}
-
-    /* projects: film strip case studies */
-    .film-strip{display:flex;gap:12px;overflow-x:auto;padding:2.4rem 6px;background:#000;border-top:2px solid #222;border-bottom:2px solid #222;position:relative}
-    .film-strip::before,.film-strip::after{content:'';position:absolute;left:0;width:100%;height:16px;background-image:repeating-linear-gradient(90deg,transparent 0,transparent 13px,#fff 13px,#fff 26px);background-size:39px 16px;opacity:.7}
-    .film-strip::before{top:8px}.film-strip::after{bottom:8px}
-    .frame{min-width:330px;max-width:330px;background:var(--bg-alt);border:1px solid #333;padding:1.6rem;position:relative;z-index:2;display:flex;flex-direction:column;gap:.7rem}
-    .clapper{align-self:flex-start;background:#fff;color:#000;font-family:var(--font-mono);font-size:.62rem;font-weight:700;padding:2px 8px}
-    .frame h3{color:#fff;font-size:1.25rem;text-transform:none}
-    .frame .cs{font-size:.83rem;color:var(--muted);line-height:1.65}
-    .frame .cs b{color:var(--text);font-weight:500}
-    .frame .metric{font-family:var(--font-mono);font-size:.76rem;color:var(--gold);border-left:2px solid var(--gold);padding-left:.6rem}
-    .frame .flinks{display:flex;gap:1rem;margin-top:auto;font-family:var(--font-mono);font-size:.74rem}
-
-    /* screenplay logs */
-    .screenplay{border-left:2px solid var(--border);margin-left:.8rem;padding-left:2rem}
-    .scene{margin-bottom:2.4rem;position:relative}
-    .scene::before{content:'';position:absolute;left:-2.4rem;top:.25rem;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--gold)}
-    .scene-heading{font-family:var(--font-mono);font-weight:700;color:var(--text);margin-bottom:.7rem;letter-spacing:.5px;text-transform:uppercase;font-size:.85rem}
-    .scene-action{font-family:var(--font-mono);color:var(--muted);margin-bottom:.8rem;line-height:1.8;max-width:760px;font-size:.9rem}
-    .scene-tags{display:flex;gap:.5rem;flex-wrap:wrap}
-    .tag{background:var(--bg-alt);border:1px solid var(--border);padding:.2rem .6rem;font-family:var(--font-mono);font-size:.68rem;color:var(--gold)}
-
-    /* footer */
-    .site-footer{border-top:1px solid var(--border);background:var(--bg-alt);padding:4.5rem 1.6rem 3.5rem;text-align:center;margin-top:4rem}
-    .footer-links{display:flex;justify-content:center;gap:2.4rem;margin:2rem 0;font-family:var(--font-mono);font-weight:700;flex-wrap:wrap}
-    .footer-links a{position:relative;padding-bottom:5px}
-    .footer-links a::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--gold);transition:.3s}
-    .footer-links a:hover::after{width:100%}
-    .sys-status{display:inline-flex;align-items:center;gap:.8rem;font-family:var(--font-mono);font-size:.72rem;color:var(--muted);border:1px solid var(--border);padding:.5rem 1rem;border-radius:20px;background:var(--bg);flex-wrap:wrap;justify-content:center}
-    .sys-status .pulse{width:8px;height:8px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
-
-    #term{position:fixed;inset:0;background:rgba(0,18,0,.96);z-index:10000;color:#0f0;font-family:var(--font-mono);padding:2rem;display:none;flex-direction:column;gap:.5rem}
-    #term.on{display:flex}
-
-    @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
-  </style>
+/* experience timeline */
+.timeline{list-style:none;margin:0;padding:0}
+.timeline li{display:grid;gap:.15rem;padding:1rem 0 1rem 1.25rem;border-left:2px solid var(--rule);position:relative}
+.timeline li::before{content:"";position:absolute;left:-6px;top:1.45rem;width:10px;height:10px;border-radius:50%;background:var(--paper);border:2px solid var(--soft)}
+.timeline li:first-child::before{border-color:var(--accent);background:var(--accent)}
+.timeline .when{font:600 .95rem var(--display);color:var(--soft)}
+.timeline p{margin:.25rem 0 0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.5rem}
+.facts h3{margin-bottom:.35rem}
+.facts ul{margin:0;padding-left:1.1rem}
+</style>
 </head>
 <body>
-  <div class="film-grain"></div>
-  <div class="letterbox top"></div>
-  <div class="letterbox bottom"></div>
 
-  <nav>
-    <a href="#top" class="nav-logo" aria-label="Raghav Bandreddi">
-      <span class="lb"></span><span><span class="g">R</span><span class="r">B</span></span><span class="rb"></span>
-    </a>
-    <div class="nav-links">
-      <a href="#today">Today</a>
-      <a href="#plan">The Plan</a>
-      <a href="#skills">Skills</a>
-      <a href="#projects">Projects</a>
-      <a href="#logs">Logs</a>
-      <a href="Raghav_Bandreddi_CV.pdf" class="nav-cv" target="_blank">CV &darr;</a>
-    </div>
+<header class="wide bar">
+  <a href="./">Raghav Bandreddi</a>
+  <nav aria-label="Main">
+    <a href="learn/">Explained</a>
+    <a href="#projects">Projects</a>
+    <a href="#research">Research</a>
+    <a href="#contact">Contact</a>
   </nav>
+</header>
 
-  <div class="container" id="top">
-    <header>
-      <canvas id="ai-network"></canvas>
-      <div class="scene-marker">[ Scene 01 &mdash; The Identity ]</div>
-      <div class="tensor-wrapper" title="R B over 1 8">
-        <div class="bracket left"></div>
-        <div class="tensor-matrix"><span class="t-r">R</span><span class="t-b">B</span><span class="t-1">1</span><span class="t-8">8</span></div>
-        <div class="bracket right"></div>
-      </div>
-      <h1>Raghav<br>Bandreddi</h1>
-      <p class="hero-tag">AI / Machine Learning Engineer. M.Sc. AI &amp; Data Science at HFU. I build deep-learning systems from first principles, Transformers, attention and autograd from scratch in PyTorch, and ship them as containerised APIs. <b>Building in public, one honest day at a time.</b></p>
-      <div class="hero-actions">
-        <a class="btn solid" href="Raghav_Bandreddi_CV.pdf" target="_blank">Download CV</a>
-        <a class="btn" href="#projects">See the projects</a>
-        <a class="btn" href="mailto:raghavbandreddi@gmail.com">Get in touch</a>
-      </div>
-      <div class="avail"><span class="pulse"></span> Open to a Werkstudent AI/ML role &middot; ~20 hrs/week &middot; Furtwangen, open to relocate in Germany &middot; available now</div>
-    </header>
-
-    <section id="today">
-      <div class="scene-marker">[ Mission Control &mdash; Today's Directives ]</div>
-      <div class="mc">
-        <div class="mc-top">
-          <h3>Today's objectives</h3>
-          <span class="day-badge" id="day-badge">Day 1 of the plan</span>
-        </div>
-        <p class="mc-sub">Pulled straight from the 6-month plan. Four learning reps plus outreach, synced to today.</p>
-        <div id="obj-list"></div>
-        <div class="mc-foot">
-          <button class="btn" id="btn-auth">Owner login</button>
-          <button class="btn solid hidden" id="btn-copy">Copy today to commit</button>
-          <button class="btn hidden" id="btn-exit">Exit</button>
-          <span class="mc-note" id="mc-note">Public view. Only I can tick these.</span>
-        </div>
-      </div>
-    </section>
-
-    <section id="plan">
-      <div class="scene-marker">[ Scene 02 &mdash; The Tactics ]</div>
-      <p class="mono muted" style="margin-bottom:1.6rem">The 6-month arc as a 4-2-3-1: foundations at the back, the deployed capstone up front.</p>
-      <div class="pitch">
-        <div class="formation" id="formation"></div>
-      </div>
-      <details class="arc">
-        <summary id="arc-sum">&rsaquo; Open the full day-by-day plan</summary>
-        <div class="arc-inner" id="arc-inner"></div>
-      </details>
-      <details class="arc">
-        <summary>&rsaquo; Open the DSA ladder &mdash; pattern by pattern</summary>
-        <div class="arc-inner"><p class="mono muted" style="font-size:.78rem;padding:.4rem 0 1rem">One LeetCode pattern at a time, in order, until all 18 are covered. Today's problem drives the daily objective above.</p><div id="dsa-inner"></div></div>
-      </details>
-    </section>
-
-    <section id="skills">
-      <div class="scene-marker">[ Scene 03 &mdash; The Toolkit ]</div>
-      <div class="skills-grid" id="skills-grid"></div>
-    </section>
-
-    <section id="about">
-      <div class="scene-marker">[ Scene 04 &mdash; The Board ]</div>
-      <p class="mono muted" style="margin-bottom:1.6rem">Everything a recruiter needs, in plain sight. <span style="color:#fff">(Chess fan? The Italian Game opening unlocks a bonus.)</span></p>
-      <div class="board" id="board">
-        <div id="secret">
-          <div id="tennis"></div>
-          <h2 style="color:#fff;font-size:1.8rem">Off the clock</h2>
-          <p class="mono" style="color:var(--gold);margin-top:.4rem">[ Italian Game verified. Nice. ]</p>
-          <div class="secret-grid">
-            <div class="secret-card"><h4>&#128054; Buddy</h4><p>My dog, chief morale officer, and the reason for most of my walks. <button id="btn-fetch" style="background:var(--gold);border:none;padding:2px 8px;font-size:.7rem;cursor:pointer;margin-top:.4rem">throw the ball</button></p></div>
-            <div class="secret-card"><h4>&#127909; Cinema</h4><p>Sci-fi, thrillers and true crime, usually on in the background while I work.</p></div>
-            <div class="secret-card"><h4>&#9917; The clubs</h4><p>Manchester United most weekends, and RCB through every IPL.</p></div>
-            <div class="secret-card"><h4>&#9992; Away from the desk</h4><p>Sport and travelling whenever I get the chance.</p></div>
-          </div>
-          <button id="close-secret" class="btn" style="margin-top:1.6rem">close</button>
-        </div>
-        <div class="square" data-square="e4"><div class="sq-title">Maths &middot; today</div><div id="math-render" style="color:#fff"></div></div>
-        <div class="square" data-square="e5"><div class="sq-title">Deutsch &middot; today</div><h3 id="ger-phrase"></h3><p id="ger-trans" style="font-style:italic"></p></div>
-        <div class="square" data-square="Nf3"><div class="sq-title">Based in</div><h3>Furtwangen,<br>Schwarzwald</h3><p>Germany &middot; CET</p></div>
-        <div class="square" data-square="Nc6"><div class="sq-title">Chess</div><h3 style="font-size:2rem">1176</h3><p>chess.com, climbing</p></div>
-        <div class="square" data-square="Bc4"><div class="sq-title">Studying</div><h3 style="font-size:1rem">M.Sc. AI &amp; Data Science</h3><p>Hochschule Furtwangen</p></div>
-        <div class="square" data-square="Bc5"><div class="sq-title">Before this</div><p>Accenture, software developer<br>KnowledgeAI, data science intern</p></div>
-        <div class="square" data-square="OO"><div class="sq-title">Languages</div><p>English C1<br>German A1, learning<br>Hindi, Telugu</p></div>
-        <div class="square" data-square="Nf6"><div class="sq-title">Contact</div><a href="mailto:raghavbandreddi@gmail.com">raghavbandreddi@gmail.com</a></div>
-      </div>
-    </section>
-
-    <section id="tracker">
-      <div class="scene-marker">[ Scene 05 &mdash; The 22 Yards ]</div>
-      <div class="cricket">
-        <div class="stumps"><div class="stump"></div><div class="stump"></div><div class="stump"></div></div>
-        <div class="badge-wrap"><div class="badge-inner"><div class="badge-front">18</div><div class="badge-back">born<br>18 Jun</div></div></div>
-        <div class="tk-wrap">
-          <div class="tk-top"><span class="mono muted" style="font-size:.78rem">THE RUN RATE &middot; last 7 days</span><span class="tk-stats"><span>STREAK <b id="streak-val">0</b></span><span>BEST <b id="best-val">0</b></span></span></div>
-          <table class="tracker"><thead><tr id="t-head"></tr></thead><tbody id="t-body"></tbody></table>
-        </div>
-      </div>
-    </section>
-
-    <section id="projects">
-      <div class="scene-marker">[ Scene 06 &mdash; Director's Cut ]</div>
-      <p class="mono muted" style="margin-bottom:.4rem">Real builds, with the problem, the approach, and the result. Two are live.</p>
-      <div class="film-strip" id="project-strip"></div>
-    </section>
-
-    <section id="logs">
-      <div class="scene-marker">[ Scene 07 &mdash; The Daily Logs ]</div>
-      <p class="mono muted" style="margin-bottom:1.6rem">Building in public, documented day by day.</p>
-      <div class="screenplay" id="logs-render"></div>
-    </section>
+<main>
+<div class="wide hero">
+  <h1>Raghav<br>Bandreddi</h1>
+  <p class="lede">I'm learning machine learning from first principles: deriving every formula, building every model from scratch, and publishing the explanations as I go.</p>
+  <p class="soft">M.Sc. student in AI and Data Science at Hochschule Furtwangen University, based in Bielefeld, Germany.</p>
+  <span class="status">Open to AI/ML working-student roles in Germany</span>
+  <div class="actions">
+    <a class="btn primary" href="mailto:raghavbandreddi@gmail.com">Email me</a>
+    <a class="btn" href="https://github.com/RaGHaV-186">GitHub</a>
+    <a class="btn" href="https://www.linkedin.com/in/raghav-bandreddi-035261398">LinkedIn</a>
+    <a class="btn" href="[add CV link, e.g. assets/raghav-bandreddi-cv.pdf]">Download CV</a>
   </div>
+</div>
 
-  <footer class="site-footer">
-    <div class="tensor-wrapper" style="font-size:1.4rem;opacity:.55;margin-bottom:1rem">
-      <div class="bracket left" style="height:46px;border-width:2px"></div>
-      <div class="tensor-matrix" style="gap:.4rem 1rem"><span class="t-r">R</span><span class="t-b">B</span><span class="t-1">1</span><span class="t-8">8</span></div>
-      <div class="bracket right" style="height:46px;border-width:2px"></div>
+<section class="wide" aria-labelledby="h-path">
+  <div class="path">
+    <div class="path-head">
+      <h2 id="h-path" style="margin:0">The path</h2>
+      <p class="soft" style="margin:0"><b id="day-now"></b> <span id="day-of"></span></p>
     </div>
-    <div class="footer-links">
-      <a href="Raghav_Bandreddi_CV.pdf" target="_blank">CV</a>
-      <a href="https://github.com/RaGHaV-186" target="_blank" rel="noopener">GITHUB</a>
-      <a href="https://linkedin.com/in/raghav-bandreddi-035261398" target="_blank" rel="noopener">LINKEDIN</a>
-      <a href="mailto:raghavbandreddi@gmail.com">EMAIL</a>
+    <p>A 147-day plan from statistics to production machine learning, one week per column. Teal squares are days with a published explanation: click one to read it.</p>
+    <div class="grid" id="grid" role="img" aria-label=""></div>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:var(--done)"></i>done</span>
+      <span><i style="background:var(--paper);box-shadow:inset 0 0 0 2.5px var(--accent)"></i>today</span>
+      <span><i style="background:var(--accent)"></i>explained</span>
+      <span><i style="background:var(--rule)"></i>ahead</span>
     </div>
-    <div class="sys-status"><span class="pulse"></span><span>Open to Werkstudent roles</span> &middot; <span>Furtwangen, DE</span> &middot; <span>updated daily</span></div>
-  </footer>
-
-  <div id="term">
-    <div>&gt; ACCESS GRANTED. Welcome, recruiter.</div>
-    <div>&gt; I build mathematically-grounded AI systems and ship them.</div>
-    <div style="margin-top:1rem"><a href="Raghav_Bandreddi_CV.pdf" target="_blank" style="background:#0f0;color:#000;padding:.4rem .9rem;font-weight:700">[ DOWNLOAD_CV ]</a> <span style="margin-left:1rem;cursor:pointer;text-decoration:underline" onclick="document.getElementById('term').classList.remove('on')">close</span></div>
+    <ol class="phases" id="phases"></ol>
   </div>
+</section>
 
-  <script>
-  /* ================= DATA (edit + commit to update) ================= */
-  const START = "2026-09-20";
-  const CURRENT_DAY = 1;          // bump as you finish days
-  const TRACKER_PIN = "1806";     // change this (your own code)
-  const HABITS = ["ML","DSA","Deutsch","Chess","Network"];
+<section class="wrap" aria-labelledby="h-explained">
+  <h2 id="h-explained">Explained</h2>
+  <p>Interactive explanations of what I've learned, with the code I wrote for it. Writing them is how I check that I really understand something.</p>
+  <ul class="rows" id="explainers"></ul>
+  <p style="margin-top:1rem"><a href="learn/">See all explanations</a></p>
+</section>
 
-  // public tracker record
-  const HISTORY = { "2026-09-20": {ML:true, DSA:true, Deutsch:true, Chess:false, Network:true} };
+<section class="wrap" id="projects" aria-labelledby="h-projects">
+  <h2 id="h-projects">Projects</h2>
+  <ul class="rows" id="project-list"></ul>
+</section>
 
-  // parallel daily tracks (cycle if the plan runs longer)
-  const DSA_PATTERNS = [
-    {p:"Arrays & Hashing", probs:["Two Sum","Contains Duplicate","Valid Anagram","Group Anagrams","Top K Frequent Elements","Product of Array Except Self","Valid Sudoku","Encode and Decode Strings","Longest Consecutive Sequence"]},
-    {p:"Two Pointers", probs:["Valid Palindrome","Two Sum II","3Sum","Container With Most Water","Trapping Rain Water"]},
-    {p:"Sliding Window", probs:["Best Time to Buy & Sell Stock","Longest Substring Without Repeating","Longest Repeating Character Replacement","Permutation in String","Minimum Window Substring","Sliding Window Maximum"]},
-    {p:"Stack", probs:["Valid Parentheses","Min Stack","Evaluate RPN","Generate Parentheses","Daily Temperatures","Car Fleet","Largest Rectangle in Histogram"]},
-    {p:"Binary Search", probs:["Binary Search","Search a 2D Matrix","Koko Eating Bananas","Find Minimum in Rotated Sorted Array","Search in Rotated Sorted Array","Time Based Key-Value Store","Median of Two Sorted Arrays"]},
-    {p:"Linked List", probs:["Reverse Linked List","Merge Two Sorted Lists","Reorder List","Remove Nth Node From End","Copy List with Random Pointer","Add Two Numbers","Linked List Cycle","Find the Duplicate Number","LRU Cache","Merge K Sorted Lists","Reverse Nodes in k-Group"]},
-    {p:"Trees", probs:["Invert Binary Tree","Maximum Depth of Binary Tree","Diameter of Binary Tree","Balanced Binary Tree","Same Tree","Subtree of Another Tree","Lowest Common Ancestor of a BST","Level Order Traversal","Right Side View","Count Good Nodes","Validate BST","Kth Smallest in a BST","Build Tree from Preorder & Inorder","Binary Tree Max Path Sum","Serialize & Deserialize Binary Tree"]},
-    {p:"Tries", probs:["Implement Trie","Design Add and Search Words","Word Search II"]},
-    {p:"Heap / Priority Queue", probs:["Kth Largest in a Stream","Last Stone Weight","K Closest Points to Origin","Kth Largest in an Array","Task Scheduler","Design Twitter","Find Median from Data Stream"]},
-    {p:"Backtracking", probs:["Subsets","Combination Sum","Permutations","Subsets II","Combination Sum II","Word Search","Palindrome Partitioning","Letter Combinations","N-Queens"]},
-    {p:"Graphs", probs:["Number of Islands","Max Area of Island","Clone Graph","Walls and Gates","Rotting Oranges","Pacific Atlantic Water Flow","Surrounded Regions","Course Schedule","Course Schedule II","Redundant Connection","Number of Connected Components","Graph Valid Tree","Word Ladder"]},
-    {p:"Advanced Graphs", probs:["Reconstruct Itinerary","Min Cost to Connect Points","Network Delay Time","Swim in Rising Water","Alien Dictionary","Cheapest Flights Within K Stops"]},
-    {p:"1-D Dynamic Programming", probs:["Climbing Stairs","Min Cost Climbing Stairs","House Robber","House Robber II","Longest Palindromic Substring","Palindromic Substrings","Decode Ways","Coin Change","Maximum Product Subarray","Word Break","Longest Increasing Subsequence","Partition Equal Subset Sum"]},
-    {p:"2-D Dynamic Programming", probs:["Unique Paths","Longest Common Subsequence","Buy & Sell Stock with Cooldown","Coin Change II","Target Sum","Interleaving String","Longest Increasing Path in Matrix","Distinct Subsequences","Edit Distance","Burst Balloons","Regular Expression Matching"]},
-    {p:"Greedy", probs:["Maximum Subarray","Jump Game","Jump Game II","Gas Station","Hand of Straights","Merge Triplets to Form Target","Partition Labels","Valid Parenthesis String"]},
-    {p:"Intervals", probs:["Insert Interval","Merge Intervals","Non-overlapping Intervals","Meeting Rooms","Meeting Rooms II","Minimum Interval to Include Each Query"]},
-    {p:"Math & Geometry", probs:["Rotate Image","Spiral Matrix","Set Matrix Zeroes","Happy Number","Plus One","Pow(x, n)","Multiply Strings","Detect Squares"]},
-    {p:"Bit Manipulation", probs:["Single Number","Number of 1 Bits","Counting Bits","Reverse Bits","Missing Number","Sum of Two Integers","Reverse Integer"]}
-  ]
-  const GER  = ["Alphabet and greetings","Numbers 0 to 20","Numbers 20 to 100, age","Personal info: name, origin","Articles der, die, das","ein, eine, plurals","Present tense: regular verbs","sein and haben","Personal pronouns","W-questions (wer, was, wo)","Negation: nicht, kein","Akkusativ case","Common everyday verbs","Food and drink vocab","Family members","Daily routine and telling time","Days and months","Weather talk","Modal verbs: koennen, muessen","moechten, wollen","Separable verbs","Dativ case (intro)","Prepositions of place","House and rooms","Shopping and prices","Clothing","Body and health","Directions","City and transport","Hobbies and free time","Perfect tense (intro)","haben and past participle","sein and past participle","Work and professions","Adjectives","Comparatives","Imperative mood","Time expressions","Ordinal numbers","Restaurant and ordering"];
-  const CHESS = ["Tactics: forks and pins","Opening principles","Tactics: skewers and discovered attacks","Basic checkmates: K+Q and K+R","Pawn structure basics","Endgame: king and pawn","Analyse one of your own games","Rated tactics puzzles","The Italian Game lines","Knight vs bishop endings","Rook endgame basics","Calculation practice"];
-  const NET  = ["Connect with an AI/ML engineer","Engage on a technical post","Apply to one Werkstudent role","Polish a project README","Share today's progress","Research a target company"];
+<section class="wrap" id="research" aria-labelledby="h-research">
+  <h2 id="h-research">Research</h2>
+  <p>Alongside the ML path, I'm working toward AI safety research on how language models are evaluated. My focus is sycophancy (models telling people what they want to hear) and whether models behave differently in German than in English.</p>
+  <p class="soft">Current stage: <em class="todo">[e.g. reading foundations and preparing for the Apart research sprint in October 2026]</em></p>
+  <ul class="rows">
+    <li><span class="meta">Outputs</span><p><em class="todo">[sprint report, LessWrong post or preprint: add each one here once published]</em></p></li>
+  </ul>
+</section>
 
-  const SKILLS = [
-    {cat:"Programming & Software", items:["Python","SQL","C","Git & GitHub","REST APIs","OOP","Clean code"]},
-    {cat:"ML & Deep Learning", items:["PyTorch","scikit-learn","Transformers","Attention","Backprop","Autograd","NLP","Recommenders","Information Retrieval"]},
-    {cat:"Data & Scientific Computing", items:["NumPy","pandas","Matplotlib","Feature engineering","Statistics","Eval: P@K, Recall, MRR"]},
-    {cat:"Web, APIs & MLOps", items:["FastAPI","Flask","Streamlit","Pydantic","Docker","Render","CI/CD","Containerisation"]},
-    {cat:"Databases & BI", items:["PostgreSQL","Power BI","Excel"]},
-    {cat:"Languages", items:["English C1","German A1","Hindi","Telugu"]}
-  ];
+<section class="wrap" aria-labelledby="h-exp">
+  <h2 id="h-exp">Experience</h2>
+  <ol class="timeline">
+    <li><span class="when">Since March 2026</span><h3>M.Sc. AI and Data Science for Digital Business Management</h3><span class="soft">Hochschule Furtwangen University, Germany</span></li>
+    <li><span class="when">Oct 2024 to Oct 2025</span><h3>Packaged App Development Associate</h3><span class="soft">Accenture, Bengaluru</span><p><em class="todo">[one or two lines: what you built and with what result]</em></p></li>
+    <li><span class="when">Jul to Sep 2024</span><h3>Data Science Intern</h3><span class="soft">Knowledge AI, Delhi</span><p><em class="todo">[one or two lines: what you built and with what result]</em></p></li>
+    <li><span class="when"><em class="todo">[years]</em></span><h3>Co-founder, HireKahani</h3><span class="soft">Interview experience sharing platform</span></li>
+    <li><span class="when">2020 to 2024</span><h3>B.Tech in Electronics and Instrumentation Engineering</h3><span class="soft">CVR College of Engineering, India</span></li>
+  </ol>
+</section>
 
-  const PROJECTS = [
-    {name:"Eminem Lyrics GPT", tech:"PyTorch, FastAPI, Docker",
-     problem:"Build a language model from first principles and actually ship it.",
-     approach:"A character-level Transformer (6 blocks, 8 heads) from scratch, benchmarking Bigram, single-head, multi-head and full attention at each stage.",
-     metric:"Val loss 1.52 · deployed as a Dockerised FastAPI on Render with CI/CD.",
-     live:"https://eminem-lyrics-api.onrender.com/docs", repo:"eminem-lyrics-api"},
-    {name:"Job Radar", tech:"Python, NumPy, Streamlit",
-     problem:"Rank 300 bilingual (DE/EN) job postings well, with no ML libraries.",
-     approach:"TF-IDF, BM25 and LSA implemented from their formulas, with an umlaut-aware tokenizer and a hand-labelled evaluation harness.",
-     metric:"BM25 beat TF-IDF by 11% on P@5 · diagnosed via the singular-value spectrum why SVD hurt here.",
-     live:"https://raghav-student-job-radar.streamlit.app", repo:"student-job-radar"},
-    {name:"Filmhaus", tech:"scikit-learn, Streamlit",
-     problem:"Recommend movies well, and measure it honestly.",
-     approach:"Four recommenders on MovieLens-1M (popularity, item/user CF from scratch, SVD + K-Means) with a leak-free temporal split.",
-     metric:"CF lifted Precision@10 ~10% and grew catalogue coverage 5x (3.7% to 18.5%).",
-     live:"", repo:"filmhaus"},
-    {name:"makemore Series", tech:"PyTorch, Jupyter",
-     problem:"Understand neural language models by building them.",
-     approach:"Rebuilt five architectures from scratch, ending in manual backprop verified against numerical gradient checking.",
-     metric:"Applied to Pokemon and chemical-compound name generators.",
-     live:"", repo:"makemore"}
-  ];
+<section class="wrap" aria-labelledby="h-skills">
+  <h2 id="h-skills">Skills</h2>
+  <div class="facts">
+    <div><h3>Machine learning</h3><ul><li>Python, NumPy, PyTorch</li><li>Transformers, retrieval, recommenders</li><li><em class="todo">[add more]</em></li></ul></div>
+    <div><h3>Engineering</h3><ul><li>FastAPI, React, Node.js</li><li>PostgreSQL, Docker</li><li><em class="todo">[add more]</em></li></ul></div>
+    <div><h3>Certificates and languages</h3><ul><li>IBM Data Science Professional</li><li>Meta Full Stack Developer</li><li>English <em class="todo">[level]</em>, German (learning)</li></ul></div>
+  </div>
+</section>
 
-  const LOGS = [
-    {date:"2026-09-20", loc:"Furtwangen, day one", action:"Set up the six-month plan and this site. Started the maths behind linear regression, the hypothesis and the squared-error cost. Reset DSA with Two Sum, and learned my first German greetings.", tags:["Setup","Maths","DSA","Deutsch"]}
-  ];
+<section class="wrap" id="contact" aria-labelledby="h-contact">
+  <h2 id="h-contact">Contact</h2>
+  <p>The quickest way to reach me is by email. I'm happy to talk about working-student roles, thesis topics or anything on this page.</p>
+  <div class="actions">
+    <a class="btn primary" href="mailto:raghavbandreddi@gmail.com">raghavbandreddi@gmail.com</a>
+    <a class="btn" href="https://www.linkedin.com/in/raghav-bandreddi-035261398">LinkedIn</a>
+  </div>
+</section>
+</main>
 
-  const PLAN = [
-   {m:1, title:"Foundations & the maths", weeks:[
-     {w:1, theme:"Linear algebra & linear regression", days:["What ML is; linear regression hypothesis and MSE cost.","Derive the gradients; code gradient descent.","Vectors, matrices, matmul; vectorise the regression.","Multiple features and feature scaling.","Eigenvalues and eigenvectors; the loss bowl."]},
-     {w:2, theme:"Logistic regression & probability", days:["The sigmoid and logistic regression.","Cross-entropy loss, derived.","Probability: distributions and Bayes.","Maximum likelihood estimation.","Decision boundaries; precision and recall."]},
-     {w:3, theme:"Regularization & the craft", days:["Bias and variance; over/under-fitting.","L2 (Ridge), derived.","L1 (Lasso) and sparsity.","Cross-validation.","Metrics: ROC, AUC, confusion matrix."]},
-     {w:4, theme:"Build a from-scratch ML library", days:["Repo, structure, tests.","LinearRegression and LogisticRegression classes.","Metrics and CV module.","pytest tests and a README.","Apply it to a real dataset; write it up."]}
-   ]},
-   {m:2, title:"Classic machine learning", weeks:[
-     {w:5, theme:"Trees, kNN, Naive Bayes", days:["Decision trees; entropy and information gain.","Build a tree from scratch.","Gini vs entropy; pruning.","k-Nearest Neighbors.","Naive Bayes."]},
-     {w:6, theme:"Ensembles", days:["Bagging and random forests.","Read Breiman; reimplement bagging.","Boosting intuition.","Gradient boosting and XGBoost.","Read the XGBoost paper; use it."]},
-     {w:7, theme:"SVM & unsupervised", days:["SVM margins and the kernel trick.","PCA and eigen-decomposition.","t-SNE and UMAP.","k-means.","GMM and EM."]},
-     {w:8, theme:"Project 1: end to end", days:["Pick a dataset; EDA.","Preprocessing and pipelines.","Model comparison and tuning.","Experiment tracking.","Evaluate; write the case study."]}
-   ]},
-   {m:3, title:"Deep learning, from the neuron up", weeks:[
-     {w:9, theme:"Neural nets from scratch", days:["Perceptron, neuron, activations.","Forward pass; build an MLP.","Backprop: derive the chain rule.","Implement backprop for a 2-layer net.","Train on a toy dataset."]},
-     {w:10, theme:"Autograd (micrograd)", days:["Computational graphs.","Value class and forward pass.","The backward pass.","A tiny NN library on top.","Train it; check against PyTorch."]},
-     {w:11, theme:"PyTorch", days:["Tensors and autograd.","nn.Module and a training loop.","Optimizers: SGD, Adam.","Init, batch-norm, dropout.","Rebuild your net in PyTorch."]},
-     {w:12, theme:"CNNs & vision", days:["Convolution as maths.","Pooling and architecture.","Read AlexNet and ResNet.","Train a CNN on MNIST.","CIFAR-10 and augmentation."]},
-     {w:13, theme:"Sequences & Project 2", days:["RNNs and LSTMs.","Plan Project 2.","Build model and pipeline.","One component from scratch.","Ship a runnable demo."]}
-   ]},
-   {m:4, title:"Transformers & LLMs", weeks:[
-     {w:14, theme:"Attention & the transformer", days:["Attention; derive the sqrt(d_k) scaling.","Multi-head attention.","Positional encodings, layer norm.","Read Attention Is All You Need.","Implement a transformer block."]},
-     {w:15, theme:"GPT from scratch", days:["Tokenization (BPE).","Embeddings and the decoder.","Build nanoGPT (1).","Train nanoGPT (2).","Sample and evaluate."]},
-     {w:16, theme:"Pretraining & fine-tuning", days:["Pretraining vs fine-tuning.","Read GPT and BERT.","HuggingFace transformers.","LoRA and PEFT.","Fine-tune a small model."]},
-     {w:17, theme:"Scaling, RLHF & Project 3", days:["Scaling laws (Chinchilla).","Instruction tuning and RLHF.","Start Project 3.","Train and iterate.","Evaluate; write it up."]}
-   ]},
-   {m:5, title:"Applied LLMs, agents & the cloud", weeks:[
-     {w:18, theme:"RAG", days:["Embeddings and vector search.","A retrieval loop from scratch.","Read the RAG paper.","Vector DBs (FAISS, Chroma).","Build a RAG pipeline."]},
-     {w:19, theme:"Agents & LangGraph", days:["ReAct; read the paper.","Tool use and function calling.","LangChain essentials.","LangGraph: state, nodes, edges.","Build a multi-step agent."]},
-     {w:20, theme:"Serving: FastAPI & Docker", days:["FastAPI endpoints and validation.","Wrap the app in an API.","Docker and a clean Dockerfile.","Containerize the app.","CI/CD with GitHub Actions."]},
-     {w:21, theme:"Cloud (AWS)", days:["IAM and S3.","ECR; push the image.","Deploy on ECS or Lambda.","SageMaker: train and an endpoint.","Monitoring, logging, cost."]},
-     {w:22, theme:"Project 4: deployed", days:["Scope; architecture diagram.","Build the core service.","Containerize and CI/CD.","Deploy with a live URL.","Monitoring; case study."]}
-   ]},
-   {m:6, title:"Capstone & getting hired", weeks:[
-     {w:23, theme:"Capstone: build", days:["Scope and diagram.","Build the model layer.","Build the RAG or agent layer.","Wire it together.","First end-to-end run."]},
-     {w:24, theme:"Capstone: ship", days:["Containerize and CI/CD.","Deploy to the cloud.","Monitoring and logging.","Polish UI and docs.","Record a demo video."]},
-     {w:25, theme:"Portfolio & CV", days:["Case studies with diagrams.","Clean READMEs, live demos.","Refine the CV.","LinkedIn and Xing.","Target list; tailor applications."]},
-     {w:26, theme:"Interviews & apply", days:["Derive backprop and attention.","Coding and system design.","A mock interview.","Behavioural (STAR).","Send applications; iterate."]}
-   ]}
-  ];
+<footer class="wrap">
+  <p>Built by hand, hosted on GitHub Pages. The code for everything above is on <a href="https://github.com/RaGHaV-186">GitHub</a>.</p>
+</footer>
 
-  /* ================= helpers ================= */
-  function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-  var $=function(id){return document.getElementById(id);};
-  function dkey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+<script src="assets/data.js"></script>
+<script>
+(function () {
+  const S = window.SITE;
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  // a value still in [brackets] is a placeholder: show it highlighted instead of as a broken link
+  const link = ([label, href]) => href.startsWith("[")
+    ? `<em class="todo">${esc(label)}: ${esc(href)}</em>`
+    : `<a href="${esc(href)}">${esc(label)}</a>`;
 
-  // flatten plan days
-  var DAYS=[]; PLAN.forEach(function(m){m.weeks.forEach(function(wk){wk.days.forEach(function(t){DAYS.push({ml:t,week:wk.theme,month:m.title});});});});
-  function pick(arr){return arr[(CURRENT_DAY-1)%arr.length];}
-  var todayPlan = DAYS[Math.min(CURRENT_DAY-1, DAYS.length-1)] || DAYS[0];
-  var DSA_LIST=[]; DSA_PATTERNS.forEach(function(pat){pat.probs.forEach(function(pr){DSA_LIST.push({pattern:pat.p,prob:pr});});});
-  var todayDSA = DSA_LIST[Math.min(CURRENT_DAY-1, DSA_LIST.length-1)] || DSA_LIST[0];
+  /* the path */
+  const byDay = Object.fromEntries(S.explainers.map(e => [e.day, e]));
+  const phaseNow = S.phases.find(p => S.currentDay >= p.from && S.currentDay <= p.to);
+  $("day-now").textContent = "Day " + S.currentDay;
+  $("day-of").textContent = "of " + S.totalDays + (phaseNow ? ", " + phaseNow.name.toLowerCase() + " phase" : "");
+  $("grid").setAttribute("aria-label", "Day " + S.currentDay + " of " + S.totalDays + " in the learning plan");
+  S.phases.forEach(p => {
+    const block = document.createElement("div");
+    block.className = "phase-block";
+    block.title = p.name;
+    for (let d = p.from; d <= p.to; d++) {
+      const e = byDay[d];
+      const cell = document.createElement(e ? "a" : "span");
+      cell.className = "cell" + (d < S.currentDay ? " done" : "") + (d === S.currentDay ? " now" : "") + (e ? " has" : "");
+      if (e) { cell.href = e.href; cell.title = "Day " + d + ": " + e.title; cell.setAttribute("aria-label", "Day " + d + ": " + e.title); }
+      else cell.title = "Day " + d;
+      block.appendChild(cell);
+    }
+    $("grid").appendChild(block);
+    const li = document.createElement("li");
+    li.textContent = p.name + ", days " + p.from + " to " + p.to;
+    if (p === phaseNow) li.className = "current";
+    $("phases").appendChild(li);
+  });
 
-  var OBJECTIVES = [
-    {h:"ML", label:"Machine Learning", task: todayPlan.ml},
-    {h:"DSA", label:"LeetCode", task: todayDSA.pattern+" \u00b7 "+todayDSA.prob},
-    {h:"Deutsch", label:"German", task: pick(GER)},
-    {h:"Chess", label:"Chess", task: pick(CHESS)},
-    {h:"Network", label:"Network", task: pick(NET)}
-  ];
-
-  /* doses in the board */
-  $('math-render').innerHTML = "$$\\theta := \\theta - \\alpha\\,\\nabla_\\theta J(\\theta)$$";
-  $('ger-phrase').textContent = "Ich hei\u00dfe Raghav.";
-  $('ger-trans').textContent = '"My name is Raghav."';
-
-  /* skills */
-  $('skills-grid').innerHTML = SKILLS.map(function(s){
-    return '<div class="skill-cat"><h4>'+esc(s.cat)+'</h4><div class="chips">'+s.items.map(function(i){return '<span class="chip">'+esc(i)+'</span>';}).join('')+'</div></div>';
-  }).join('');
-
-  /* formation (6-month overview) */
-  var FORM=[
-    {pos:"ST", grid:"n-st", ph:"Month 6", title:"Capstone", desc:"Deployed, enterprise-grade"},
-    {pos:"LW", grid:"n-aml", ph:"Month 4", title:"Transformers & LLMs", desc:"GPT from scratch, LoRA"},
-    {pos:"CAM", grid:"n-amc", ph:"Month 5", title:"Agents, RAG & Cloud", desc:"LangGraph, FastAPI, AWS"},
-    {pos:"RW", grid:"n-amr", ph:"Month 3", title:"Deep Learning", desc:"Backprop, PyTorch, CNNs"},
-    {pos:"CM", grid:"n-cdl", ph:"Month 2", title:"Classic ML", desc:"Trees, boosting, PCA"},
-    {pos:"CM", grid:"n-cdr", ph:"Month 1", title:"ML from scratch", desc:"Regression, a tested lib"},
-    {pos:"CB", grid:"n-lcb", ph:"Foundations", title:"The Maths", desc:"Linear algebra, calculus"},
-    {pos:"CB", grid:"n-rcb", ph:"Foundations", title:"Probability", desc:"MLE, Bayes, statistics"}
-  ];
-  $('formation').innerHTML = FORM.map(function(n){
-    return '<div class="node '+n.grid+'" data-pos="'+n.pos+'"><div class="ph">'+n.ph+'</div><h4>'+esc(n.title)+'</h4><p>'+esc(n.desc)+'</p></div>';
-  }).join('');
-
-  /* full arc */
-  $('arc-inner').innerHTML = PLAN.map(function(m){
-    var weeks = m.weeks.map(function(wk){
-      return '<div class="arc-week"><span class="w">Week '+wk.w+'</span><span class="t">'+esc(wk.theme)+': '+esc(wk.days.join(' / '))+'</span></div>';
-    }).join('');
-    return '<div class="arc-month"><div class="amh">Month '+m.m+' &middot; '+esc(m.title)+'</div>'+weeks+'</div>';
-  }).join('');
-
-  /* dsa ladder */
-  (function(){
-    var idx=0, html='';
-    DSA_PATTERNS.forEach(function(pat){
-      var start=idx, rows='';
-      pat.probs.forEach(function(pr){
-        idx++;
-        var st = idx<CURRENT_DAY?'done':(idx===CURRENT_DAY?'current':'');
-        rows+='<div class="prob '+st+'"><span class="pi">'+idx+'</span><span>'+esc(pr)+'</span></div>';
-      });
-      var pstate = idx<CURRENT_DAY?'done':(CURRENT_DAY>start&&CURRENT_DAY<=idx?'current':'');
-      var lbl = pstate==='done'?'done':(pstate==='current'?'in progress':'upcoming');
-      var open = pstate==='current'?'open':'';
-      html+='<details class="pat" '+open+'><summary><span class="pnum">'+pat.probs.length+'</span> '+esc(pat.p)+' <span class="pstate '+pstate+'">'+lbl+'</span></summary>'+rows+'</details>';
-    });
-    $('dsa-inner').innerHTML=html;
-  })();
+  /* latest explainers (max 3) */
+  $("explainers").innerHTML = [...S.explainers].reverse().slice(0, 3).map(e =>
+    `<li><span class="meta">Day ${e.day}</span><div><h3><a href="${esc(e.href)}">${esc(e.title)}</a></h3><p class="soft">${esc(e.about)}</p></div></li>`
+  ).join("");
 
   /* projects */
-  $('project-strip').innerHTML = PROJECTS.map(function(p,i){
-    var links='<a href="https://github.com/RaGHaV-186/'+esc(p.repo)+'" target="_blank" rel="noopener">GitHub &rsaquo;</a>';
-    if(p.live) links='<a href="'+esc(p.live)+'" target="_blank" rel="noopener">Live demo &rsaquo;</a>'+links;
-    return '<div class="frame"><span class="clapper">SCENE '+(i+1)+' &middot; '+esc(p.tech.toUpperCase())+'</span><h3>'+esc(p.name)+'</h3>'
-      +'<p class="cs"><b>Problem.</b> '+esc(p.problem)+'</p>'
-      +'<p class="cs"><b>Approach.</b> '+esc(p.approach)+'</p>'
-      +'<p class="metric">'+esc(p.metric)+'</p>'
-      +'<div class="flinks">'+links+'</div></div>';
-  }).join('');
+  $("project-list").innerHTML = S.projects.map(p =>
+    `<li><span class="meta">${esc(p.tech)}</span><div><h3>${esc(p.name)}</h3><p>${esc(p.what)}</p><div class="links">${p.links.map(link).join("")}</div></div></li>`
+  ).join("");
 
-  /* logs */
-  $('logs-render').innerHTML = LOGS.map(function(l){
-    var d=new Date(l.date+"T00:00:00");var nice=d.toLocaleDateString('en-GB',{weekday:'long',day:'2-digit',month:'short',year:'numeric'});
-    return '<div class="scene"><div class="scene-heading">'+esc(l.loc)+' &mdash; '+nice+'</div><div class="scene-action">'+esc(l.action)+'</div><div class="scene-tags">'+l.tags.map(function(t){return '<span class="tag">#'+esc(t)+'</span>';}).join('')+'</div></div>';
-  }).join('');
-
-  /* ================= unified daily engine + tracker ================= */
-  (function(){
-    var OWNER='rb.owner', DRAFT='rb.draft';
-    function isOwner(){try{return localStorage.getItem(OWNER)==='1';}catch(e){return false;}}
-    function loadDraft(){try{return JSON.parse(localStorage.getItem(DRAFT))||{};}catch(e){return {};}}
-    function saveDraft(o){try{localStorage.setItem(DRAFT,JSON.stringify(o));}catch(e){}}
-    var draft=loadDraft();
-    function committed(k){return HISTORY[k]||{};}
-    function eff(k){var c=committed(k),o={};HABITS.forEach(function(h){o[h]=!!c[h];});if(isOwner()&&draft[k]){HABITS.forEach(function(h){if(h in draft[k])o[h]=!!draft[k][h];});}return o;}
-    var today=new Date();today.setHours(0,0,0,0);var tKey=dkey(today);
-    function active(k){var e=eff(k);return HABITS.some(function(h){return e[h];});}
-    function dayStreak(){var n=0,cur=new Date(today);if(!active(dkey(cur)))cur.setDate(cur.getDate()-1);while(active(dkey(cur))&&dkey(cur)>=START){n++;cur.setDate(cur.getDate()-1);}return n;}
-    function bestStreak(){var best=0,run=0,cur=new Date(START+"T00:00:00");while(cur<=today){run=active(dkey(cur))?run+1:0;if(run>best)best=run;cur.setDate(cur.getDate()+1);}return best;}
-    function last7(){var a=[];for(var i=6;i>=0;i--){var d=new Date(today);d.setDate(today.getDate()-i);a.push({key:dkey(d),d:d,today:i===0});}return a;}
-
-    function renderObjectives(){
-      var owner=isOwner(), e=eff(tKey);
-      $('day-badge').textContent='Day '+CURRENT_DAY+' of the plan';
-      $('obj-list').innerHTML=OBJECTIVES.map(function(o){
-        var on=e[o.h];
-        return '<div class="obj '+(on?'done ':'')+(owner?'editable':'')+'" data-h="'+o.h+'"><div class="box"></div><div class="meta"><div class="k">'+esc(o.label)+'</div><div class="t">'+esc(o.task)+'</div></div></div>';
-      }).join('');
-      $('btn-auth').classList.toggle('hidden',owner);
-      $('btn-copy').classList.toggle('hidden',!owner);
-      $('btn-exit').classList.toggle('hidden',!owner);
-      $('mc-note').textContent = owner ? 'Owner mode. Tick what you did, then copy the line and commit it.' : 'Public view. Only I can tick these.';
-      if(owner){
-        Array.prototype.forEach.call(document.querySelectorAll('.obj.editable'),function(el){
-          el.addEventListener('click',function(){var h=el.getAttribute('data-h');if(!draft[tKey])draft[tKey]=Object.assign({},committed(tKey));draft[tKey][h]=!eff(tKey)[h];saveDraft(draft);renderObjectives();renderTracker();});
-        });
-      }
-    }
-    function renderTracker(){
-      var days=last7();
-      $('t-head').innerHTML='<th>Habit</th>'+days.map(function(x){return '<th'+(x.today?' style="color:var(--gold)"':'')+'>'+(x.today?'Tdy':(x.d.getDate()+'/'+(x.d.getMonth()+1)))+'</th>';}).join('');
-      $('t-body').innerHTML=HABITS.map(function(h){
-        var cells=days.map(function(x){var on=eff(x.key)[h];var cls='dot'+(on?(x.today?' done':' done-past'):'');return '<td><span class="'+cls+'"></span></td>';}).join('');
-        return '<tr><td>'+h+'</td>'+cells+'</tr>';
-      }).join('');
-      $('streak-val').textContent=dayStreak();
-      $('best-val').textContent=bestStreak();
-    }
-    $('btn-auth').addEventListener('click',function(){var c=prompt("Owner code:");if(c===null)return;if(String(c).trim()===TRACKER_PIN){try{localStorage.setItem(OWNER,'1');}catch(e){}renderObjectives();renderTracker();}else{alert("Access denied.");}});
-    $('btn-exit').addEventListener('click',function(){try{localStorage.removeItem(OWNER);}catch(e){}renderObjectives();renderTracker();});
-    $('btn-copy').addEventListener('click',function(){var e=eff(tKey);var line='"'+tKey+'": {'+HABITS.map(function(h){return h+':'+(e[h]?'true':'false');}).join(', ')+'},';try{navigator.clipboard.writeText(line);$('btn-copy').textContent='Copied';setTimeout(function(){$('btn-copy').textContent='Copy today to commit';},1400);}catch(err){prompt("Copy into HISTORY:",line);}});
-    renderObjectives();renderTracker();
-  })();
-
-  /* ================= easter eggs (bonus only) ================= */
-  var italian=['e4','e5','Nf3','Bc4'],mi=0;
-  document.querySelectorAll('.square').forEach(function(sq){
-    sq.addEventListener('click',function(){var mv=sq.getAttribute('data-square');
-      if(mv===italian[mi]){sq.classList.add('active-move');mi++;if(mi===italian.length){setTimeout(function(){$('secret').classList.add('on');document.querySelectorAll('.square').forEach(function(s){s.classList.remove('active-move');});mi=0;},250);}}
-      else{document.querySelectorAll('.square').forEach(function(s){s.classList.remove('active-move');});mi=0;if(mv===italian[0]){sq.classList.add('active-move');mi=1;}}});
-  });
-  $('close-secret').addEventListener('click',function(){$('secret').classList.remove('on');});
-  $('btn-fetch').addEventListener('click',function(){var b=$('tennis');b.classList.remove('throw');void b.offsetWidth;b.classList.add('throw');});
-  var buf="";document.addEventListener('keydown',function(e){buf=(buf+e.key.toLowerCase()).slice(-12);
-    if(buf.includes("cv")&&e.key==='Enter'){}
-    if(buf.includes("peace")){$('term').classList.add('on');buf="";}
-    if(buf.includes("dragon")){document.body.classList.toggle('theme-vermithor');buf="";}});
-  console.log("%c[boot] The architecture is online. Try typing PEACE, or play the Italian Game on the board.","color:#d4af37;font-family:monospace");
-
-  /* ================= hero canvas ================= */
-  (function(){
-    var c=$('ai-network'),ctx=c.getContext('2d'),w,h;
-    function resize(){w=c.width=c.parentElement.clientWidth;h=c.height=c.parentElement.clientHeight;}
-    resize();window.addEventListener('resize',resize);
-    var nodes=Array.from({length:14},function(){return {x:Math.random()*w,y:Math.random()*h,a:Math.random()*2+1,b:Math.random()*2+1,ph:Math.random()*Math.PI*2};});
-    var t=0,reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    function frame(step){ctx.clearRect(0,0,w,h);if(step)t+=.001;
-      nodes.forEach(function(n){var tx=w/2+(w/2.5)*Math.sin(n.a*t+n.ph),ty=h/2+(h/2.5)*Math.sin(n.b*t);n.x+=(tx-n.x)*.01;n.y+=(ty-n.y)*.01;});
-      ctx.lineWidth=1;
-      for(var i=0;i<nodes.length;i++)for(var j=i+1;j<nodes.length;j++){var dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
-        if(d<300){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle='rgba(212,175,55,'+(1-d/300)*.5+')';ctx.stroke();}}
-      nodes.forEach(function(n){ctx.beginPath();ctx.arc(n.x,n.y,2.5,0,Math.PI*2);ctx.fillStyle='rgba(212,175,55,.8)';ctx.fill();});
-      if(!reduce)requestAnimationFrame(function(){frame(true);});
-    }
-    frame(!reduce);
-  })();
-  </script>
+  /* highlight any remaining [placeholder] hrefs in the static HTML */
+  document.querySelectorAll('a[href^="["]').forEach(a => { a.classList.add("todo"); a.removeAttribute("href"); a.title = "Placeholder: add the real link"; });
+})();
+</script>
 </body>
 </html>

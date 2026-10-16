@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Explained</title>
+<meta name="description" content="Interactive explanations of machine learning maths and code, written while learning ML from scratch.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.intro{padding:2.5rem 0 2rem}
+.intro h1{font-size:clamp(2.6rem,8vw,4.4rem);font-weight:800;letter-spacing:-.03em;margin:0 0 1rem}
+.phase-title{font:600 1rem var(--display);color:var(--soft);margin:2.5rem 0 .5rem}
+.empty{color:var(--soft);font-style:italic}
+</style>
+</head>
+<body>
+<header class="wide bar">
+  <a href="../">Raghav Bandreddi</a>
+  <nav aria-label="Main">
+    <a href="./" aria-current="page">Explained</a>
+    <a href="../#projects">Projects</a>
+    <a href="../#research">Research</a>
+    <a href="../#contact">Contact</a>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div class="intro">
+    <h1>Explained</h1>
+    <p>Each page explains one day of my machine learning path with interactive examples and the code I wrote for it. Writing them is how I check that I really understand something.</p>
+  </div>
+  <div id="list"></div>
+</main>
+
+<footer class="wrap"><p><a href="../">Back to the home page</a></p></footer>
+
+<script src="../assets/data.js"></script>
+<script>
+(function () {
+  const S = window.SITE;
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  // hrefs in data.js are relative to the site root; this page sits one folder down
+  const fix = h => /^https?:/.test(h) ? h : "../" + h;
+  const html = S.phases.map(p => {
+    const items = S.explainers.filter(e => e.day >= p.from && e.day <= p.to).sort((a, b) => a.day - b.day);
+    if (!items.length) return "";
+    return `<h2 class="phase-title">${esc(p.name)}</h2><ul class="rows">` +
+      items.map(e => `<li><span class="meta">Day ${e.day}</span><div><h3><a href="${esc(fix(e.href))}">${esc(e.title)}</a></h3><p class="soft">${esc(e.about)}</p></div></li>`).join("") +
+      `</ul>`;
+  }).join("");
+  document.getElementById("list").innerHTML = html || '<p class="empty">The first explanation is on its way.</p>';
+})();
+</script>
+</body>
+</html>
