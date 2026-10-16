@@ -1,58 +1,362 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Explained</title>
-<meta name="description" content="Interactive explanations of machine learning maths and code, written while learning ML from scratch.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/site.css">
-<style>
-.intro{padding:2.5rem 0 2rem}
-.intro h1{font-size:clamp(2.6rem,8vw,4.4rem);font-weight:800;letter-spacing:-.03em;margin:0 0 1rem}
-.phase-title{font:600 1rem var(--display);color:var(--soft);margin:2.5rem 0 .5rem}
-.empty{color:var(--soft);font-style:italic}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Interactive ML Explainers — Raghav Bandreddi</title>
+  <meta name="description" content="All interactive visual explanations from Raghav Bandreddi's 147-day first-principles machine learning path." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("raghav-theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        var theme = saved || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
-<header class="wide bar">
-  <a href="../">Raghav Bandreddi</a>
-  <nav aria-label="Main">
-    <a href="./" aria-current="page">Explained</a>
-    <a href="../#projects">Projects</a>
-    <a href="../#research">Research</a>
-    <a href="../#contact">Contact</a>
-  </nav>
-</header>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
-<main class="wrap">
-  <div class="intro">
-    <h1>Explained</h1>
-    <p>Each page explains one day of my machine learning path with interactive examples and the code I wrote for it. Writing them is how I check that I really understand something.</p>
-  </div>
-  <div id="list"></div>
-</main>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="../index.html" class="brand" aria-label="Raghav Bandreddi home">
+        <span class="brand-mark" aria-hidden="true">RB</span>
+        <span class="brand-text">
+          <span class="brand-name">Raghav Bandreddi</span>
+          <span class="brand-sub">147-Day ML Notebook</span>
+        </span>
+      </a>
 
-<footer class="wrap"><p><a href="../">Back to the home page</a></p></footer>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../index.html#the-path">The Path</a>
+        <a href="index.html" aria-current="page">Explainers</a>
+        <a href="../index.html#projects">Projects</a>
+        <a href="../index.html#research">Research</a>
+        <a href="../index.html#experience">Experience</a>
+        <a href="../index.html#contact">Contact</a>
+      </nav>
 
-<script src="../assets/data.js"></script>
-<script>
-(function () {
-  const S = window.SITE;
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  // hrefs in data.js are relative to the site root; this page sits one folder down
-  const fix = h => /^https?:/.test(h) ? h : "../" + h;
-  const html = S.phases.map(p => {
-    const items = S.explainers.filter(e => e.day >= p.from && e.day <= p.to).sort((a, b) => a.day - b.day);
-    if (!items.length) return "";
-    return `<h2 class="phase-title">${esc(p.name)}</h2><ul class="rows">` +
-      items.map(e => `<li><span class="meta">Day ${e.day}</span><div><h3><a href="${esc(fix(e.href))}">${esc(e.title)}</a></h3><p class="soft">${esc(e.about)}</p></div></li>`).join("") +
-      `</ul>`;
-  }).join("");
-  document.getElementById("list").innerHTML = html || '<p class="empty">The first explanation is on its way.</p>';
-})();
-</script>
+      <div class="header-actions">
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+          <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+          <span class="theme-label" id="theme-label">Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main-content">
+    <section class="section">
+      <div class="container">
+        <div class="section-header-row">
+          <div>
+            <span class="section-kicker">147-Day Interactive Series</span>
+            <h1 class="section-title">Visual Machine Learning Explainers</h1>
+            <p class="section-subtitle">
+              Every explainer starts with an interactive simulation to build visual intuition first, then introduces the formula and my from-scratch Python code.
+            </p>
+          </div>
+          <div id="learn-summary-badge" class="path-live-stats"></div>
+        </div>
+
+        <!-- Phase Filter Bar -->
+        <div id="phase-filter-bar" class="stage-controls" role="group" aria-label="Filter explainers by phase" style="margin-bottom: 1.75rem;">
+          <!-- Populated from window.SITE.phases -->
+        </div>
+
+        <!-- All Explainers List -->
+        <div id="all-explainers-list" class="explainers-grid">
+          <!-- Populated from window.SITE.explainers -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Curriculum Overview Table -->
+    <section class="section section-alt">
+      <div class="container">
+        <span class="section-kicker">Full Roadmap</span>
+        <h2 class="section-title">The 7 Phases of the 147-Day Plan</h2>
+        <p class="section-subtitle">
+          As I complete new interactive pages and add them to <code>assets/data.js</code>, they automatically appear in the cards above and inside each phase below.
+        </p>
+
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Phase</th>
+                <th>Day Range</th>
+                <th>Status</th>
+                <th>Published Explainers</th>
+              </tr>
+            </thead>
+            <tbody id="phases-roadmap-tbody">
+              <!-- Populated from window.SITE -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-honesty">
+        Designed and built with help from AI. The maths and the Python behind each explanation are my own; the code is on GitHub.
+      </p>
+      <div class="footer-links">
+        <a href="../index.html">Home</a>
+        <a href="index.html">Explainers</a>
+        <a href="https://github.com/RaGHaV-186" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/data.js"></script>
+  <script>
+    (function () {
+      "use strict";
+
+      // Theme toggle
+      var toggleBtn = document.getElementById("theme-toggle");
+      var themeLabel = document.getElementById("theme-label");
+
+      function updateThemeButton(theme) {
+        if (themeLabel) themeLabel.textContent = theme === "dark" ? "Dark" : "Light";
+      }
+
+      updateThemeButton(document.documentElement.getAttribute("data-theme") || "light");
+
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", function () {
+          var now = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", now);
+          try {
+            localStorage.setItem("raghav-theme", now);
+          } catch (e) {}
+          updateThemeButton(now);
+        });
+      }
+
+      var site = window.SITE;
+      if (!site) return;
+
+      // Relative path fixer so links in data.js like "learn/day01-..." work from inside /learn/
+      function resolveFromLearnDir(href) {
+        if (!href) return "#";
+        if (href.indexOf("http://") === 0 || href.indexOf("https://") === 0) return href;
+        if (href.indexOf("learn/") === 0) {
+          return href.slice("learn/".length);
+        }
+        if (href.indexOf("./learn/") === 0) {
+          return href.slice("./learn/".length);
+        }
+        return "../" + href;
+      }
+
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
+
+      function getPhaseForDay(day) {
+        return (
+          (site.phases || []).find(function (p) {
+            return day >= p.from && day <= p.to;
+          }) || { name: "ML Path", from: 1, to: 147 }
+        );
+      }
+
+      var summaryBadge = document.getElementById("learn-summary-badge");
+      if (summaryBadge) {
+        var currentPhase = getPhaseForDay(site.currentDay);
+        summaryBadge.innerHTML =
+          '<div class="stat-pill">' +
+          '<span class="stat-pill-label">Current Day</span>' +
+          '<strong class="stat-pill-value">Day ' +
+          escapeHtml(site.currentDay) +
+          " of " +
+          escapeHtml(site.totalDays) +
+          " (" +
+          escapeHtml(currentPhase.name) +
+          ")</strong>" +
+          "</div>" +
+          '<div class="stat-pill">' +
+          '<span class="stat-pill-label">Published</span>' +
+          '<strong class="stat-pill-value">' +
+          escapeHtml((site.explainers || []).length) +
+          " interactive " +
+          ((site.explainers || []).length === 1 ? "page" : "pages") +
+          "</strong>" +
+          "</div>";
+      }
+
+      var activeFilter = "ALL";
+      var filterBar = document.getElementById("phase-filter-bar");
+      var listContainer = document.getElementById("all-explainers-list");
+
+      function renderExplainers() {
+        if (!listContainer) return;
+        var items = (site.explainers || []).slice().sort(function (a, b) {
+          return a.day - b.day;
+        });
+
+        var filtered = items.filter(function (item) {
+          if (activeFilter === "ALL") return true;
+          var p = getPhaseForDay(item.day);
+          return p.name === activeFilter;
+        });
+
+        if (filtered.length === 0) {
+          listContainer.innerHTML =
+            '<div class="interactive-stage" style="grid-column: 1 / -1; text-align: center;">' +
+            "<p>No explainers published in the <strong>" +
+            escapeHtml(activeFilter) +
+            "</strong> phase yet — currently on Day " +
+            escapeHtml(site.currentDay) +
+            " of " +
+            escapeHtml(site.totalDays) +
+            ".</p>" +
+            "</div>";
+          return;
+        }
+
+        listContainer.innerHTML = filtered
+          .map(function (item) {
+            var phase = getPhaseForDay(item.day);
+            var resolvedHref = resolveFromLearnDir(item.href);
+            return (
+              '<article class="explainer-card">' +
+              '<div class="explainer-card-top">' +
+              '<span class="explainer-day-pill">Day ' +
+              escapeHtml(item.day) +
+              " · " +
+              escapeHtml(phase.name) +
+              "</span>" +
+              '<span class="explainer-interactive-badge">Interactive Lesson</span>' +
+              "</div>" +
+              '<h2 class="explainer-card-title"><a href="' +
+              escapeHtml(resolvedHref) +
+              '">' +
+              escapeHtml(item.title) +
+              "</a></h2>" +
+              '<p class="explainer-card-desc">' +
+              escapeHtml(item.about) +
+              "</p>" +
+              '<div class="explainer-card-footer">' +
+              '<a class="explainer-read-link" href="' +
+              escapeHtml(resolvedHref) +
+              '">Open Day ' +
+              escapeHtml(item.day) +
+              ' explainer <span aria-hidden="true">→</span></a>' +
+              "</div>" +
+              "</article>"
+            );
+          })
+          .join("");
+      }
+
+      if (filterBar && site.phases) {
+        var allBtn = document.createElement("button");
+        allBtn.type = "button";
+        allBtn.className = "predict-btn selected";
+        allBtn.textContent = "All Phases (" + (site.explainers || []).length + ")";
+        allBtn.addEventListener("click", function () {
+          activeFilter = "ALL";
+          Array.prototype.forEach.call(filterBar.querySelectorAll("button"), function (b) {
+            b.classList.remove("selected");
+          });
+          allBtn.classList.add("selected");
+          renderExplainers();
+        });
+        filterBar.appendChild(allBtn);
+
+        site.phases.forEach(function (phase) {
+          var count = (site.explainers || []).filter(function (e) {
+            return e.day >= phase.from && e.day <= phase.to;
+          }).length;
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "predict-btn";
+          btn.textContent = phase.name + " (" + count + ")";
+          btn.addEventListener("click", function () {
+            activeFilter = phase.name;
+            Array.prototype.forEach.call(filterBar.querySelectorAll("button"), function (b) {
+              b.classList.remove("selected");
+            });
+            btn.classList.add("selected");
+            renderExplainers();
+          });
+          filterBar.appendChild(btn);
+        });
+      }
+
+      renderExplainers();
+
+      // Render curriculum overview table
+      var tbody = document.getElementById("phases-roadmap-tbody");
+      if (tbody && site.phases) {
+        tbody.innerHTML = site.phases
+          .map(function (phase) {
+            var phaseExplainers = (site.explainers || []).filter(function (e) {
+              return e.day >= phase.from && e.day <= phase.to;
+            });
+            var status =
+              site.currentDay > phase.to
+                ? "Completed"
+                : site.currentDay >= phase.from
+                ? "In Progress (Day " + site.currentDay + ")"
+                : "Upcoming";
+
+            var linksHtml =
+              phaseExplainers.length > 0
+                ? phaseExplainers
+                    .map(function (e) {
+                      return (
+                        '<a href="' +
+                        escapeHtml(resolveFromLearnDir(e.href)) +
+                        '">Day ' +
+                        escapeHtml(e.day) +
+                        ": " +
+                        escapeHtml(e.title) +
+                        "</a>"
+                      );
+                    })
+                    .join(", ")
+                : '<span style="color: var(--text-muted);">Upcoming</span>';
+
+            return (
+              "<tr>" +
+              "<td><strong>" +
+              escapeHtml(phase.name) +
+              "</strong></td>" +
+              "<td>Days " +
+              escapeHtml(phase.from) +
+              "–" +
+              escapeHtml(phase.to) +
+              "</td>" +
+              "<td>" +
+              escapeHtml(status) +
+              "</td>" +
+              "<td>" +
+              linksHtml +
+              "</td>" +
+              "</tr>"
+            );
+          })
+          .join("");
+      }
+    })();
+  </script>
 </body>
 </html>

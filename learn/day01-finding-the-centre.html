@@ -1,223 +1,521 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Finding the centre</title>
-<meta name="description" content="Mean, median and mode, explained with interactive examples. Day 1 of learning ML from scratch.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
-<style>
-:root{
-  --paper:#F6F8FA; --panel:#FFFFFF; --ink:#1B2A41; --soft:#55657C; --rule:#D5DDE6;
-  --mean:#0F7C80; --median:#C98B0B; --mode:#6B4FBB; --warn:#B3261E;
-  --people:#8FA3BC; --people-2:#A9B8CB;
-  --display:"Bricolage Grotesque",system-ui,sans-serif;
-  --body:"Source Serif 4",Georgia,serif;
-}
-@media (prefers-color-scheme:dark){
-  :root{
-    --paper:#111821; --panel:#18222E; --ink:#E6EDF5; --soft:#9FB0C4; --rule:#2C3A4B;
-    --mean:#3CC2C6; --median:#F0B53B; --mode:#A58BF0; --warn:#F2766C;
-    --people:#566A82; --people-2:#6B7F97;
-  }
-}
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--paper);color:var(--ink);font:400 1.125rem/1.7 var(--body)}
-a{color:inherit;text-underline-offset:3px}
-.wrap{max-width:46rem;margin-left:auto;margin-right:auto;padding-left:1rem;padding-right:1rem}
-.wide{max-width:60rem;margin-left:auto;margin-right:auto;padding-left:1rem;padding-right:1rem}
-header.top{padding-top:1.25rem;padding-bottom:1.25rem;font:600 .95rem/1 var(--display);color:var(--soft)}
-header.top a{text-decoration:none}
-h1,h2,h3{font-family:var(--display);line-height:1.1;margin:0}
-h1{font-size:clamp(2.6rem,7vw,4.6rem);font-weight:800;letter-spacing:-.02em;margin:.5rem 0 1rem}
-h2{font-size:clamp(1.7rem,4vw,2.3rem);font-weight:800;letter-spacing:-.01em;margin:0 0 .75rem}
-h3{font-size:1.15rem;font-weight:600;margin:0 0 .25rem}
-p{margin:0 0 1rem;max-width:68ch}
-.lede{font-size:1.25rem;color:var(--soft)}
-section{padding:3.5rem 0;border-top:1px solid var(--rule)}
-section:first-of-type{border-top:0}
-.key{display:inline-flex;align-items:center;gap:.4rem;font:600 .95rem var(--display);white-space:nowrap}
-.key i{width:.9rem;height:.9rem;border-radius:50%;display:inline-block}
-.k-mean i{background:var(--mean)} .k-median i{background:var(--median)} .k-mode i{background:var(--mode)}
-.k-mean{color:var(--mean)} .k-median{color:var(--median)} .k-mode{color:var(--mode)}
-.figure{background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:1.25rem;margin:1.5rem 0}
-.figure svg{width:100%;height:auto;display:block}
-.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
-.scroll svg{min-width:600px}
-.tablewrap{overflow-x:auto}
-.controls{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;margin-top:1rem}
-button{font:600 .95rem var(--display);color:var(--ink);background:transparent;border:1.5px solid var(--rule);border-radius:999px;padding:.5rem 1rem;cursor:pointer}
-button:hover{border-color:var(--soft)}
-button:focus-visible,input:focus-visible{outline:3px solid var(--mean);outline-offset:2px}
-.readout{display:flex;flex-wrap:wrap;gap:1.5rem;margin-top:1rem;font-family:var(--display)}
-.readout div{display:flex;flex-direction:column}
-.readout span{font-size:.85rem;color:var(--soft)}
-.readout b{font-size:1.6rem;font-weight:800}
-.note{font-size:1.05rem;color:var(--soft);margin-top:.75rem;min-height:1.7em}
-input[type=range]{width:100%;accent-color:var(--mean)}
-input[type=text]{width:100%;font:400 1.05rem var(--body);color:var(--ink);background:var(--paper);border:1.5px solid var(--rule);border-radius:10px;padding:.65rem .8rem}
-.error{color:var(--warn);font-size:.95rem;min-height:1.5em;margin-top:.35rem}
-table{width:100%;border-collapse:collapse;font-size:1rem;margin:1rem 0}
-th,td{text-align:left;padding:.65rem .5rem;border-bottom:1px solid var(--rule);vertical-align:top}
-th{font:600 .95rem var(--display);color:var(--soft)}
-td.y{color:var(--mean);font-weight:600} td.n{color:var(--soft)}
-.guide{display:grid;gap:.75rem;margin:1.25rem 0}
-.guide div{border-left:4px solid var(--rule);padding:.25rem 0 .25rem 1rem}
-.guide .g-mode{border-color:var(--mode)} .guide .g-median{border-color:var(--median)} .guide .g-mean{border-color:var(--mean)}
-pre{background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:1rem;overflow-x:auto;font:400 .9rem/1.55 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.cols{display:grid;gap:1rem}
-footer{padding-top:2.5rem;padding-bottom:3rem;border-top:1px solid var(--rule);color:var(--soft);font-size:1rem}
-.hero-fig{margin-top:1.5rem}
-@media (prefers-reduced-motion:no-preference){
-  .anim line,.anim text.lbl{transition:all .35s ease}
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 1: Finding the Centre — Mean, Median &amp; Mode | Raghav Bandreddi</title>
+  <meta name="description" content="An interactive visual explanation of mean, median and mode, when each one lies, and how to build them from scratch in Python." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("raghav-theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        var theme = saved || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
-<header class="wrap top"><a href="../">Raghav Bandreddi</a> / <a href="./">Explained</a> / Day 1</header>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="../index.html" class="brand" aria-label="Raghav Bandreddi home">
+        <span class="brand-mark" aria-hidden="true">RB</span>
+        <span class="brand-text">
+          <span class="brand-name">Raghav Bandreddi</span>
+          <span class="brand-sub">147-Day ML Notebook</span>
+        </span>
+      </a>
 
-<main>
-<section class="wrap" aria-labelledby="h-hero">
-  <h1 id="h-hero">Finding the centre</h1>
-  <p class="lede">Seven people stand in a line. Which height is typical? There are three honest answers, and each one lies in a different situation.</p>
-  <p>Throughout this page, <span class="key k-mean"><i></i>mean</span>, <span class="key k-median"><i></i>median</span> and <span class="key k-mode"><i></i>mode</span> keep the same colours.</p>
-</section>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../index.html#the-path">The Path</a>
+        <a href="index.html" aria-current="page">Explainers</a>
+        <a href="../index.html#projects">Projects</a>
+        <a href="../index.html#research">Research</a>
+        <a href="../index.html#experience">Experience</a>
+        <a href="../index.html#contact">Contact</a>
+      </nav>
 
-<div class="wide hero-fig">
-  <div class="figure">
-    <div class="scroll"><svg id="lineup" class="anim" viewBox="0 0 760 360" role="img" aria-labelledby="lineup-t">
-      <title id="lineup-t">People of different heights standing in a line, with the mean and median height drawn as horizontal lines</title>
-    </svg></div>
-    <div class="controls">
-      <button id="add-tall" type="button">Add a basketball player (229 cm)</button>
-      <button id="add-small" type="button">Add a child (95 cm)</button>
-      <button id="reset-lineup" type="button">Reset the line</button>
+      <div class="header-actions">
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+          <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+          <span class="theme-label" id="theme-label">Theme</span>
+        </button>
+      </div>
     </div>
-    <div class="readout" aria-live="polite">
-      <div><span>Mean</span><b class="k-mean" id="l-mean"></b></div>
-      <div><span>Median</span><b class="k-median" id="l-median"></b></div>
-      <div><span>Gap between them</span><b id="l-gap"></b></div>
+  </header>
+
+  <!-- Sticky Colour Key so Mean, Median and Mode keep their identity everywhere -->
+  <div class="concept-legend-bar" role="region" aria-label="Colour key for concepts">
+    <div class="container concept-legend-inner">
+      <span><strong>Day 1 · Phase 1 (Math):</strong> Finding the Centre</span>
+      <div class="concept-pills">
+        <span class="concept-pill pill-mean">● Mean (Balance point)</span>
+        <span class="concept-pill pill-median">■ Median (Middle rank)</span>
+        <span class="concept-pill pill-mode">▲ Mode (Most frequent)</span>
+      </div>
     </div>
-    <p class="note" id="l-note"></p>
   </div>
-</div>
 
-<section class="wrap" aria-labelledby="h-def">
-  <h2 id="h-def">Three ways to say “typical”</h2>
-  <p><b class="k-mean">Mean</b>: add everything up and divide by how many there are. Think of a seesaw: the mean is the point where the line balances. Every value pulls on it, so one very heavy weight far away drags the balance point toward it.</p>
-  <p><b class="k-median">Median</b>: sort the values and take the one in the middle. With an even count, average the two middle ones. It's the person in the middle of a queue: how far away the last person stands doesn't move them.</p>
-  <p><b class="k-mode">Mode</b>: the value that appears most often. It's the only one of the three that still works when the values are words instead of numbers.</p>
-  <p>In the line-up above, heights are spread fairly evenly around the middle, so the mean and median almost agree. Add the basketball player and watch: the mean jumps more than the median, because the mean feels every centimetre of that one person.</p>
-</section>
+  <main id="main-content" class="explainer-article">
+    <div class="container-narrow">
+      <!-- ====================================================================
+           1. HERO: 7 ILLUSTRATED PEOPLE LINE-UP
+           ==================================================================== -->
+      <section class="explainer-section" id="sec-lineup">
+        <span class="section-kicker">Day 1 of 147 · Statistics from First Principles</span>
+        <h1 class="hero-title" style="margin-bottom: 0.6rem;">Finding the Centre: Mean, Median &amp; Mode</h1>
+        <p class="hero-lead">
+          When someone asks for a "typical" number — a typical height, a typical salary, or a typical review score — there is no single right answer. We have three different instruments for finding the centre, and each one can be tricked in its own way.
+        </p>
 
-<section class="wrap" aria-labelledby="h-types">
-  <h2 id="h-types">First, what kind of data is it?</h2>
-  <p>The type of data decides which measures you are even allowed to compute.</p>
-  <div class="tablewrap"><table>
-    <thead><tr><th>Type</th><th>Example</th><th>Mean</th><th>Median</th><th>Mode</th></tr></thead>
-    <tbody>
-      <tr><td>Continuous number</td><td>height, time, temperature</td><td class="y">yes</td><td class="y">yes</td><td class="n">rarely useful</td></tr>
-      <tr><td>Discrete number</td><td>siblings, dice roll</td><td class="y">yes</td><td class="y">yes</td><td class="y">yes</td></tr>
-      <tr><td>Ordered category</td><td>star rating, grade</td><td class="n">debatable</td><td class="y">yes</td><td class="y">yes</td></tr>
-      <tr><td>Unordered category</td><td>city, programming language</td><td class="n">no</td><td class="n">no</td><td class="y">yes</td></tr>
-    </tbody>
-  </table></div>
-  <p>Why is the mode “rarely useful” for heights? Measure precisely enough and nobody is exactly 172.000 cm, so every value appears once. For continuous data the mode becomes the peak of the distribution's curve, an idea that comes back with density functions on Day 5.</p>
-</section>
+        <div class="interactive-stage">
+          <!-- Predict First Moment -->
+          <div class="predict-box" id="lineup-predict-box">
+            <p class="predict-title">Predict First · Before You Click "Add a Basketball Player"</p>
+            <p style="margin: 0; font-size: 0.94rem;">
+              Right now, 7 people stand in order from <strong>158 cm</strong> to <strong>186 cm</strong>. Their <strong style="color: var(--color-mean);">mean is 172.4 cm</strong> and their <strong style="color: var(--color-median);">median is 172 cm</strong>. If a <strong>229 cm basketball player</strong> walks in, which line will jump more?
+            </p>
+            <div class="predict-options" role="group" aria-label="Prediction options">
+              <button type="button" class="predict-btn" data-guess="mean">The Mean will move much more</button>
+              <button type="button" class="predict-btn" data-guess="median">The Median will move much more</button>
+              <button type="button" class="predict-btn" data-guess="equal">They will move by the same amount</button>
+            </div>
+            <p class="predict-feedback" id="lineup-predict-feedback" aria-live="polite"></p>
+          </div>
 
-<section class="wrap" aria-labelledby="h-salary">
-  <h2 id="h-salary">Why the average salary lies</h2>
-  <p>Five people work at a small company. Four of them earn between €30k and €38k. The fifth is the CEO. Drag the CEO's salary and watch which measure keeps describing the people who actually work there.</p>
-</section>
-<div class="wide">
-  <div class="figure">
-    <div class="scroll"><svg id="salary" class="anim" viewBox="0 0 760 300" role="img" aria-labelledby="salary-t">
-      <title id="salary-t">Salaries of five employees as horizontal bars, with mean and median marked on the axis</title>
-    </svg></div>
-    <label for="ceo" style="font:600 .95rem var(--display);display:block;margin-top:1rem">CEO salary: <span id="ceo-out"></span></label>
-    <input id="ceo" type="range" min="40" max="2000" step="10" value="200">
-    <div class="readout" aria-live="polite">
-      <div><span>Mean</span><b class="k-mean" id="s-mean"></b></div>
-      <div><span>Median</span><b class="k-median" id="s-median"></b></div>
-    </div>
-    <p class="note" id="s-note"></p>
-  </div>
-</div>
-<section class="wrap" style="border-top:0;padding-top:0">
-  <p>This is why news reports and governments quote the median household income. Whenever a few extreme values can appear on one side (salaries, house prices, website load times), the median is the safer summary. The mean is not wrong; it answers a different question: if all the money were shared out equally, how much would each person get?</p>
-</section>
+          <!-- SVG Lineup with CM Ruler -->
+          <div style="overflow-x: auto;">
+            <svg id="lineup-svg" viewBox="0 0 780 340" role="img" aria-label="Illustrated line-up of people drawn to scale next to a centimetre ruler with animated horizontal lines for mean and median">
+              <!-- Populated and animated via JavaScript -->
+            </svg>
+          </div>
 
-<section class="wrap" aria-labelledby="h-mode">
-  <h2 id="h-mode">When only the mode makes sense</h2>
-  <p>Ask a class which programming language they like best. You can't add up “Python” and “Rust” and divide by two, and there's no natural order to find a middle in. The only question left is: which answer came up most often? Click to add votes.</p>
-</section>
-<div class="wide">
-  <div class="figure">
-    <div class="scroll"><svg id="votes" viewBox="0 0 760 260" role="img" aria-labelledby="votes-t">
-      <title id="votes-t">Bar chart of votes for favourite programming language, with the most common answer highlighted</title>
-    </svg></div>
-    <div class="controls" id="vote-buttons"></div>
-    <div class="controls"><button id="reset-votes" type="button">Reset the votes</button></div>
-    <div class="readout" aria-live="polite">
-      <div><span>Mode</span><b class="k-mode" id="v-mode"></b></div>
-      <div><span>Mean</span><b id="v-mean" style="color:var(--soft)">not defined for words</b></div>
-    </div>
-    <p class="note" id="v-note"></p>
-  </div>
-</div>
-<section class="wrap" style="border-top:0;padding-top:0">
-  <p>Try making two languages tie. A dataset can have more than one mode, which is why my <code>mode</code> function returns a list, not a single value.</p>
-</section>
+          <div class="stage-controls">
+            <button type="button" class="btn btn-primary" id="btn-add-bball">
+              + Add a basketball player (229 cm)
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-add-child">
+              + Add a child (95 cm)
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-reset-lineup">
+              ↺ Reset to original 7 people
+            </button>
+          </div>
 
-<section class="wrap" aria-labelledby="h-guide">
-  <h2 id="h-guide">Choosing one</h2>
-  <div class="guide">
-    <div class="g-mode"><h3>Are the values categories?</h3><p>Use the <b class="k-mode">mode</b>. Favourite language, city, colour.</p></div>
-    <div class="g-median"><h3>Numbers, but skewed or with outliers?</h3><p>Use the <b class="k-median">median</b>. Rent in Bielefeld, salaries, response times.</p></div>
-    <div class="g-mean"><h3>Numbers, roughly symmetric?</h3><p>Use the <b class="k-mean">mean</b>, because it uses every value. Heights of 1,000 adults, exam scores in a big class.</p></div>
-  </div>
-  <p>A useful habit: compute both the mean and the median. If they're close, the data is roughly symmetric. If the mean is much higher than the median, a few large values are pulling it up.</p>
-</section>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-mean">
+              <span class="readout-label">Mean Height</span>
+              <span class="readout-value" id="lineup-mean-val" style="color: var(--color-mean);">172.4 cm</span>
+            </div>
+            <div class="readout-box readout-median">
+              <span class="readout-label">Median Height</span>
+              <span class="readout-value" id="lineup-median-val" style="color: var(--color-median);">172 cm</span>
+            </div>
+            <div class="readout-box">
+              <span class="readout-label">Gap (|Mean − Median|)</span>
+              <span class="readout-value" id="lineup-gap-val">0.4 cm</span>
+            </div>
+          </div>
 
-<section class="wrap" aria-labelledby="h-try">
-  <h2 id="h-try">Try your own numbers</h2>
-  <p>Type numbers separated by commas. Repeated values stack on top of each other.</p>
-</section>
-<div class="wide">
-  <div class="figure">
-    <label for="own" style="font:600 .95rem var(--display);display:block;margin-bottom:.4rem">Your data</label>
-    <input id="own" type="text" value="2, 3, 3, 4, 100" autocomplete="off" spellcheck="false" aria-describedby="own-err">
-    <div class="error" id="own-err" role="alert"></div>
-    <div class="scroll"><svg id="dots" class="anim" viewBox="0 0 760 200" role="img" aria-labelledby="dots-t">
-      <title id="dots-t">Dot plot of your numbers with mean and median marked</title>
-    </svg></div>
-    <div class="readout" aria-live="polite">
-      <div><span>Mean</span><b class="k-mean" id="o-mean"></b></div>
-      <div><span>Median</span><b class="k-median" id="o-median"></b></div>
-      <div><span>Mode</span><b class="k-mode" id="o-mode"></b></div>
-    </div>
-    <p class="note" id="o-note"></p>
-  </div>
-</div>
+          <p class="live-narrative" id="lineup-explanation" aria-live="polite">
+            With the original 7 people (158, 165, 170, 172, 175, 181, 186 cm), the heights are nearly symmetric: the mean (172.4 cm) and the median (172 cm, the 4th person) sit just 0.4 cm apart.
+          </p>
+        </div>
+      </section>
 
-<section class="wrap" aria-labelledby="h-code">
-  <h2 id="h-code">The code behind it</h2>
-  <p>I wrote these three functions from scratch in Python on Day 1 of my <a href="https://github.com/RaGHaV-186/ml-from-scratch">ml-from-scratch</a> repo. The interactive figures on this page run the same logic, ported to JavaScript.</p>
-</section>
-<div class="wide">
-  <div class="cols">
-<pre><code># Python (my original)
-def mean(xs: list[float]) -> float:
+      <!-- ====================================================================
+           2. THREE WAYS TO SAY "TYPICAL"
+           ==================================================================== -->
+      <section class="explainer-section" id="sec-three-ways">
+        <span class="section-kicker">Intuition Before Formulas</span>
+        <h2 class="section-title">2. Three Ways to Say "Typical"</h2>
+        <p class="section-subtitle">
+          Before writing a single Greek letter, picture what each measure physically does to your data. Drag or click inside each diagram below to feel how they work.
+        </p>
+
+        <div class="trio-cards">
+          <!-- Card 1: MEAN (Seesaw) -->
+          <div class="concept-card concept-card-mean">
+            <span class="concept-pill pill-mean" style="margin-bottom: 0.6rem;">1 · Mean</span>
+            <h3 style="margin: 0 0 0.4rem; font-family: var(--font-serif);">The Balance Point of a Seesaw</h3>
+            <p style="font-size: 0.92rem; color: var(--text-secondary);">
+              Imagine placing equal-weight blocks along a weightless plank. Every block pulls downward with torque proportional to its distance from the fulcrum. The <strong style="color: var(--color-mean);">mean</strong> is the exact spot where the seesaw balances flat.
+            </p>
+
+            <svg id="seesaw-svg" viewBox="0 0 280 150" aria-label="Interactive seesaw showing blocks and a movable fulcrum">
+              <!-- Populated by JS -->
+            </svg>
+
+            <div class="slider-row">
+              <label for="fulcrum-slider" style="font-family: var(--font-mono); font-size: 0.76rem;">
+                Test fulcrum position: <strong id="fulcrum-pos-label">4.0</strong> (True mean = <strong id="seesaw-true-mean" style="color: var(--color-mean);">4.0</strong>)
+              </label>
+              <input type="range" id="fulcrum-slider" min="1" max="10" step="0.1" value="4.0" />
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                <button type="button" class="predict-btn" id="btn-seesaw-outlier" style="font-size: 0.76rem; padding: 0.3rem 0.6rem;">
+                  Move rightmost block to 10
+                </button>
+                <button type="button" class="predict-btn" id="btn-seesaw-snap" style="font-size: 0.76rem; padding: 0.3rem 0.6rem;">
+                  Snap fulcrum to Mean
+                </button>
+              </div>
+            </div>
+
+            <div class="formula-callout">
+              <div><strong style="color: var(--color-mean);">Formula:</strong> mean(x) = (x₁ + x₂ + … + xₙ) / n</div>
+              <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Sum of all values divided by count <em>n</em>. Because every <em>xᵢ</em> is inside the sum, one distant outlier pulls the balance point toward itself.
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: MEDIAN (Middle of a Queue) -->
+          <div class="concept-card concept-card-median">
+            <span class="concept-pill pill-median" style="margin-bottom: 0.6rem;">2 · Median</span>
+            <h3 style="margin: 0 0 0.4rem; font-family: var(--font-serif);">The Person in the Middle of a Queue</h3>
+            <p style="font-size: 0.92rem; color: var(--text-secondary);">
+              Line everyone up from shortest to tallest and walk inward from both ends one step at a time. The <strong style="color: var(--color-median);">median</strong> only cares about who stands in the middle slot — not how tall the tallest person is.
+            </p>
+
+            <svg id="queue-svg" viewBox="0 0 280 150" aria-label="Queue of people sorted by value showing the middle person">
+              <!-- Populated by JS -->
+            </svg>
+
+            <div class="stage-controls" style="margin-top: 0.5rem;">
+              <button type="button" class="predict-btn selected" id="btn-queue-odd" style="font-size: 0.76rem; padding: 0.3rem 0.6rem;">
+                5 people (odd → 1 middle)
+              </button>
+              <button type="button" class="predict-btn" id="btn-queue-even" style="font-size: 0.76rem; padding: 0.3rem 0.6rem;">
+                6 people (even → average middle 2)
+              </button>
+            </div>
+
+            <div class="formula-callout">
+              <div><strong style="color: var(--color-median);">Rule:</strong> Sort <em>s</em>; if <em>n</em> is odd → <code>s[n // 2]</code>; if even → <code>(s[n//2 - 1] + s[n//2]) / 2</code></div>
+              <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Half the data sits at or below the median, and half sits at or above it.
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: MODE (Most Common) -->
+          <div class="concept-card concept-card-mode">
+            <span class="concept-pill pill-mode" style="margin-bottom: 0.6rem;">3 · Mode</span>
+            <h3 style="margin: 0 0 0.4rem; font-family: var(--font-serif);">The Most Common Value</h3>
+            <p style="font-size: 0.92rem; color: var(--text-secondary);">
+              Put identical items into stacks and look for the tallest stack. The <strong style="color: var(--color-mode);">mode</strong> is the only measure of centre that works for categories like words, colours, or programming languages.
+            </p>
+
+            <svg id="mini-mode-svg" viewBox="0 0 280 150" aria-label="Interactive frequency stacks showing the highest stack as the mode">
+              <!-- Populated by JS -->
+            </svg>
+
+            <div class="stage-controls" style="margin-top: 0.5rem;">
+              <button type="button" class="predict-btn" data-fruit="Coffee" style="font-size: 0.76rem; padding: 0.3rem 0.6rem;">+ Coffee</button>
+              <button type="button" class="predict-btn" data-fruit="Tea" style="font-size: 0.76rem; padding: 0.3rem 0.6rem;">+ Tea</button>
+              <button type="button" class="predict-btn" data-fruit="Juice" style="font-size: 0.76rem; padding: 0.3rem 0.6rem;">+ Juice</button>
+            </div>
+
+            <div class="formula-callout">
+              <div><strong style="color: var(--color-mode);">Rule:</strong> All values <em>x</em> where <code>count(x) == max(counts)</code></div>
+              <div style="font-size: 0.76rem; color: var(--text-muted); margin-top: 0.25rem;">
+                Requires no arithmetic — only equality checks and counting. Can return multiple winners if there is a tie.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           3. WHAT KIND OF DATA IS IT?
+           ==================================================================== -->
+      <section class="explainer-section" id="sec-data-types">
+        <span class="section-kicker">Matching Tool to Data</span>
+        <h2 class="section-title">3. What Kind of Data Is It?</h2>
+        <p class="section-subtitle">
+          Before computing a centre, ask what kind of thing you are measuring. Click any row in the table below to see why certain summaries work or break down on that data type.
+        </p>
+
+        <div class="table-scroll">
+          <table class="data-table" id="datatype-table">
+            <thead>
+              <tr>
+                <th>Data Type</th>
+                <th>Real-World Example</th>
+                <th style="color: var(--color-mean);">Mean</th>
+                <th style="color: var(--color-median);">Median</th>
+                <th style="color: var(--color-mode);">Mode</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="datatype-row" tabindex="0" data-dtype="continuous" style="cursor: pointer;">
+                <td><strong>Continuous number</strong></td>
+                <td>Height (<code>172.4 cm</code>)</td>
+                <td><strong style="color: var(--color-mean);">✓ Allowed</strong></td>
+                <td><strong style="color: var(--color-median);">✓ Allowed</strong></td>
+                <td>✓ Allowed (usually after rounding/binning)</td>
+              </tr>
+              <tr class="datatype-row" tabindex="0" data-dtype="discrete" style="cursor: pointer;">
+                <td><strong>Discrete number</strong></td>
+                <td>Number of siblings (<code>0, 1, 2, 3</code>)</td>
+                <td><strong style="color: var(--color-mean);">✓ Allowed</strong> (can give <code>1.4</code> siblings)</td>
+                <td><strong style="color: var(--color-median);">✓ Allowed</strong></td>
+                <td><strong style="color: var(--color-mode);">✓ Allowed</strong></td>
+              </tr>
+              <tr class="datatype-row" tabindex="0" data-dtype="ordered" style="cursor: pointer;">
+                <td><strong>Ordered category</strong></td>
+                <td>Star rating (<code>1★</code> to <code>5★</code>)</td>
+                <td>⚠️ Tricky (assumes 1★→2★ equals 4★→5★)</td>
+                <td><strong style="color: var(--color-median);">✓ Allowed</strong> (can sort from low to high)</td>
+                <td><strong style="color: var(--color-mode);">✓ Allowed</strong></td>
+              </tr>
+              <tr class="datatype-row" tabindex="0" data-dtype="unordered" style="cursor: pointer;">
+                <td><strong>Unordered category</strong></td>
+                <td>Programming language (<code>Python, Rust, JS</code>)</td>
+                <td>✗ Impossible (cannot add words)</td>
+                <td>✗ Impossible (no natural sort order)</td>
+                <td><strong style="color: var(--color-mode);">✓ Only Mode works!</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="live-narrative" id="datatype-detail" aria-live="polite">
+          <strong>Click any row above:</strong> Continuous numbers like height allow all three, though exact unrounded floats rarely repeat unless rounded to the nearest cm.
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           4. WHY THE AVERAGE SALARY LIES
+           ==================================================================== -->
+      <section class="explainer-section" id="sec-salaries">
+        <span class="section-kicker">Skewed Distributions &amp; Outliers</span>
+        <h2 class="section-title">4. Why the Average Salary Lies</h2>
+        <p class="section-subtitle">
+          Four employees at a small company earn <strong>€30k, €32k, €35k, and €38k</strong>. The 5th person is the CEO. Drag the CEO's salary slider from <strong>€40k to €2,000k</strong> and watch what happens to the <strong style="color: var(--color-mean);">mean</strong> versus the <strong style="color: var(--color-median);">median</strong>.
+        </p>
+
+        <div class="interactive-stage">
+          <div class="slider-row">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 0.5rem;">
+              <label for="ceo-slider" style="font-weight: 700;">
+                CEO Salary: <span id="ceo-salary-display" style="font-family: var(--font-mono); color: var(--color-mean); font-size: 1.15rem;">€200k</span>
+              </label>
+              <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+                <button type="button" class="predict-btn" data-ceo="40" style="font-size: 0.78rem; padding: 0.28rem 0.6rem;">€40k (Co-op)</button>
+                <button type="button" class="predict-btn selected" data-ceo="200" style="font-size: 0.78rem; padding: 0.28rem 0.6rem;">€200k (Default)</button>
+                <button type="button" class="predict-btn" data-ceo="800" style="font-size: 0.78rem; padding: 0.28rem 0.6rem;">€800k</button>
+                <button type="button" class="predict-btn" data-ceo="2000" style="font-size: 0.78rem; padding: 0.28rem 0.6rem;">€2,000k (Mega CEO)</button>
+              </div>
+            </div>
+            <input type="range" id="ceo-slider" min="40" max="2000" step="5" value="200" />
+          </div>
+
+          <div style="overflow-x: auto;">
+            <svg id="salary-svg" viewBox="0 0 740 250" role="img" aria-label="Horizontal bar chart of 5 salaries with vertical markers for the mean and median">
+              <!-- Populated by JS -->
+            </svg>
+          </div>
+
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-mean">
+              <span class="readout-label">Mean Salary</span>
+              <span class="readout-value" id="salary-mean-val" style="color: var(--color-mean);">€67k</span>
+            </div>
+            <div class="readout-box readout-median">
+              <span class="readout-label">Median Salary</span>
+              <span class="readout-value" id="salary-median-val" style="color: var(--color-median);">€35k</span>
+            </div>
+            <div class="readout-box">
+              <span class="readout-label">Below the Mean</span>
+              <span class="readout-value" id="salary-below-val">4 of 5 people</span>
+            </div>
+          </div>
+
+          <p class="live-narrative" id="salary-sentence" aria-live="polite">
+            The mean says <strong>€67k</strong> is typical, yet <strong>4 of 5 people</strong> earn less than that. Meanwhile, the median stays anchored at <strong>€35k</strong>.
+          </p>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           5. WHEN ONLY THE MODE MAKES SENSE
+           ==================================================================== -->
+      <section class="explainer-section" id="sec-mode-votes">
+        <span class="section-kicker">Categorical Data</span>
+        <h2 class="section-title">5. When Only the Mode Makes Sense</h2>
+        <p class="section-subtitle">
+          Suppose we poll developers on their favourite programming language. You cannot add <code>"Python" + "Rust"</code> and divide by 2. Click the vote buttons below to add votes and test what happens when two languages tie for first place.
+        </p>
+
+        <div class="interactive-stage">
+          <div class="stage-controls" id="lang-vote-buttons" style="margin-top: 0; margin-bottom: 1rem;">
+            <!-- Vote buttons populated by JS -->
+          </div>
+
+          <div style="overflow-x: auto;">
+            <svg id="votes-svg" viewBox="0 0 720 230" role="img" aria-label="Bar chart of programming language votes with the mode highlighted">
+              <!-- Populated by JS -->
+            </svg>
+          </div>
+
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-mode">
+              <span class="readout-label">Mode (Most Votes)</span>
+              <span class="readout-value" id="votes-mode-val" style="color: var(--color-mode); font-size: 1.08rem;">Python (6 votes)</span>
+            </div>
+            <div class="readout-box readout-median">
+              <span class="readout-label">Median</span>
+              <span class="readout-value" style="font-size: 0.95rem; color: var(--text-muted);">Not defined for unordered categories</span>
+            </div>
+            <div class="readout-box readout-mean">
+              <span class="readout-label">Mean</span>
+              <span class="readout-value" style="font-size: 0.95rem; color: var(--color-mean);">Mean: not defined for words</span>
+            </div>
+          </div>
+
+          <div class="stage-controls">
+            <button type="button" class="btn btn-secondary" id="btn-tie-votes">
+              Make Python &amp; JavaScript tie (6 each)
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-reset-votes">
+              ↺ Reset votes (6, 4, 3, 2, 1)
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           6. CHOOSING ONE
+           ==================================================================== -->
+      <section class="explainer-section" id="sec-choosing">
+        <span class="section-kicker">Decision Rule</span>
+        <h2 class="section-title">6. Choosing One: Which Centre Should You Use?</h2>
+        <p class="section-subtitle">
+          Whenever you meet a new dataset in machine learning — whether you are imputing missing values or summarising model latencies — follow this three-branch rule:
+        </p>
+
+        <div class="trio-cards">
+          <div class="concept-card concept-card-mode">
+            <span class="concept-pill pill-mode">Categories → Mode</span>
+            <h3 style="margin: 0.55rem 0 0.35rem; font-family: var(--font-serif);">Use Mode for Categories</h3>
+            <p style="margin: 0; font-size: 0.92rem; color: var(--text-secondary);">
+              When values are labels, words, or discrete buckets where the most common item is what matters (e.g., most common predicted class in a voting classifier, or filling missing categorical features).
+            </p>
+          </div>
+
+          <div class="concept-card concept-card-median">
+            <span class="concept-pill pill-median">Skewed / Outliers → Median</span>
+            <h3 style="margin: 0.55rem 0 0.35rem; font-family: var(--font-serif);">Use Median for Skewed Data</h3>
+            <p style="margin: 0; font-size: 0.92rem; color: var(--text-secondary);">
+              When a few extreme numbers would distort the average — salaries, house prices, API tail latencies, or datasets with corrupted sensor spikes.
+            </p>
+          </div>
+
+          <div class="concept-card concept-card-mean">
+            <span class="concept-pill pill-mean">Roughly Symmetric → Mean</span>
+            <h3 style="margin: 0.55rem 0 0.35rem; font-family: var(--font-serif);">Use Mean for Symmetric Data</h3>
+            <p style="margin: 0; font-size: 0.92rem; color: var(--text-secondary);">
+              When distribution is roughly bell-shaped without wild outliers (like adult heights within a group or Gaussian noise), and you want every data point to contribute smoothly.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           7. TRY YOUR OWN NUMBERS
+           ==================================================================== -->
+      <section class="explainer-section" id="sec-sandbox">
+        <span class="section-kicker">Hands-On Sandbox</span>
+        <h2 class="section-title">7. Try Your Own Numbers</h2>
+        <p class="section-subtitle">
+          Type any comma-separated list of numbers below. Duplicate numbers stack vertically as dots so you can see the <strong style="color: var(--color-mode);">mode</strong> (tallest stack), the <strong style="color: var(--color-median);">median</strong> (middle divider), and the <strong style="color: var(--color-mean);">mean</strong> (balance line) all at once.
+        </p>
+
+        <div class="interactive-stage">
+          <label for="custom-numbers-input" style="display: block; font-weight: 700; margin-bottom: 0.4rem;">
+            Enter comma-separated numbers:
+          </label>
+          <input
+            type="text"
+            id="custom-numbers-input"
+            class="text-input"
+            value="10, 12, 12, 14, 15, 15, 15, 18, 21, 38"
+            aria-describedby="custom-validation-msg"
+          />
+
+          <div class="stage-controls" style="margin-top: 0.65rem;">
+            <span style="font-family: var(--font-mono); font-size: 0.76rem; color: var(--text-muted);">Presets:</span>
+            <button type="button" class="predict-btn" data-preset="10, 12, 12, 14, 15, 15, 15, 18, 21, 38" style="font-size: 0.78rem; padding: 0.28rem 0.6rem;">
+              Outlier pull
+            </button>
+            <button type="button" class="predict-btn" data-preset="2, 4, 4, 6, 6, 6, 8, 8, 10" style="font-size: 0.78rem; padding: 0.28rem 0.6rem;">
+              Perfectly symmetric
+            </button>
+            <button type="button" class="predict-btn" data-preset="1, 1, 1, 2, 5, 9, 9, 9" style="font-size: 0.78rem; padding: 0.28rem 0.6rem;">
+              Bimodal tie (two modes)
+            </button>
+          </div>
+
+          <div id="custom-validation-msg" class="validation-msg validation-ok" role="status" aria-live="polite">
+            Parsed 10 valid numbers.
+          </div>
+
+          <div style="overflow-x: auto; margin-top: 1rem;">
+            <svg id="dotplot-svg" viewBox="0 0 740 240" role="img" aria-label="Live dot plot of custom numbers with stacked duplicates and vertical lines for mean and median">
+              <!-- Populated by JS -->
+            </svg>
+          </div>
+
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-mean">
+              <span class="readout-label">Mean</span>
+              <span class="readout-value" id="custom-mean-val" style="color: var(--color-mean);">17</span>
+            </div>
+            <div class="readout-box readout-median">
+              <span class="readout-label">Median</span>
+              <span class="readout-value" id="custom-median-val" style="color: var(--color-median);">15</span>
+            </div>
+            <div class="readout-box readout-mode">
+              <span class="readout-label">Mode(s)</span>
+              <span class="readout-value" id="custom-mode-val" style="color: var(--color-mode);">15 (×3)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           8. THE CODE BEHIND IT
+           ==================================================================== -->
+      <section class="explainer-section" id="sec-code" style="border-bottom: none; margin-bottom: 1rem;">
+        <span class="section-kicker">From Scratch Implementation</span>
+        <h2 class="section-title">8. The Code Behind It</h2>
+        <p class="section-subtitle">
+          On the left is my Python implementation from my <code>ml-from-scratch</code> repository. On the right is the JavaScript port that powers every live calculation on this page. Notice how both versions handle even-length lists in <code>median()</code> and return <strong>all</strong> tied winners in <code>mode()</code>.
+        </p>
+
+        <div class="code-comparison-grid">
+          <!-- My Python Code (Verbatim) -->
+          <div class="code-panel">
+            <div class="code-panel-header">
+              <span>stats.py — My own code</span>
+              <span class="code-badge-mine">Python (Mine)</span>
+            </div>
+            <pre><code>def mean(xs: list[float]) -&gt; float:
     if len(xs) == 0:
         raise ValueError("mean() requires at least one value")
     return sum(xs) / len(xs)
 
 
-def median(xs: list[float]) -> float:
+def median(xs: list[float]) -&gt; float:
     if len(xs) == 0:
         raise ValueError("median() requires at least one value")
     s = sorted(xs)
@@ -229,7 +527,7 @@ def median(xs: list[float]) -> float:
         return (s[mid - 1] + s[mid]) / 2
 
 
-def mode(xs: list[float]) -> list[float]:
+def mode(xs: list[float]) -&gt; list[float]:
     if len(xs) == 0:
         raise ValueError("mode() requires at least one value")
     counts = {}
@@ -241,249 +539,1265 @@ def mode(xs: list[float]) -> list[float]:
 
     highest = max(counts.values())
     return [num for num, c in counts.items() if c == highest]</code></pre>
-<pre><code>// JavaScript (the port this page runs)
-function mean(xs) {
-  if (xs.length === 0) throw new Error("mean() requires at least one value");
-  return xs.reduce((a, b) => a + b, 0) / xs.length;
+          </div>
+
+          <!-- JavaScript Port -->
+          <div class="code-panel">
+            <div class="code-panel-header">
+              <span>stats.js — Written with AI help</span>
+              <span class="code-badge-ai">JavaScript Port</span>
+            </div>
+            <pre><code>function mean(xs) {
+  if (xs.length === 0) {
+    throw new Error("mean() requires at least one value");
+  }
+  const total = xs.reduce((acc, val) =&gt; acc + val, 0);
+  return total / xs.length;
 }
 
+
 function median(xs) {
-  if (xs.length === 0) throw new Error("median() requires at least one value");
-  // sort a copy with a numeric compare:
-  // plain .sort() compares as text, so [10, 9, 100] -> [10, 100, 9]
-  const s = [...xs].sort((a, b) => a - b);
+  if (xs.length === 0) {
+    throw new Error("median() requires at least one value");
+  }
+  // Numeric comparator required: plain .sort() sorts as strings!
+  const s = [...xs].sort((a, b) =&gt; a - b);
   const n = s.length;
   const mid = Math.floor(n / 2);
-  if (n % 2 === 1) return s[mid];
-  return (s[mid - 1] + s[mid]) / 2;
+  if (n % 2 === 1) {
+    return s[mid];
+  } else {
+    return (s[mid - 1] + s[mid]) / 2;
+  }
 }
 
+
 function mode(xs) {
-  if (xs.length === 0) throw new Error("mode() requires at least one value");
+  if (xs.length === 0) {
+    throw new Error("mode() requires at least one value");
+  }
   const counts = new Map();
-  for (const num of xs) counts.set(num, (counts.get(num) || 0) + 1);
+  for (const num of xs) {
+    counts.set(num, (counts.get(num) || 0) + 1);
+  }
+
   const highest = Math.max(...counts.values());
-  return [...counts].filter(([, c]) => c === highest).map(([num]) => num);
+  const modes = [];
+  for (const [num, c] of counts.entries()) {
+    if (c === highest) {
+      modes.push(num);
+    }
+  }
+  return modes;
 }</code></pre>
-  </div>
-</div>
-<section class="wrap" style="border-top:0;padding-top:0">
-  <p>Two details worth noticing. <code>median</code> sorts a copy, so the caller's list is never changed. And <code>mode</code> returns every value that ties for the top count, so if every value appears exactly once, it returns all of them: a sign that the mode tells you nothing about that dataset.</p>
-</section>
-</main>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
 
-<footer class="wrap">
-  <p>Day 1 of a 21-week path through the maths and code behind machine learning, built from scratch. <a href="./">More explanations</a>, <a href="../">back to my site</a>, or see the code on <a href="https://github.com/RaGHaV-186/ml-from-scratch">GitHub</a>.</p>
-</footer>
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-honesty">
+        Day 1 of a 147-day path through the maths and code behind machine learning. The Python and the explanations are mine; the JavaScript port and the page design were built with help from AI.
+      </p>
+      <div class="footer-links">
+        <a href="index.html">← All Explainers (learn/index.html)</a>
+        <a href="../index.html">Home Page</a>
+      </div>
+    </div>
+  </footer>
 
-<script>
-/* ---------- core logic (port of my Python) ---------- */
-function mean(xs) {
-  if (xs.length === 0) throw new Error("mean() requires at least one value");
-  return xs.reduce((a, b) => a + b, 0) / xs.length;
-}
-function median(xs) {
-  if (xs.length === 0) throw new Error("median() requires at least one value");
-  const s = [...xs].sort((a, b) => a - b);
-  const n = s.length, mid = Math.floor(n / 2);
-  if (n % 2 === 1) return s[mid];
-  return (s[mid - 1] + s[mid]) / 2;
-}
-function mode(xs) {
-  if (xs.length === 0) throw new Error("mode() requires at least one value");
-  const counts = new Map();
-  for (const num of xs) counts.set(num, (counts.get(num) || 0) + 1);
-  const highest = Math.max(...counts.values());
-  return [...counts].filter(([, c]) => c === highest).map(([num]) => num);
-}
+  <script src="../assets/data.js"></script>
+  <script>
+    (function () {
+      "use strict";
 
-/* ---------- helpers ---------- */
-const NS = "http://www.w3.org/2000/svg";
-const $ = id => document.getElementById(id);
-function el(tag, attrs, parent, text) {
-  const e = document.createElementNS(NS, tag);
-  for (const k in attrs) e.setAttribute(k, attrs[k]);
-  if (text !== undefined) e.textContent = text;
-  if (parent) parent.appendChild(e);
-  return e;
-}
-const fmt = (v, d = 1) => Number(v.toFixed(d)).toLocaleString("en-GB");
-const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      /* ======================================================================
+         0. Theme Toggle & Core Statistical Functions (Exact JS Port)
+         ====================================================================== */
+      var toggleBtn = document.getElementById("theme-toggle");
+      var themeLabel = document.getElementById("theme-label");
 
-/* ---------- line-up of people ---------- */
-const BASE = [158, 165, 170, 172, 175, 181, 186];
-let lineup = [...BASE];
-function drawLineup() {
-  const svg = $("lineup");
-  svg.querySelectorAll(":not(title)").forEach(n => n.remove());
-  const W = 760, ground = 320, top = 30, maxCm = 240;
-  const y = cm => ground - (cm / maxCm) * (ground - top);
-  const left = 64, right = 600;
-  // ruler
-  for (let cm = 0; cm <= 225; cm += 25) {
-    el("line", {x1: 40, x2: 48, y1: y(cm), y2: y(cm), stroke: css("--rule"), "stroke-width": 2}, svg);
-    el("text", {x: 34, y: y(cm) + 4, "text-anchor": "end", "font-size": 12, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, cm);
-  }
-  el("line", {x1: 44, x2: 44, y1: y(0), y2: y(225), stroke: css("--rule"), "stroke-width": 2}, svg);
-  el("line", {x1: 44, x2: W - 10, y1: ground, y2: ground, stroke: css("--rule"), "stroke-width": 2}, svg);
-  // people (sorted so the picture reads like a queue)
-  const sorted = [...lineup].sort((a, b) => a - b);
-  const step = (right - left) / sorted.length;
-  sorted.forEach((cm, i) => {
-    const cx = left + step * (i + 0.5);
-    const h = ground - y(cm);
-    const r = Math.max(7, h * 0.075);
-    const headCy = y(cm) + r;
-    const torsoTop = headCy + r + 3, torsoH = h * 0.40, torsoW = Math.min(step * 0.62, h * 0.2 + 10);
-    const legTop = torsoTop + torsoH, legW = torsoW * 0.36;
-    const fill = i % 2 ? css("--people") : css("--people-2");
-    const outlier = cm === 229 || cm === 95;
-    const f = outlier ? css("--ink") : fill;
-    el("circle", {cx, cy: headCy, r, fill: f}, svg);
-    el("rect", {x: cx - torsoW / 2, y: torsoTop, width: torsoW, height: torsoH, rx: torsoW * 0.3, fill: f}, svg);
-    el("rect", {x: cx - torsoW / 2 + 1, y: legTop - 4, width: legW, height: ground - legTop + 4, rx: legW / 2, fill: f}, svg);
-    el("rect", {x: cx + torsoW / 2 - legW - 1, y: legTop - 4, width: legW, height: ground - legTop + 4, rx: legW / 2, fill: f}, svg);
-    el("text", {x: cx, y: ground + 22, "text-anchor": "middle", "font-size": 13, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, cm);
-  });
-  // mean and median lines
-  const m = mean(lineup), md = median(lineup);
-  const ym = y(m), yd = y(md);
-  const close = Math.abs(ym - yd) < 16;
-  el("line", {x1: 48, x2: right + 6, y1: ym, y2: ym, stroke: css("--mean"), "stroke-width": 3, "stroke-dasharray": "8 6"}, svg);
-  el("line", {x1: 48, x2: right + 6, y1: yd, y2: yd, stroke: css("--median"), "stroke-width": 3}, svg);
-  el("text", {class: "lbl", x: right + 14, y: (close && ym <= yd ? ym - 6 : ym + 5), "font-size": 15, "font-weight": 700, fill: css("--mean"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, "mean " + fmt(m) + " cm");
-  el("text", {class: "lbl", x: right + 14, y: (close && ym <= yd ? yd + 18 : (close ? yd - 6 : yd + 5)), "font-size": 15, "font-weight": 700, fill: css("--median"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, "median " + fmt(md) + " cm");
-  $("l-mean").textContent = fmt(m) + " cm";
-  $("l-median").textContent = fmt(md) + " cm";
-  $("l-gap").textContent = fmt(Math.abs(m - md)) + " cm";
-  const hasTall = lineup.includes(229), hasSmall = lineup.includes(95);
-  let note = "Heights are spread evenly, so the two measures nearly agree.";
-  if (hasTall && hasSmall) note = "One very tall and one very small person roughly cancel out in the mean. The median barely notices either of them.";
-  else if (hasTall) note = "One tall person pulled the mean up by " + fmt(m - mean(BASE)) + " cm. The median moved by only " + fmt(md - median(BASE)) + " cm.";
-  else if (hasSmall) note = "One small person pulled the mean down by " + fmt(mean(BASE) - m) + " cm. The median moved by only " + fmt(median(BASE) - md) + " cm.";
-  $("l-note").textContent = note;
-}
-$("add-tall").onclick = () => { if (!lineup.includes(229)) lineup.push(229); drawLineup(); };
-$("add-small").onclick = () => { if (!lineup.includes(95)) lineup.push(95); drawLineup(); };
-$("reset-lineup").onclick = () => { lineup = [...BASE]; drawLineup(); };
+      function updateThemeButton(theme) {
+        if (themeLabel) themeLabel.textContent = theme === "dark" ? "Dark" : "Light";
+      }
+      updateThemeButton(document.documentElement.getAttribute("data-theme") || "light");
 
-/* ---------- salaries ---------- */
-const STAFF = [["Anna", 30], ["Ben", 32], ["Chiara", 35], ["Deniz", 38]];
-function drawSalary() {
-  const ceo = Number($("ceo").value);
-  const people = [...STAFF, ["CEO", ceo]];
-  const vals = people.map(p => p[1]);
-  const m = mean(vals), md = median(vals);
-  const svg = $("salary");
-  svg.querySelectorAll(":not(title)").forEach(n => n.remove());
-  const L = 80, R = 730, rowH = 40, top = 20;
-  const max = Math.max(...vals, m) * 1.05;
-  const x = v => L + (v / max) * (R - L);
-  people.forEach(([name, v], i) => {
-    const yy = top + i * rowH;
-    el("text", {x: L - 10, y: yy + 22, "text-anchor": "end", "font-size": 15, fill: css("--ink"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, name);
-    el("rect", {x: L, y: yy + 6, width: Math.max(2, x(v) - L), height: 24, rx: 5, fill: name === "CEO" ? css("--ink") : css("--people")}, svg);
-    el("text", {x: x(v) + 8, y: yy + 23, "font-size": 13, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, "€" + fmt(v, 0) + "k");
-  });
-  const axisY = top + people.length * rowH + 10;
-  el("line", {x1: L, x2: R, y1: axisY, y2: axisY, stroke: css("--rule"), "stroke-width": 2}, svg);
-  [["mean", m, css("--mean"), "8 6"], ["median", md, css("--median"), ""]].forEach(([lbl, v, c, dash], k) => {
-    el("line", {x1: x(v), x2: x(v), y1: top, y2: axisY + 6, stroke: c, "stroke-width": 3, "stroke-dasharray": dash}, svg);
-    const tx = Math.min(Math.max(x(v), L + 40), R - 40);
-    el("text", {class: "lbl", x: tx, y: axisY + 26 + k * 20, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: c, "font-family": "Bricolage Grotesque, sans-serif"}, svg, lbl + " €" + fmt(v, 0) + "k");
-  });
-  $("ceo-out").textContent = "€" + fmt(ceo, 0) + "k";
-  $("s-mean").textContent = "€" + fmt(m, 0) + "k";
-  $("s-median").textContent = "€" + fmt(md, 0) + "k";
-  const below = vals.filter(v => v < m).length;
-  $("s-note").textContent = below >= 4
-    ? "The mean says a typical salary is €" + fmt(m, 0) + "k, yet " + below + " of the 5 people earn less than that. The median still points at a real person's salary."
-    : "With the CEO's salary close to everyone else's, the mean and median tell a similar story.";
-}
-$("ceo").addEventListener("input", drawSalary);
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", function () {
+          var now = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", now);
+          try {
+            localStorage.setItem("raghav-theme", now);
+          } catch (e) {}
+          updateThemeButton(now);
+        });
+      }
 
-/* ---------- language votes ---------- */
-const LANGS = ["Python", "JavaScript", "Java", "C++", "Rust"];
-const START = {Python: 6, JavaScript: 4, Java: 3, "C++": 2, Rust: 1};
-let votes = {...START};
-function drawVotes() {
-  const answers = LANGS.flatMap(l => Array(votes[l]).fill(l));
-  const modes = answers.length ? mode(answers) : [];
-  const svg = $("votes");
-  svg.querySelectorAll(":not(title)").forEach(n => n.remove());
-  const L = 110, R = 700, top = 14, rowH = 46;
-  const max = Math.max(...LANGS.map(l => votes[l]), 1);
-  LANGS.forEach((l, i) => {
-    const yy = top + i * rowH;
-    const isMode = modes.includes(l);
-    el("text", {x: L - 12, y: yy + 24, "text-anchor": "end", "font-size": 15, "font-weight": isMode ? 700 : 400, fill: isMode ? css("--mode") : css("--ink"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, l);
-    el("rect", {x: L, y: yy + 6, width: Math.max(2, (votes[l] / max) * (R - L)), height: 28, rx: 6, fill: isMode ? css("--mode") : css("--people")}, svg);
-    el("text", {x: L + (votes[l] / max) * (R - L) + 8, y: yy + 25, "font-size": 14, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, votes[l]);
-  });
-  $("v-mode").textContent = modes.length ? modes.join(" and ") : "none yet";
-  $("v-note").textContent = modes.length > 1
-    ? "A tie: this dataset has " + modes.length + " modes. Both answers are equally “typical”."
-    : (modes.length ? modes[0] + " is the most common answer, with " + votes[modes[0]] + " of " + answers.length + " votes." : "");
-}
-LANGS.forEach(l => {
-  const b = document.createElement("button");
-  b.type = "button"; b.textContent = "Vote " + l;
-  b.onclick = () => { votes[l]++; drawVotes(); };
-  $("vote-buttons").appendChild(b);
-});
-$("reset-votes").onclick = () => { votes = {...START}; drawVotes(); };
+      // Exact JavaScript port of Raghav's Python mean, median, mode
+      function mean(xs) {
+        if (xs.length === 0) {
+          throw new Error("mean() requires at least one value");
+        }
+        var total = xs.reduce(function (acc, val) {
+          return acc + val;
+        }, 0);
+        return total / xs.length;
+      }
 
-/* ---------- your own numbers ---------- */
-function drawOwn() {
-  const raw = $("own").value.trim();
-  const err = $("own-err");
-  const svg = $("dots");
-  const parts = raw.split(/[,;\s]+/).filter(Boolean);
-  const nums = parts.map(Number);
-  if (!parts.length || nums.some(n => !Number.isFinite(n))) {
-    err.textContent = parts.length ? "Use numbers only, separated by commas, like 4, 7, 7, 12." : "Enter at least one number.";
-    return;
-  }
-  err.textContent = "";
-  svg.querySelectorAll(":not(title)").forEach(n => n.remove());
-  const m = mean(nums), md = median(nums), mo = mode(nums);
-  const allTie = mo.length === new Set(nums).size && nums.length > 1 && mo.length > 1;
-  const lo = Math.min(...nums), hi = Math.max(...nums);
-  const span = hi - lo || 1;
-  const L = 40, R = 720, base = 140;
-  const x = v => L + ((v - lo) / span) * (R - L);
-  el("line", {x1: L - 10, x2: R + 10, y1: base + 12, y2: base + 12, stroke: css("--rule"), "stroke-width": 2}, svg);
-  const stack = new Map();
-  [...nums].sort((a, b) => a - b).forEach(v => {
-    const k = stack.get(v) || 0; stack.set(v, k + 1);
-    const isMode = !allTie && mo.includes(v);
-    el("circle", {cx: x(v), cy: base - k * 18, r: 7, fill: isMode ? css("--mode") : css("--people")}, svg);
-  });
-  let lastX = -Infinity;
-  [...stack.keys()].forEach(v => {
-    if (x(v) - lastX < 28) return;
-    lastX = x(v);
-    el("text", {x: x(v), y: base + 32, "text-anchor": "middle", "font-size": 12, fill: css("--soft"), "font-family": "Bricolage Grotesque, sans-serif"}, svg, fmt(v, 2));
-  });
-  [["mean", m, css("--mean"), "8 6", 22], ["median", md, css("--median"), "", 40]].forEach(([lbl, v, c, dash, ty]) => {
-    el("line", {x1: x(v), x2: x(v), y1: 10 + ty, y2: base + 14, stroke: c, "stroke-width": 3, "stroke-dasharray": dash}, svg);
-    const tx = Math.min(Math.max(x(v), L + 30), R - 30);
-    el("text", {class: "lbl", x: tx, y: ty, "text-anchor": "middle", "font-size": 14, "font-weight": 700, fill: c, "font-family": "Bricolage Grotesque, sans-serif"}, svg, lbl + " " + fmt(v, 2));
-  });
-  $("o-mean").textContent = fmt(m, 2);
-  $("o-median").textContent = fmt(md, 2);
-  $("o-mode").textContent = allTie ? "every value ties" : mo.map(v => fmt(v, 2)).join(", ");
-  const gap = Math.abs(m - md), sd = Math.sqrt(nums.reduce((a, v) => a + (v - m) ** 2, 0) / nums.length) || 1;
-  $("o-note").textContent = nums.length < 2 ? "With one value, all three measures are that value."
-    : gap / sd > 0.3 ? "The mean and median are far apart: something is pulling the mean " + (m > md ? "up" : "down") + ". The median is the safer summary here."
-    : "The mean and median are close, so the data is roughly symmetric. Either works.";
-}
-$("own").addEventListener("input", drawOwn);
+      function median(xs) {
+        if (xs.length === 0) {
+          throw new Error("median() requires at least one value");
+        }
+        var s = xs.slice().sort(function (a, b) {
+          return a - b;
+        });
+        var n = s.length;
+        var mid = Math.floor(n / 2);
+        if (n % 2 === 1) {
+          return s[mid];
+        } else {
+          return (s[mid - 1] + s[mid]) / 2;
+        }
+      }
 
-/* ---------- start ---------- */
-function drawAll() { drawLineup(); drawSalary(); drawVotes(); drawOwn(); }
-drawAll();
-window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawAll);
-</script>
+      function mode(xs) {
+        if (xs.length === 0) {
+          throw new Error("mode() requires at least one value");
+        }
+        var counts = new Map();
+        for (var i = 0; i < xs.length; i++) {
+          var num = xs[i];
+          counts.set(num, (counts.get(num) || 0) + 1);
+        }
+        var highest = 0;
+        counts.forEach(function (c) {
+          if (c > highest) highest = c;
+        });
+        var result = [];
+        counts.forEach(function (c, key) {
+          if (c === highest) result.push(key);
+        });
+        return result;
+      }
+
+      // Sensible number formatting (strips trailing .0 when integer, or 1 decimal place)
+      function fmtNum(val, decimals) {
+        var d = typeof decimals === "number" ? decimals : 1;
+        var rounded = Number(Math.round(val + "e" + d) + "e-" + d);
+        return String(rounded);
+      }
+
+      /* ======================================================================
+         1. SECTION 1: HERO 7 PEOPLE LINE-UP (158, 165, 170, 172, 175, 181, 186)
+         ====================================================================== */
+      var basePeople = [
+        { height: 158, label: "158", role: "base" },
+        { height: 165, label: "165", role: "base" },
+        { height: 170, label: "170", role: "base" },
+        { height: 172, label: "172", role: "base" },
+        { height: 175, label: "175", role: "base" },
+        { height: 181, label: "181", role: "base" },
+        { height: 186, label: "186", role: "base" }
+      ];
+
+      var currentPeople = basePeople.slice();
+      var hasBball = false;
+      var hasChild = false;
+      var userPrediction = null;
+
+      var lineupSvg = document.getElementById("lineup-svg");
+      var lineupMeanEl = document.getElementById("lineup-mean-val");
+      var lineupMedianEl = document.getElementById("lineup-median-val");
+      var lineupGapEl = document.getElementById("lineup-gap-val");
+      var lineupExplainEl = document.getElementById("lineup-explanation");
+      var predictFeedbackEl = document.getElementById("lineup-predict-feedback");
+
+      // Prediction buttons
+      var predictBtns = document.querySelectorAll("#lineup-predict-box .predict-btn");
+      Array.prototype.forEach.call(predictBtns, function (btn) {
+        btn.addEventListener("click", function () {
+          userPrediction = btn.getAttribute("data-guess");
+          Array.prototype.forEach.call(predictBtns, function (b) {
+            b.classList.remove("selected");
+          });
+          btn.classList.add("selected");
+
+          if (userPrediction === "mean") {
+            predictFeedbackEl.style.color = "var(--color-median)";
+            predictFeedbackEl.textContent =
+              "Spot on! Now click '+ Add a basketball player (229 cm)' below to watch the mean jump by +7.1 cm while the median barely nudges +1.5 cm.";
+          } else {
+            predictFeedbackEl.style.color = "var(--color-mean)";
+            predictFeedbackEl.textContent =
+              "Interesting guess! Click '+ Add a basketball player (229 cm)' below to test your prediction.";
+          }
+        });
+      });
+
+      function renderLineup() {
+        var sorted = currentPeople.slice().sort(function (a, b) {
+          return a.height - b.height;
+        });
+        var heights = sorted.map(function (p) {
+          return p.height;
+        });
+
+        var mVal = mean(heights);
+        var medVal = median(heights);
+        var gapVal = Math.abs(mVal - medVal);
+
+        lineupMeanEl.textContent = fmtNum(mVal, 1) + " cm";
+        lineupMedianEl.textContent = fmtNum(medVal, 1) + " cm";
+        lineupGapEl.textContent = fmtNum(gapVal, 1) + " cm";
+
+        // Coordinate mapping: floor at y = 300, 240 cm at y = 24 -> 1.15 px per cm
+        var floorY = 302;
+        var scale = 1.12;
+        function cmToY(cm) {
+          return floorY - cm * scale;
+        }
+
+        var svgHtml = "";
+
+        // Ruler on the left (x = 48)
+        svgHtml +=
+          '<line x1="52" y1="' +
+          cmToY(240) +
+          '" x2="52" y2="' +
+          floorY +
+          '" stroke="var(--text-muted)" stroke-width="2" />';
+
+        for (var cm = 0; cm <= 240; cm += 20) {
+          var yTick = cmToY(cm);
+          svgHtml +=
+            '<line x1="44" y1="' +
+            yTick +
+            '" x2="52" y2="' +
+            yTick +
+            '" stroke="var(--text-muted)" stroke-width="1.5" />' +
+            '<text x="38" y="' +
+            (yTick + 4) +
+            '" text-anchor="end" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10">' +
+            cm +
+            " cm</text>" +
+            '<line x1="52" y1="' +
+            yTick +
+            '" x2="740" y2="' +
+            yTick +
+            '" stroke="var(--border-subtle)" stroke-dasharray="2,4" stroke-width="1" />';
+        }
+
+        // Ground line
+        svgHtml +=
+          '<line x1="44" y1="' +
+          floorY +
+          '" x2="755" y2="' +
+          floorY +
+          '" stroke="var(--text-primary)" stroke-width="2.5" />';
+
+        // Draw people evenly spaced
+        var startX = 105;
+        var endX = 635;
+        var stepX = sorted.length > 1 ? (endX - startX) / (sorted.length - 1) : 0;
+
+        var n = sorted.length;
+        var midIdx1 = Math.floor((n - 1) / 2);
+        var midIdx2 = Math.ceil((n - 1) / 2);
+
+        sorted.forEach(function (person, idx) {
+          var cx = startX + idx * stepX;
+          var topY = cmToY(person.height);
+          var totalPx = floorY - topY;
+          var headR = Math.max(8, Math.min(13, totalPx * 0.075));
+          var headCy = topY + headR;
+          var shoulderY = headCy + headR + 4;
+          var hipY = floorY - totalPx * 0.38;
+
+          var isMiddlePerson = idx === midIdx1 || idx === midIdx2;
+          var bodyColor =
+            person.role === "bball"
+              ? "var(--color-mean)"
+              : person.role === "child"
+              ? "var(--accent-primary)"
+              : isMiddlePerson
+              ? "var(--color-median)"
+              : "var(--text-secondary)";
+
+          // Subtle highlight halo for median person(s)
+          if (isMiddlePerson) {
+            svgHtml +=
+              '<rect x="' +
+              (cx - 20) +
+              '" y="' +
+              (topY - 6) +
+              '" width="40" height="' +
+              (totalPx + 6) +
+              '" rx="8" fill="var(--color-median-soft)" />';
+          }
+
+          // Head
+          svgHtml +=
+            '<circle cx="' +
+            cx +
+            '" cy="' +
+            headCy +
+            '" r="' +
+            headR +
+            '" fill="' +
+            bodyColor +
+            '" />';
+
+          // Torso (rounded pill)
+          var torsoH = Math.max(14, hipY - shoulderY);
+          svgHtml +=
+            '<rect x="' +
+            (cx - 9) +
+            '" y="' +
+            shoulderY +
+            '" width="18" height="' +
+            torsoH +
+            '" rx="7" fill="' +
+            bodyColor +
+            '" />';
+
+          // Arms
+          svgHtml +=
+            '<line x1="' +
+            (cx - 14) +
+            '" y1="' +
+            (shoulderY + 6) +
+            '" x2="' +
+            (cx - 11) +
+            '" y2="' +
+            (hipY - 2) +
+            '" stroke="' +
+            bodyColor +
+            '" stroke-width="3.5" stroke-linecap="round" />' +
+            '<line x1="' +
+            (cx + 14) +
+            '" y1="' +
+            (shoulderY + 6) +
+            '" x2="' +
+            (cx + 11) +
+            '" y2="' +
+            (hipY - 2) +
+            '" stroke="' +
+            bodyColor +
+            '" stroke-width="3.5" stroke-linecap="round" />';
+
+          // Legs
+          svgHtml +=
+            '<line x1="' +
+            (cx - 5) +
+            '" y1="' +
+            hipY +
+            '" x2="' +
+            (cx - 6) +
+            '" y2="' +
+            floorY +
+            '" stroke="' +
+            bodyColor +
+            '" stroke-width="4" stroke-linecap="round" />' +
+            '<line x1="' +
+            (cx + 5) +
+            '" y1="' +
+            hipY +
+            '" x2="' +
+            (cx + 6) +
+            '" y2="' +
+            floorY +
+            '" stroke="' +
+            bodyColor +
+            '" stroke-width="4" stroke-linecap="round" />';
+
+          // Height label above head
+          svgHtml +=
+            '<text x="' +
+            cx +
+            '" y="' +
+            (topY - 10) +
+            '" text-anchor="middle" fill="var(--text-primary)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">' +
+            person.height +
+            "</text>";
+
+          // Rank label below floor
+          svgHtml +=
+            '<text x="' +
+            cx +
+            '" y="' +
+            (floorY + 18) +
+            '" text-anchor="middle" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="10">#' +
+            (idx + 1) +
+            (isMiddlePerson ? " (mid)" : "") +
+            "</text>";
+        });
+
+        // Animated Horizontal Lines for Mean and Median
+        var meanY = cmToY(mVal);
+        var medY = cmToY(medVal);
+
+        // Offset labels slightly if lines are very close
+        var meanLabelY = meanY <= medY ? meanY - 7 : meanY + 14;
+        var medLabelY = medY < meanY ? medY - 7 : medY + 14;
+        if (Math.abs(meanY - medY) < 12) {
+          meanLabelY = meanY - 8;
+          medLabelY = medY + 15;
+        }
+
+        // Median Horizontal Line
+        svgHtml +=
+          '<g style="transition: transform 350ms ease;">' +
+          '<line x1="56" y1="' +
+          medY +
+          '" x2="755" y2="' +
+          medY +
+          '" stroke="var(--color-median)" stroke-width="3" stroke-dasharray="7,5" />' +
+          '<rect x="646" y="' +
+          (medLabelY - 12) +
+          '" width="124" height="19" rx="4" fill="var(--bg-surface)" stroke="var(--color-median)" stroke-width="1.5" />' +
+          '<text x="708" y="' +
+          (medLabelY + 1) +
+          '" text-anchor="middle" fill="var(--color-median)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">Median: ' +
+          fmtNum(medVal, 1) +
+          " cm</text>" +
+          "</g>";
+
+        // Mean Horizontal Line
+        svgHtml +=
+          '<g style="transition: transform 350ms ease;">' +
+          '<line x1="56" y1="' +
+          meanY +
+          '" x2="755" y2="' +
+          meanY +
+          '" stroke="var(--color-mean)" stroke-width="3" />' +
+          '<rect x="646" y="' +
+          (meanLabelY - 12) +
+          '" width="124" height="19" rx="4" fill="var(--bg-surface)" stroke="var(--color-mean)" stroke-width="1.5" />' +
+          '<text x="708" y="' +
+          (meanLabelY + 1) +
+          '" text-anchor="middle" fill="var(--color-mean)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">Mean: ' +
+          fmtNum(mVal, 1) +
+          " cm</text>" +
+          "</g>";
+
+        lineupSvg.innerHTML = svgHtml;
+      }
+
+      var btnBball = document.getElementById("btn-add-bball");
+      var btnChild = document.getElementById("btn-add-child");
+      var btnResetLineup = document.getElementById("btn-reset-lineup");
+
+      btnBball.addEventListener("click", function () {
+        if (!hasBball) {
+          currentPeople.push({ height: 229, label: "229", role: "bball" });
+          hasBball = true;
+          btnBball.disabled = true;
+          btnBball.textContent = "✓ Basketball player added (229 cm)";
+        }
+        renderLineup();
+
+        if (!hasChild) {
+          lineupExplainEl.innerHTML =
+            "<strong>What changed:</strong> Adding the 229 cm basketball player pulled the <strong style='color:var(--color-mean);'>mean up by +7.1 cm</strong> (from 172.4 cm to <strong>179.5 cm</strong> — taller than 5 of the 8 people!), while the <strong style='color:var(--color-median);'>median only nudged +1.5 cm</strong> (to <strong>173.5 cm</strong>, the average of 172 and 175 cm).";
+        } else {
+          lineupExplainEl.innerHTML =
+            "<strong>What changed:</strong> With both the 95 cm child and the 229 cm basketball player present (9 people), the two opposite outliers partially cancel out on the seesaw!";
+        }
+
+        if (userPrediction && predictFeedbackEl) {
+          predictFeedbackEl.textContent =
+            userPrediction === "mean"
+              ? "Revealed: You nailed it! The mean jumped +7.1 cm while the median moved only +1.5 cm."
+              : "Revealed: Notice how the mean jumped +7.1 cm (to 179.5 cm) while the median only shifted +1.5 cm (to 173.5 cm)!";
+        }
+      });
+
+      btnChild.addEventListener("click", function () {
+        if (!hasChild) {
+          currentPeople.push({ height: 95, label: "95", role: "child" });
+          hasChild = true;
+          btnChild.disabled = true;
+          btnChild.textContent = "✓ Child added (95 cm)";
+        }
+        renderLineup();
+
+        if (!hasBball) {
+          lineupExplainEl.innerHTML =
+            "<strong>What changed:</strong> Adding a 95 cm child dragged the <strong style='color:var(--color-mean);'>mean down by −9.6 cm</strong> (from 172.4 cm to <strong>162.8 cm</strong>), while the <strong style='color:var(--color-median);'>median barely moved −1.0 cm</strong> (to <strong>171 cm</strong>, halfway between 170 and 172 cm).";
+        } else {
+          lineupExplainEl.innerHTML =
+            "<strong>What changed:</strong> With both the 95 cm child and the 229 cm player in the line-up (9 people), the middle person is still #5 (<strong>172 cm</strong>), and the mean settles at <strong>170.1 cm</strong>.";
+        }
+      });
+
+      btnResetLineup.addEventListener("click", function () {
+        currentPeople = basePeople.slice();
+        hasBball = false;
+        hasChild = false;
+        btnBball.disabled = false;
+        btnBball.textContent = "+ Add a basketball player (229 cm)";
+        btnChild.disabled = false;
+        btnChild.textContent = "+ Add a child (95 cm)";
+        renderLineup();
+        lineupExplainEl.textContent =
+          "With the original 7 people (158, 165, 170, 172, 175, 181, 186 cm), the heights are nearly symmetric: the mean (172.4 cm) and the median (172 cm, the 4th person) sit just 0.4 cm apart.";
+      });
+
+      renderLineup();
+
+      /* ======================================================================
+         2. SECTION 2 MINI VISUALS: SEESAW, QUEUE, MODE STACKS
+         ====================================================================== */
+      // 2A: Seesaw
+      var seesawWeights = [2, 3, 4, 7]; // mean = 4.0
+      var seesawOutlierActive = false;
+      var fulcrumSlider = document.getElementById("fulcrum-slider");
+      var fulcrumPosLabel = document.getElementById("fulcrum-pos-label");
+      var seesawTrueMeanEl = document.getElementById("seesaw-true-mean");
+      var seesawSvg = document.getElementById("seesaw-svg");
+      var btnSeesawOutlier = document.getElementById("btn-seesaw-outlier");
+      var btnSeesawSnap = document.getElementById("btn-seesaw-snap");
+
+      function renderSeesaw() {
+        var trueMean = mean(seesawWeights);
+        var testFulcrum = parseFloat(fulcrumSlider.value);
+        fulcrumPosLabel.textContent = fmtNum(testFulcrum, 1);
+        seesawTrueMeanEl.textContent = fmtNum(trueMean, 1);
+
+        // Tilt angle proportional to (trueMean - testFulcrum)
+        var diff = trueMean - testFulcrum;
+        var angleDeg = Math.max(-14, Math.min(14, diff * 4.5));
+
+        function posToX(v) {
+          return 25 + ((v - 1) / 9) * 230;
+        }
+        var fulcrumX = posToX(testFulcrum);
+        var beamY = 92;
+
+        var html = "";
+        // Ground
+        html += '<line x1="15" y1="128" x2="265" y2="128" stroke="var(--border-strong)" stroke-width="2" />';
+
+        // Fulcrum triangle
+        html +=
+          '<polygon points="' +
+          fulcrumX +
+          "," +
+          beamY +
+          " " +
+          (fulcrumX - 12) +
+          ',128 ' +
+          (fulcrumX + 12) +
+          ',128" fill="var(--color-mean)" />';
+
+        // Rotating group around (fulcrumX, beamY)
+        html += '<g transform="rotate(' + angleDeg + " " + fulcrumX + " " + beamY + ')">';
+        html +=
+          '<line x1="20" y1="' +
+          beamY +
+          '" x2="260" y2="' +
+          beamY +
+          '" stroke="var(--text-primary)" stroke-width="5" stroke-linecap="round" />';
+
+        // Draw weights
+        seesawWeights.forEach(function (w) {
+          var wx = posToX(w);
+          html +=
+            '<rect x="' +
+            (wx - 10) +
+            '" y="' +
+            (beamY - 24) +
+            '" width="20" height="22" rx="4" fill="var(--color-mean)" stroke="var(--bg-surface)" stroke-width="1.5" />' +
+            '<text x="' +
+            wx +
+            '" y="' +
+            (beamY - 9) +
+            '" text-anchor="middle" fill="#fff" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">' +
+            w +
+            "</text>";
+        });
+        html += "</g>";
+
+        // Balance status badge
+        var isBalanced = Math.abs(diff) < 0.08;
+        html +=
+          '<text x="140" y="22" text-anchor="middle" fill="' +
+          (isBalanced ? "var(--status-green)" : "var(--color-mean)") +
+          '" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">' +
+          (isBalanced
+            ? "✓ Balanced! Net torque = 0"
+            : diff > 0
+            ? "Tips right → (Mean is at " + fmtNum(trueMean, 1) + ")"
+            : "← Tips left (Mean is at " + fmtNum(trueMean, 1) + ")") +
+          "</text>";
+
+        seesawSvg.innerHTML = html;
+      }
+
+      fulcrumSlider.addEventListener("input", renderSeesaw);
+      btnSeesawOutlier.addEventListener("click", function () {
+        seesawOutlierActive = !seesawOutlierActive;
+        seesawWeights = seesawOutlierActive ? [2, 3, 4, 10] : [2, 3, 4, 7];
+        btnSeesawOutlier.textContent = seesawOutlierActive
+          ? "Move rightmost block back to 7"
+          : "Move rightmost block to 10";
+        renderSeesaw();
+      });
+      btnSeesawSnap.addEventListener("click", function () {
+        fulcrumSlider.value = String(mean(seesawWeights));
+        renderSeesaw();
+      });
+      renderSeesaw();
+
+      // 2B: Queue (Median)
+      var queueSvg = document.getElementById("queue-svg");
+      var btnQueueOdd = document.getElementById("btn-queue-odd");
+      var btnQueueEven = document.getElementById("btn-queue-even");
+      var queueIsEven = false;
+
+      function renderQueue() {
+        var vals = queueIsEven ? [12, 15, 18, 22, 25, 90] : [12, 15, 18, 25, 90];
+        var med = median(vals);
+        var n = vals.length;
+        var mid1 = Math.floor((n - 1) / 2);
+        var mid2 = Math.ceil((n - 1) / 2);
+
+        var html = "";
+        html += '<line x1="20" y1="122" x2="260" y2="122" stroke="var(--border-strong)" stroke-width="2" />';
+
+        var startX = 38;
+        var gap = (240 - startX) / (n - 1);
+
+        vals.forEach(function (v, i) {
+          var cx = startX + i * gap;
+          var isMid = i === mid1 || i === mid2;
+          var col = isMid ? "var(--color-median)" : "var(--text-muted)";
+
+          if (isMid) {
+            html +=
+              '<rect x="' +
+              (cx - 17) +
+              '" y="42" width="34" height="80" rx="6" fill="var(--color-median-soft)" stroke="var(--color-median)" stroke-width="1.5" />';
+          }
+          html +=
+            '<circle cx="' + cx + '" cy="62" r="9" fill="' + col + '" />' +
+            '<rect x="' + (cx - 7) + '" y="74" width="14" height="28" rx="5" fill="' + col + '" />' +
+            '<text x="' +
+            cx +
+            '" y="116" text-anchor="middle" fill="var(--text-primary)" font-family="JetBrains Mono, monospace" font-size="10" font-weight="700">' +
+            v +
+            "</text>";
+        });
+
+        html +=
+          '<text x="140" y="24" text-anchor="middle" fill="var(--color-median)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">' +
+          (queueIsEven
+            ? "Even (6): average middle pair (18+22)/2 = " + fmtNum(med, 1)
+            : "Odd (5): middle person is #3 = " + fmtNum(med, 1)) +
+          "</text>";
+
+        queueSvg.innerHTML = html;
+      }
+
+      btnQueueOdd.addEventListener("click", function () {
+        queueIsEven = false;
+        btnQueueOdd.classList.add("selected");
+        btnQueueEven.classList.remove("selected");
+        renderQueue();
+      });
+      btnQueueEven.addEventListener("click", function () {
+        queueIsEven = true;
+        btnQueueEven.classList.add("selected");
+        btnQueueOdd.classList.remove("selected");
+        renderQueue();
+      });
+      renderQueue();
+
+      // 2C: Mini Mode Stacks
+      var miniModeCounts = { Coffee: 4, Tea: 2, Juice: 1 };
+      var miniModeSvg = document.getElementById("mini-mode-svg");
+
+      function renderMiniMode() {
+        var keys = Object.keys(miniModeCounts);
+        var maxCount = Math.max(miniModeCounts.Coffee, miniModeCounts.Tea, miniModeCounts.Juice);
+        var winners = keys.filter(function (k) {
+          return miniModeCounts[k] === maxCount;
+        });
+
+        var html = '<line x1="20" y1="124" x2="260" y2="124" stroke="var(--border-strong)" stroke-width="2" />';
+        keys.forEach(function (k, idx) {
+          var cx = 60 + idx * 80;
+          var count = miniModeCounts[k];
+          var isWinner = count === maxCount;
+          for (var b = 0; b < count; b++) {
+            var by = 124 - (b + 1) * 14;
+            html +=
+              '<rect x="' +
+              (cx - 22) +
+              '" y="' +
+              by +
+              '" width="44" height="11" rx="3" fill="' +
+              (isWinner ? "var(--color-mode)" : "var(--border-strong)") +
+              '" />';
+          }
+          html +=
+            '<text x="' +
+            cx +
+            '" y="140" text-anchor="middle" fill="var(--text-primary)" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">' +
+            k +
+            " (" +
+            count +
+            ")</text>";
+        });
+
+        html +=
+          '<text x="140" y="22" text-anchor="middle" fill="var(--color-mode)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">Mode: ' +
+          winners.join(" & ") +
+          "</text>";
+
+        miniModeSvg.innerHTML = html;
+      }
+
+      Array.prototype.forEach.call(document.querySelectorAll("[data-fruit]"), function (btn) {
+        btn.addEventListener("click", function () {
+          var item = btn.getAttribute("data-fruit");
+          if (miniModeCounts[item] < 6) {
+            miniModeCounts[item] += 1;
+          } else {
+            miniModeCounts[item] = 1;
+          }
+          renderMiniMode();
+        });
+      });
+      renderMiniMode();
+
+      /* ======================================================================
+         3. SECTION 3: INTERACTIVE DATA TYPE TABLE
+         ====================================================================== */
+      var dtypeExplanations = {
+        continuous:
+          "<strong>Continuous number (Height):</strong> Every arithmetic operation works. Both <strong style='color:var(--color-mean);'>mean</strong> and <strong style='color:var(--color-median);'>median</strong> are natural. Exact unrounded measurements (like 172.4183 cm) rarely repeat, so we usually bin or round continuous values before looking for a mode.",
+        discrete:
+          "<strong>Discrete number (Siblings: 0, 1, 2, 3):</strong> All three work! Notice one quirk: the <strong style='color:var(--color-mean);'>mean</strong> can be a fraction like <code>1.4 siblings</code> even though nobody has 0.4 of a sibling, whereas the <strong style='color:var(--color-mode);'>mode</strong> is guaranteed to be an actual whole number.",
+        ordered:
+          "<strong>Ordered category (Star rating: 1★ to 5★):</strong> Because ratings have a clear order, the <strong style='color:var(--color-median);'>median</strong> (e.g. 4★) and <strong style='color:var(--color-mode);'>mode</strong> are rock-solid. People compute mean star ratings all the time, but beware: averaging assumes the psychological gap between 1★ and 2★ is identical to the gap between 4★ and 5★.",
+        unordered:
+          "<strong>Unordered category (Programming language):</strong> There is no numerical distance and no natural sort order between <code>Python</code>, <code>Rust</code>, and <code>JavaScript</code>. Both mean and median are undefined — <strong style='color:var(--color-mode);'>only the mode makes sense</strong>."
+      };
+
+      var dtypeDetailEl = document.getElementById("datatype-detail");
+      Array.prototype.forEach.call(document.querySelectorAll(".datatype-row"), function (row) {
+        function selectRow() {
+          var key = row.getAttribute("data-dtype");
+          if (dtypeExplanations[key] && dtypeDetailEl) {
+            dtypeDetailEl.innerHTML = dtypeExplanations[key];
+          }
+        }
+        row.addEventListener("click", selectRow);
+        row.addEventListener("keydown", function (e) {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            selectRow();
+          }
+        });
+      });
+
+      /* ======================================================================
+         4. SECTION 4: WHY THE AVERAGE SALARY LIES
+         ====================================================================== */
+      var ceoSlider = document.getElementById("ceo-slider");
+      var ceoDisplay = document.getElementById("ceo-salary-display");
+      var salarySvg = document.getElementById("salary-svg");
+      var salaryMeanVal = document.getElementById("salary-mean-val");
+      var salaryMedianVal = document.getElementById("salary-median-val");
+      var salaryBelowVal = document.getElementById("salary-below-val");
+      var salarySentence = document.getElementById("salary-sentence");
+      var ceoPresetBtns = document.querySelectorAll("[data-ceo]");
+
+      function renderSalaries() {
+        var ceoVal = parseFloat(ceoSlider.value);
+        var salaries = [30, 32, 35, 38, ceoVal];
+        var mSal = mean(salaries);
+        var medSal = median(salaries);
+        var belowCount = salaries.filter(function (s) {
+          return s < mSal;
+        }).length;
+
+        ceoDisplay.textContent = "€" + fmtNum(ceoVal, 0) + "k";
+        salaryMeanVal.textContent = "€" + fmtNum(mSal, 1) + "k";
+        salaryMedianVal.textContent = "€" + fmtNum(medSal, 1) + "k";
+        salaryBelowVal.textContent = belowCount + " of 5 people";
+
+        salarySentence.innerHTML =
+          "The mean says <strong style='color:var(--color-mean);'>€" +
+          fmtNum(mSal, 1) +
+          "k</strong> is typical, yet <strong>" +
+          belowCount +
+          " of 5 people</strong> earn less than that. Meanwhile, the median stays anchored at <strong style='color:var(--color-median);'>€" +
+          fmtNum(medSal, 1) +
+          "k</strong>.";
+
+        // Scale x from 0 to max(220, ceoVal * 1.05)
+        var maxAxis = Math.max(220, ceoVal * 1.04);
+        var leftPad = 115;
+        var rightPad = 710;
+        var plotW = rightPad - leftPad;
+
+        function valToX(v) {
+          return leftPad + (v / maxAxis) * plotW;
+        }
+
+        var labels = ["Staff #1", "Staff #2", "Staff #3 (Mid)", "Staff #4", "CEO"];
+        var html = "";
+
+        // Draw bars
+        salaries.forEach(function (sal, idx) {
+          var y = 26 + idx * 36;
+          var barW = Math.max(4, valToX(sal) - leftPad);
+          var isMedianRow = idx === 2;
+          var isCeoRow = idx === 4;
+          var fillCol = isCeoRow
+            ? "var(--color-mean)"
+            : isMedianRow
+            ? "var(--color-median)"
+            : "var(--text-muted)";
+
+          html +=
+            '<text x="' +
+            (leftPad - 10) +
+            '" y="' +
+            (y + 16) +
+            '" text-anchor="end" fill="var(--text-primary)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">' +
+            labels[idx] +
+            "</text>" +
+            '<rect x="' +
+            leftPad +
+            '" y="' +
+            y +
+            '" width="' +
+            barW +
+            '" height="22" rx="4" fill="' +
+            fillCol +
+            '" fill-opacity="0.85" />' +
+            '<text x="' +
+            Math.min(rightPad - 35, leftPad + barW + 8) +
+            '" y="' +
+            (y + 15) +
+            '" fill="var(--text-primary)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">€' +
+            fmtNum(sal, 0) +
+            "k</text>";
+        });
+
+        var meanX = valToX(mSal);
+        var medX = valToX(medSal);
+
+        // Median Marker Line
+        html +=
+          '<line x1="' +
+          medX +
+          '" y1="14" x2="' +
+          medX +
+          '" y2="210" stroke="var(--color-median)" stroke-width="3" stroke-dasharray="6,4" />' +
+          '<rect x="' +
+          (medX - 58) +
+          '" y="214" width="116" height="22" rx="4" fill="var(--bg-surface)" stroke="var(--color-median)" stroke-width="1.5" />' +
+          '<text x="' +
+          medX +
+          '" y="229" text-anchor="middle" fill="var(--color-median)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">Median: €' +
+          fmtNum(medSal, 1) +
+          "k</text>";
+
+        // Mean Marker Line
+        var meanBoxX = Math.max(leftPad + 60, Math.min(rightPad - 60, meanX));
+        if (Math.abs(meanBoxX - medX) < 118) {
+          meanBoxX = medX + 122;
+        }
+        html +=
+          '<line x1="' +
+          meanX +
+          '" y1="14" x2="' +
+          meanX +
+          '" y2="210" stroke="var(--color-mean)" stroke-width="3" />' +
+          '<rect x="' +
+          (meanBoxX - 56) +
+          '" y="214" width="112" height="22" rx="4" fill="var(--bg-surface)" stroke="var(--color-mean)" stroke-width="1.5" />' +
+          '<text x="' +
+          meanBoxX +
+          '" y="229" text-anchor="middle" fill="var(--color-mean)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">Mean: €' +
+          fmtNum(mSal, 1) +
+          "k</text>";
+
+        salarySvg.innerHTML = html;
+      }
+
+      ceoSlider.addEventListener("input", function () {
+        Array.prototype.forEach.call(ceoPresetBtns, function (b) {
+          b.classList.toggle("selected", b.getAttribute("data-ceo") === ceoSlider.value);
+        });
+        renderSalaries();
+      });
+
+      Array.prototype.forEach.call(ceoPresetBtns, function (btn) {
+        btn.addEventListener("click", function () {
+          ceoSlider.value = btn.getAttribute("data-ceo");
+          Array.prototype.forEach.call(ceoPresetBtns, function (b) {
+            b.classList.remove("selected");
+          });
+          btn.classList.add("selected");
+          renderSalaries();
+        });
+      });
+
+      renderSalaries();
+
+      /* ======================================================================
+         5. SECTION 5: WHEN ONLY THE MODE MAKES SENSE (LANGUAGE VOTES)
+         ====================================================================== */
+      var initialLangVotes = [
+        { lang: "Python", votes: 6 },
+        { lang: "JavaScript", votes: 4 },
+        { lang: "Java", votes: 3 },
+        { lang: "C++", votes: 2 },
+        { lang: "Rust", votes: 1 }
+      ];
+
+      var langVotes = initialLangVotes.map(function (item) {
+        return { lang: item.lang, votes: item.votes };
+      });
+
+      var voteBtnsContainer = document.getElementById("lang-vote-buttons");
+      var votesSvg = document.getElementById("votes-svg");
+      var votesModeVal = document.getElementById("votes-mode-val");
+
+      function getExpandedVoteArray() {
+        var arr = [];
+        langVotes.forEach(function (item) {
+          for (var i = 0; i < item.votes; i++) {
+            arr.push(item.lang);
+          }
+        });
+        return arr;
+      }
+
+      function renderLanguageVotes() {
+        // Use the exact mode() function on the expanded list of category strings!
+        var allBallots = getExpandedVoteArray();
+        var winningModes = allBallots.length > 0 ? mode(allBallots) : [];
+        var maxVotes = Math.max.apply(
+          null,
+          langVotes.map(function (l) {
+            return l.votes;
+          })
+        );
+
+        // Render clickable vote buttons
+        voteBtnsContainer.innerHTML = "";
+        langVotes.forEach(function (item) {
+          var isWinner = winningModes.indexOf(item.lang) !== -1;
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "btn " + (isWinner ? "btn-primary" : "btn-secondary");
+          if (isWinner) {
+            btn.style.background = "var(--color-mode)";
+            btn.style.borderColor = "var(--color-mode)";
+            btn.style.color = "#ffffff";
+          }
+          btn.innerHTML =
+            "+ Vote " +
+            item.lang +
+            ' <span style="font-family:var(--font-mono); opacity:0.9;">(' +
+            item.votes +
+            ")</span>";
+          btn.addEventListener("click", function () {
+            item.votes += 1;
+            renderLanguageVotes();
+          });
+          voteBtnsContainer.appendChild(btn);
+        });
+
+        // Update Mode readout
+        if (winningModes.length === 1) {
+          votesModeVal.textContent = winningModes[0] + " (" + maxVotes + " votes)";
+        } else {
+          votesModeVal.textContent =
+            "Tie: " + winningModes.join(" & ") + " (" + maxVotes + " votes each)";
+        }
+
+        // Render SVG Bar Chart
+        var ceilVotes = Math.max(8, maxVotes + 1);
+        var floorY = 188;
+        var topY = 28;
+        var chartH = floorY - topY;
+
+        var html =
+          '<line x1="50" y1="' +
+          floorY +
+          '" x2="680" y2="' +
+          floorY +
+          '" stroke="var(--text-primary)" stroke-width="2" />';
+
+        langVotes.forEach(function (item, idx) {
+          var cx = 115 + idx * 122;
+          var barH = (item.votes / ceilVotes) * chartH;
+          var by = floorY - barH;
+          var isMode = winningModes.indexOf(item.lang) !== -1;
+
+          html +=
+            '<rect x="' +
+            (cx - 34) +
+            '" y="' +
+            by +
+            '" width="68" height="' +
+            barH +
+            '" rx="6" fill="' +
+            (isMode ? "var(--color-mode)" : "var(--border-strong)") +
+            '" />' +
+            '<text x="' +
+            cx +
+            '" y="' +
+            (by - 8) +
+            '" text-anchor="middle" fill="' +
+            (isMode ? "var(--color-mode)" : "var(--text-primary)") +
+            '" font-family="JetBrains Mono, monospace" font-size="12" font-weight="700">' +
+            item.votes +
+            (isMode ? " ★ MODE" : "") +
+            "</text>" +
+            '<text x="' +
+            cx +
+            '" y="' +
+            (floorY + 22) +
+            '" text-anchor="middle" fill="var(--text-primary)" font-family="Plus Jakarta Sans, sans-serif" font-size="13" font-weight="600">' +
+            item.lang +
+            "</text>";
+        });
+
+        votesSvg.innerHTML = html;
+      }
+
+      document.getElementById("btn-tie-votes").addEventListener("click", function () {
+        langVotes = [
+          { lang: "Python", votes: 6 },
+          { lang: "JavaScript", votes: 6 },
+          { lang: "Java", votes: 3 },
+          { lang: "C++", votes: 2 },
+          { lang: "Rust", votes: 1 }
+        ];
+        renderLanguageVotes();
+      });
+
+      document.getElementById("btn-reset-votes").addEventListener("click", function () {
+        langVotes = initialLangVotes.map(function (item) {
+          return { lang: item.lang, votes: item.votes };
+        });
+        renderLanguageVotes();
+      });
+
+      renderLanguageVotes();
+
+      /* ======================================================================
+         7. SECTION 7: TRY YOUR OWN NUMBERS (LIVE DOT PLOT + VALIDATION)
+         ====================================================================== */
+      var customInput = document.getElementById("custom-numbers-input");
+      var validationMsg = document.getElementById("custom-validation-msg");
+      var dotplotSvg = document.getElementById("dotplot-svg");
+      var customMeanVal = document.getElementById("custom-mean-val");
+      var customMedianVal = document.getElementById("custom-median-val");
+      var customModeVal = document.getElementById("custom-mode-val");
+
+      function parseAndRenderCustomNumbers() {
+        var raw = customInput.value.trim();
+        if (!raw) {
+          validationMsg.className = "validation-msg validation-error";
+          validationMsg.textContent =
+            "Input is empty — please enter at least one number separated by commas (e.g. 4, 7, 7, 12).";
+          customMeanVal.textContent = "—";
+          customMedianVal.textContent = "—";
+          customModeVal.textContent = "—";
+          dotplotSvg.innerHTML =
+            '<text x="370" y="120" text-anchor="middle" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="13">Waiting for valid numbers...</text>';
+          return;
+        }
+
+        var parts = raw.split(",");
+        var nums = [];
+        var badTokens = [];
+
+        parts.forEach(function (part) {
+          var t = part.trim();
+          if (t === "") return;
+          var parsed = Number(t);
+          if (!Number.isFinite(parsed)) {
+            badTokens.push(t);
+          } else {
+            nums.push(parsed);
+          }
+        });
+
+        if (badTokens.length > 0) {
+          validationMsg.className = "validation-msg validation-error";
+          validationMsg.textContent =
+            'Non-numeric value detected: "' +
+            badTokens.join('", "') +
+            '". Please enter only valid numbers separated by commas.';
+          return;
+        }
+
+        if (nums.length === 0) {
+          validationMsg.className = "validation-msg validation-error";
+          validationMsg.textContent = "Please enter at least one number.";
+          return;
+        }
+
+        validationMsg.className = "validation-msg validation-ok";
+        validationMsg.textContent = "Parsed " + nums.length + " valid " + (nums.length === 1 ? "number." : "numbers.");
+
+        var mVal = mean(nums);
+        var medVal = median(nums);
+        var modeVals = mode(nums);
+
+        // Count occurrences for stacking
+        var countsMap = new Map();
+        nums.forEach(function (n) {
+          countsMap.set(n, (countsMap.get(n) || 0) + 1);
+        });
+        var maxFreq = Math.max.apply(null, Array.from(countsMap.values()));
+
+        customMeanVal.textContent = fmtNum(mVal, 2);
+        customMedianVal.textContent = fmtNum(medVal, 2);
+        customModeVal.textContent =
+          modeVals
+            .map(function (v) {
+              return fmtNum(v, 2);
+            })
+            .join(", ") +
+          " (×" +
+          maxFreq +
+          ")";
+
+        // Plot bounds
+        var minV = Math.min.apply(null, nums);
+        var maxV = Math.max.apply(null, nums);
+        var span = maxV - minV;
+        var padLeft = 55;
+        var padRight = 685;
+        var plotW = padRight - padLeft;
+        var axisY = 186;
+
+        function valToX(v) {
+          if (span === 0) return (padLeft + padRight) / 2;
+          return padLeft + ((v - minV) / span) * plotW;
+        }
+
+        var html = "";
+        // Number line
+        html +=
+          '<line x1="' +
+          padLeft +
+          '" y1="' +
+          axisY +
+          '" x2="' +
+          padRight +
+          '" y2="' +
+          axisY +
+          '" stroke="var(--text-primary)" stroke-width="2" />';
+
+        // Axis ticks (5 evenly spaced ticks)
+        var tickCount = span === 0 ? 1 : 5;
+        for (var t = 0; t < tickCount; t++) {
+          var tv = span === 0 ? minV : minV + (span * t) / (tickCount - 1);
+          var tx = valToX(tv);
+          html +=
+            '<line x1="' +
+            tx +
+            '" y1="' +
+            axisY +
+            '" x2="' +
+            tx +
+            '" y2="' +
+            (axisY + 6) +
+            '" stroke="var(--text-muted)" stroke-width="1.5" />' +
+            '<text x="' +
+            tx +
+            '" y="' +
+            (axisY + 21) +
+            '" text-anchor="middle" fill="var(--text-muted)" font-family="JetBrains Mono, monospace" font-size="11">' +
+            fmtNum(tv, 1) +
+            "</text>";
+        }
+
+        // Mean & Median vertical lines
+        var meanX = valToX(mVal);
+        var medX = valToX(medVal);
+
+        html +=
+          '<line x1="' +
+          medX +
+          '" y1="24" x2="' +
+          medX +
+          '" y2="' +
+          axisY +
+          '" stroke="var(--color-median)" stroke-width="3" stroke-dasharray="6,4" />' +
+          '<text x="' +
+          medX +
+          '" y="18" text-anchor="middle" fill="var(--color-median)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">Median (' +
+          fmtNum(medVal, 2) +
+          ")</text>";
+
+        var meanLabelY = Math.abs(meanX - medX) < 85 ? 36 : 18;
+        html +=
+          '<line x1="' +
+          meanX +
+          '" y1="' +
+          (meanLabelY + 6) +
+          '" x2="' +
+          meanX +
+          '" y2="' +
+          axisY +
+          '" stroke="var(--color-mean)" stroke-width="3" />' +
+          '<text x="' +
+          meanX +
+          '" y="' +
+          meanLabelY +
+          '" text-anchor="middle" fill="var(--color-mean)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="700">Mean (' +
+          fmtNum(mVal, 2) +
+          ")</text>";
+
+        // Stacked dots for each unique value
+        var dotR = Math.max(6, Math.min(11, Math.floor(110 / Math.max(4, maxFreq))));
+        countsMap.forEach(function (count, val) {
+          var cx = valToX(val);
+          var isModeVal = modeVals.indexOf(val) !== -1;
+          for (var k = 0; k < count; k++) {
+            var cy = axisY - 14 - k * (dotR * 2 + 4);
+            html +=
+              '<circle cx="' +
+              cx +
+              '" cy="' +
+              cy +
+              '" r="' +
+              dotR +
+              '" fill="' +
+              (isModeVal ? "var(--color-mode)" : "var(--text-secondary)") +
+              '" stroke="var(--bg-surface)" stroke-width="1.5" />';
+          }
+        });
+
+        dotplotSvg.innerHTML = html;
+      }
+
+      customInput.addEventListener("input", parseAndRenderCustomNumbers);
+
+      Array.prototype.forEach.call(document.querySelectorAll("[data-preset]"), function (btn) {
+        btn.addEventListener("click", function () {
+          customInput.value = btn.getAttribute("data-preset");
+          parseAndRenderCustomNumbers();
+        });
+      });
+
+      parseAndRenderCustomNumbers();
+    })();
+  </script>
 </body>
 </html>

@@ -1,198 +1,747 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Raghav Bandreddi</title>
-<meta name="description" content="Raghav Bandreddi, M.Sc. AI and Data Science student in Germany, learning machine learning from first principles and publishing every step.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/site.css">
-<style>
-.hero{padding-top:2.5rem;padding-bottom:3rem}
-.hero h1{font-size:clamp(3rem,10vw,6.2rem);font-weight:800;letter-spacing:-.035em;line-height:.95;margin:0 0 1.5rem}
-.hero .lede{font-size:clamp(1.25rem,2.6vw,1.5rem);line-height:1.5;max-width:34ch;margin-bottom:1rem}
-.status{display:inline-flex;align-items:center;gap:.5rem;font:600 1rem var(--display);color:var(--accent)}
-.status::before{content:"";width:.6rem;height:.6rem;border-radius:50%;background:var(--accent)}
-
-/* the 147-day path */
-.path{margin-top:.5rem}
-.path-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:.5rem 1.5rem;margin-bottom:1rem}
-.path-head b{font:800 clamp(1.6rem,4vw,2.1rem)/1 var(--display)}
-.grid{display:flex;gap:6px;overflow-x:auto;padding-bottom:.25rem}
-.phase-block{display:grid;grid-template-rows:repeat(7,1fr);grid-auto-flow:column;gap:3px}
-.cell{width:clamp(11px,2.6vw,26px);aspect-ratio:1;border-radius:3px;background:var(--rule);display:block}
-.cell.done{background:var(--done)}
-.cell.now{background:var(--paper);box-shadow:inset 0 0 0 2.5px var(--accent)}
-.cell.has{position:relative;background:var(--accent)}
-.cell.has:hover{transform:scale(1.25)}
-.phases{list-style:none;margin:1.25rem 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(11rem,1fr));gap:.4rem 1.5rem;font:400 .95rem var(--display);color:var(--soft)}
-.phases li.current{color:var(--ink);font-weight:600}
-.legend{display:flex;flex-wrap:wrap;gap:1.25rem;margin-top:1rem;font:400 .9rem var(--display);color:var(--soft)}
-.legend span{display:inline-flex;align-items:center;gap:.4rem}
-.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
-
-/* experience timeline */
-.timeline{list-style:none;margin:0;padding:0}
-.timeline li{display:grid;gap:.15rem;padding:1rem 0 1rem 1.25rem;border-left:2px solid var(--rule);position:relative}
-.timeline li::before{content:"";position:absolute;left:-6px;top:1.45rem;width:10px;height:10px;border-radius:50%;background:var(--paper);border:2px solid var(--soft)}
-.timeline li:first-child::before{border-color:var(--accent);background:var(--accent)}
-.timeline .when{font:600 .95rem var(--display);color:var(--soft)}
-.timeline p{margin:.25rem 0 0}
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(14rem,1fr));gap:1.5rem}
-.facts h3{margin-bottom:.35rem}
-.facts ul{margin:0;padding-left:1.1rem}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raghav Bandreddi — First-Principles ML &amp; Visual Explainers</title>
+  <meta name="description" content="Raghav Bandreddi — M.Sc. student in AI and Data Science at HFU Germany. Learning machine learning from first principles on a 147-day path and publishing interactive visual explanations." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("raghav-theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        var theme = saved || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    })();
+  </script>
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
 
-<header class="wide bar">
-  <a href="./">Raghav Bandreddi</a>
-  <nav aria-label="Main">
-    <a href="learn/">Explained</a>
-    <a href="#projects">Projects</a>
-    <a href="#research">Research</a>
-    <a href="#contact">Contact</a>
-  </nav>
-</header>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="index.html" class="brand" aria-label="Raghav Bandreddi home">
+        <span class="brand-mark" aria-hidden="true">RB</span>
+        <span class="brand-text">
+          <span class="brand-name">Raghav Bandreddi</span>
+          <span class="brand-sub">147-Day ML Notebook</span>
+        </span>
+      </a>
 
-<main>
-<div class="wide hero">
-  <h1>Raghav<br>Bandreddi</h1>
-  <p class="lede">I'm learning machine learning from first principles: deriving every formula, building every model from scratch, and publishing the explanations as I go.</p>
-  <p class="soft">M.Sc. student in AI and Data Science at Hochschule Furtwangen University, based in Bielefeld, Germany.</p>
-  <span class="status">Open to AI/ML working-student roles in Germany</span>
-  <div class="actions">
-    <a class="btn primary" href="mailto:raghavbandreddi@gmail.com">Email me</a>
-    <a class="btn" href="https://github.com/RaGHaV-186">GitHub</a>
-    <a class="btn" href="https://www.linkedin.com/in/raghav-bandreddi-035261398">LinkedIn</a>
-    <a class="btn" href="[add CV link, e.g. assets/raghav-bandreddi-cv.pdf]">Download CV</a>
-  </div>
-</div>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="#the-path">The Path</a>
+        <a href="learn/index.html">Explainers</a>
+        <a href="#projects">Projects</a>
+        <a href="#research">Research</a>
+        <a href="#experience">Experience</a>
+        <a href="#contact">Contact</a>
+      </nav>
 
-<section class="wide" aria-labelledby="h-path">
-  <div class="path">
-    <div class="path-head">
-      <h2 id="h-path" style="margin:0">The path</h2>
-      <p class="soft" style="margin:0"><b id="day-now"></b> <span id="day-of"></span></p>
+      <div class="header-actions">
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+          <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+          <span class="theme-label" id="theme-label">Theme</span>
+        </button>
+      </div>
     </div>
-    <p>A 147-day plan from statistics to production machine learning, one week per column. Teal squares are days with a published explanation: click one to read it.</p>
-    <div class="grid" id="grid" role="img" aria-label=""></div>
-    <div class="legend" aria-hidden="true">
-      <span><i style="background:var(--done)"></i>done</span>
-      <span><i style="background:var(--paper);box-shadow:inset 0 0 0 2.5px var(--accent)"></i>today</span>
-      <span><i style="background:var(--accent)"></i>explained</span>
-      <span><i style="background:var(--rule)"></i>ahead</span>
+  </header>
+
+  <main id="main-content">
+    <!-- 1. HERO -->
+    <section class="hero-section">
+      <div class="container hero-grid">
+        <div class="hero-copy">
+          <div class="status-pill">
+            <span class="status-dot" aria-hidden="true"></span>
+            <span>Open to AI/ML working-student (Werkstudent) roles in Germany</span>
+          </div>
+
+          <h1 class="hero-title">Raghav Bandreddi</h1>
+
+          <p class="hero-lead">
+            Learning machine learning from first principles — deriving every formula, building every model from scratch — on a <strong>147-day plan</strong>, and publishing interactive explanations as I go.
+          </p>
+
+          <div class="hero-meta-cards">
+            <div class="meta-card">
+              <span class="meta-label">Academic</span>
+              <p class="meta-value">M.Sc. student in Artificial Intelligence and Data Science for Digital Business Management at <strong>Hochschule Furtwangen University (HFU)</strong>, Germany, since March 2026</p>
+            </div>
+            <div class="meta-card">
+              <span class="meta-label">Location</span>
+              <p class="meta-value">Based in <strong>Bielefeld, Germany</strong></p>
+            </div>
+          </div>
+
+          <div class="hero-actions" role="group" aria-label="Primary profile links">
+            <a class="btn btn-primary" href="mailto:raghavbandreddi@gmail.com">
+              <span aria-hidden="true">✉</span> Email
+            </a>
+            <a class="btn btn-secondary" href="https://github.com/RaGHaV-186" target="_blank" rel="noopener noreferrer">
+              <span aria-hidden="true">↗</span> GitHub
+            </a>
+            <a class="btn btn-secondary" href="https://www.linkedin.com/in/raghav-bandreddi-035261398" target="_blank" rel="noopener noreferrer">
+              <span aria-hidden="true">↗</span> LinkedIn
+            </a>
+            <span class="btn btn-placeholder" title="Replace this placeholder in index.html with your actual CV URL">
+              CV: <mark class="todo-placeholder">[add CV link]</mark>
+            </span>
+          </div>
+        </div>
+
+        <aside class="hero-featured-card" aria-label="Current progress and latest interactive explainer">
+          <div class="featured-card-top">
+            <span class="eyebrow-tag">Live Study Log</span>
+            <span class="day-counter-badge" id="hero-day-badge">Day 5 of 147</span>
+          </div>
+
+          <div class="mini-concept-preview" aria-hidden="true">
+            <svg viewBox="0 0 320 130" class="hero-mini-svg">
+              <line x1="20" y1="102" x2="300" y2="102" stroke="currentColor" stroke-opacity="0.25" stroke-width="2" />
+              <!-- Fulcrum triangle -->
+              <polygon points="160,102 148,122 172,122" fill="var(--color-mean)" />
+              <!-- Seesaw beam -->
+              <line x1="42" y1="92" x2="278" y2="92" stroke="var(--text-primary)" stroke-width="4" stroke-linecap="round" />
+              <!-- Data blocks -->
+              <circle cx="70" cy="78" r="10" fill="var(--color-median)" />
+              <circle cx="115" cy="78" r="10" fill="var(--color-median)" />
+              <circle cx="155" cy="78" r="11" fill="var(--color-mode)" />
+              <circle cx="155" cy="56" r="11" fill="var(--color-mode)" />
+              <circle cx="248" cy="76" r="13" fill="var(--color-mean)" />
+              <!-- Labels -->
+              <text x="48" y="34" fill="var(--color-mean)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Mean (balance)</text>
+              <text x="175" y="34" fill="var(--color-median)" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">Median (middle)</text>
+            </svg>
+          </div>
+
+          <div id="hero-latest-explainer">
+            <!-- Populated from assets/data.js -->
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- 2. THE 147-DAY PATH -->
+    <section id="the-path" class="section path-section">
+      <div class="container">
+        <div class="section-header-row">
+          <div>
+            <span class="section-kicker">The 147-Day Curriculum</span>
+            <h2 class="section-title">The Path: First-Principles Machine Learning</h2>
+            <p class="section-subtitle">
+              Every day is one focused building block — from linear algebra and probability to transformers and production deployment. Highlighted days have interactive visual explainers you can play with right now.
+            </p>
+          </div>
+
+          <div class="path-live-stats" id="path-live-stats" aria-live="polite">
+            <!-- Populated by script -->
+          </div>
+        </div>
+
+        <div class="path-legend" aria-label="Path legend">
+          <span class="legend-item">
+            <span class="legend-swatch swatch-done" aria-hidden="true"></span> Completed day
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch swatch-today" aria-hidden="true"></span> Today (<span id="legend-current-day">Day 5</span>)
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch swatch-explainer" aria-hidden="true">★</span> Interactive explainer published (clickable)
+          </span>
+          <span class="legend-item">
+            <span class="legend-swatch swatch-upcoming" aria-hidden="true"></span> Upcoming
+          </span>
+        </div>
+
+        <!-- Inspector bar updates when hovering or focusing any day node -->
+        <div class="path-inspector" id="path-inspector" role="status" aria-live="polite">
+          <span class="inspector-badge" id="inspector-day">Day 1</span>
+          <span class="inspector-text" id="inspector-text">Hover or focus any day in the 147-day map below to inspect its phase and interactive explainer.</span>
+        </div>
+
+        <div id="path-phases-container" class="path-phases-grid">
+          <!-- Dynamically generated from window.SITE in assets/data.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. EXPLAINED (Latest 3 Explainers) -->
+    <section id="explained" class="section">
+      <div class="container">
+        <div class="section-header-row">
+          <div>
+            <span class="section-kicker">Interactive Visual Articles</span>
+            <h2 class="section-title">Explained from Scratch</h2>
+            <p class="section-subtitle">
+              Visual intuition first, formulas second, and my own Python implementation side by side with interactive simulations.
+            </p>
+          </div>
+          <a class="btn btn-secondary" href="learn/index.html">
+            All explainers <span aria-hidden="true">→</span>
+          </a>
+        </div>
+
+        <div id="latest-explainers-grid" class="explainers-grid">
+          <!-- Dynamically generated from window.SITE.explainers -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. PROJECTS -->
+    <section id="projects" class="section section-alt">
+      <div class="container">
+        <div class="section-header-row">
+          <div>
+            <span class="section-kicker">What I Have Built</span>
+            <h2 class="section-title">Projects</h2>
+            <p class="section-subtitle">
+              From autograd engines and character-level language models built without frameworks to full-stack retrieval and evaluation apps.
+            </p>
+          </div>
+        </div>
+
+        <div id="projects-grid" class="projects-grid">
+          <!-- Dynamically generated from window.SITE.projects -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. RESEARCH -->
+    <section id="research" class="section">
+      <div class="container">
+        <div class="research-card">
+          <div class="research-header">
+            <span class="section-kicker">Research Direction</span>
+            <h2 class="section-title">AI Safety &amp; Cross-Lingual Model Evaluation</h2>
+          </div>
+
+          <p class="research-body">
+            Alongside the ML path I'm working toward AI safety research on how language models are evaluated, focusing on <strong>sycophancy</strong> (models telling people what they want to hear) and whether models behave differently in <strong>German</strong> than in <strong>English</strong>.
+          </p>
+
+          <div class="research-meta-grid">
+            <div class="research-meta-item">
+              <span class="meta-label">Current stage</span>
+              <div class="meta-value"><mark class="todo-placeholder">[add]</mark></div>
+            </div>
+            <div class="research-meta-item">
+              <span class="meta-label">Outputs</span>
+              <div class="meta-value"><mark class="todo-placeholder">[add when published]</mark></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. EXPERIENCE & 7. SKILLS -->
+    <section id="experience" class="section section-alt">
+      <div class="container two-col-section">
+        <div>
+          <span class="section-kicker">Chronology</span>
+          <h2 class="section-title">Experience &amp; Education</h2>
+
+          <ol class="timeline-list">
+            <li class="timeline-item timeline-current">
+              <div class="timeline-marker" aria-hidden="true"></div>
+              <div class="timeline-content">
+                <span class="timeline-date">Since March 2026</span>
+                <h3 class="timeline-role">M.Sc. AI and Data Science for Digital Business Management</h3>
+                <p class="timeline-org">Hochschule Furtwangen University (HFU), Germany</p>
+              </div>
+            </li>
+
+            <li class="timeline-item">
+              <div class="timeline-marker" aria-hidden="true"></div>
+              <div class="timeline-content">
+                <span class="timeline-date">Oct 2024 to Oct 2025</span>
+                <h3 class="timeline-role">Packaged App Development Associate</h3>
+                <p class="timeline-org">Accenture, Bengaluru</p>
+                <p class="timeline-desc"><mark class="todo-placeholder">[what I did]</mark></p>
+              </div>
+            </li>
+
+            <li class="timeline-item">
+              <div class="timeline-marker" aria-hidden="true"></div>
+              <div class="timeline-content">
+                <span class="timeline-date">Jul to Sep 2024</span>
+                <h3 class="timeline-role">Data Science Intern</h3>
+                <p class="timeline-org">Knowledge AI, Delhi</p>
+                <p class="timeline-desc"><mark class="todo-placeholder">[what I did]</mark></p>
+              </div>
+            </li>
+
+            <li class="timeline-item">
+              <div class="timeline-marker" aria-hidden="true"></div>
+              <div class="timeline-content">
+                <span class="timeline-date"><mark class="todo-placeholder">[years]</mark></span>
+                <h3 class="timeline-role">Co-founder</h3>
+                <p class="timeline-org">HireKahani (<a href="https://hirekahani.in" target="_blank" rel="noopener noreferrer">hirekahani.in</a>)</p>
+              </div>
+            </li>
+
+            <li class="timeline-item">
+              <div class="timeline-marker" aria-hidden="true"></div>
+              <div class="timeline-content">
+                <span class="timeline-date">2020 to 2024</span>
+                <h3 class="timeline-role">B.Tech in Electronics and Instrumentation Engineering</h3>
+                <p class="timeline-org">CVR College of Engineering</p>
+              </div>
+            </li>
+          </ol>
+        </div>
+
+        <div id="skills">
+          <span class="section-kicker">Toolkit</span>
+          <h2 class="section-title">Skills, Certificates &amp; Languages</h2>
+
+          <div class="skills-stack">
+            <div class="skill-panel">
+              <h3 class="skill-panel-title">Core ML &amp; Scientific Computing</h3>
+              <div class="chip-group">
+                <span class="skill-chip">Python</span>
+                <span class="skill-chip">NumPy</span>
+                <span class="skill-chip">PyTorch</span>
+                <span class="skill-chip">Transformers</span>
+                <span class="skill-chip">Retrieval (TF-IDF, BM25, LSA)</span>
+                <span class="skill-chip">Recommenders</span>
+              </div>
+            </div>
+
+            <div class="skill-panel">
+              <h3 class="skill-panel-title">Engineering &amp; Production</h3>
+              <div class="chip-group">
+                <span class="skill-chip">FastAPI</span>
+                <span class="skill-chip">React</span>
+                <span class="skill-chip">Node.js</span>
+                <span class="skill-chip">PostgreSQL</span>
+                <span class="skill-chip">Docker</span>
+                <mark class="todo-placeholder">[add more]</mark>
+              </div>
+            </div>
+
+            <div class="skill-panel">
+              <h3 class="skill-panel-title">Certificates</h3>
+              <ul class="clean-list">
+                <li>IBM Data Science Professional</li>
+                <li>Meta Full Stack Developer</li>
+              </ul>
+            </div>
+
+            <div class="skill-panel">
+              <h3 class="skill-panel-title">Languages</h3>
+              <ul class="clean-list">
+                <li><strong>English:</strong> <mark class="todo-placeholder">[level]</mark></li>
+                <li><strong>German:</strong> learning</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. CONTACT -->
+    <section id="contact" class="section">
+      <div class="container">
+        <div class="contact-card">
+          <div class="contact-copy">
+            <span class="section-kicker">Get in Touch</span>
+            <h2 class="section-title">Let's talk about ML, Working-Student Roles, or Visual Explanations</h2>
+            <p class="contact-text">
+              I'm based in <strong>Bielefeld, Germany</strong> and open to <strong>AI/ML working-student (Werkstudent)</strong> roles across Germany. Reach out by email or connect on GitHub and LinkedIn.
+            </p>
+          </div>
+
+          <div class="contact-links">
+            <a class="btn btn-primary" href="mailto:raghavbandreddi@gmail.com">
+              raghavbandreddi@gmail.com
+            </a>
+            <div class="contact-secondary-row">
+              <a class="btn btn-secondary" href="https://github.com/RaGHaV-186" target="_blank" rel="noopener noreferrer">
+                GitHub (@RaGHaV-186)
+              </a>
+              <a class="btn btn-secondary" href="https://www.linkedin.com/in/raghav-bandreddi-035261398" target="_blank" rel="noopener noreferrer">
+                LinkedIn
+              </a>
+              <span class="btn btn-placeholder">
+                CV: <mark class="todo-placeholder">[add CV link]</mark>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 9. FOOTER -->
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-honesty">
+        Designed and built with help from AI. The maths and the Python behind each explanation are my own; the code is on GitHub.
+      </p>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="learn/index.html">Explainers</a>
+        <a href="https://github.com/RaGHaV-186" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
     </div>
-    <ol class="phases" id="phases"></ol>
-  </div>
-</section>
+  </footer>
 
-<section class="wrap" aria-labelledby="h-explained">
-  <h2 id="h-explained">Explained</h2>
-  <p>Interactive explanations of what I've learned, with the code I wrote for it. Writing them is how I check that I really understand something.</p>
-  <ul class="rows" id="explainers"></ul>
-  <p style="margin-top:1rem"><a href="learn/">See all explanations</a></p>
-</section>
+  <script src="assets/data.js"></script>
+  <script>
+    (function () {
+      "use strict";
 
-<section class="wrap" id="projects" aria-labelledby="h-projects">
-  <h2 id="h-projects">Projects</h2>
-  <ul class="rows" id="project-list"></ul>
-</section>
+      // Theme toggle setup
+      var toggleBtn = document.getElementById("theme-toggle");
+      var themeLabel = document.getElementById("theme-label");
 
-<section class="wrap" id="research" aria-labelledby="h-research">
-  <h2 id="h-research">Research</h2>
-  <p>Alongside the ML path, I'm working toward AI safety research on how language models are evaluated. My focus is sycophancy (models telling people what they want to hear) and whether models behave differently in German than in English.</p>
-  <p class="soft">Current stage: <em class="todo">[e.g. reading foundations and preparing for the Apart research sprint in October 2026]</em></p>
-  <ul class="rows">
-    <li><span class="meta">Outputs</span><p><em class="todo">[sprint report, LessWrong post or preprint: add each one here once published]</em></p></li>
-  </ul>
-</section>
+      function updateThemeButton(theme) {
+        if (themeLabel) {
+          themeLabel.textContent = theme === "dark" ? "Dark" : "Light";
+        }
+        if (toggleBtn) {
+          toggleBtn.setAttribute("aria-label", theme === "dark" ? "Switch to light mode" : "Switch to dark mode");
+        }
+      }
 
-<section class="wrap" aria-labelledby="h-exp">
-  <h2 id="h-exp">Experience</h2>
-  <ol class="timeline">
-    <li><span class="when">Since March 2026</span><h3>M.Sc. AI and Data Science for Digital Business Management</h3><span class="soft">Hochschule Furtwangen University, Germany</span></li>
-    <li><span class="when">Oct 2024 to Oct 2025</span><h3>Packaged App Development Associate</h3><span class="soft">Accenture, Bengaluru</span><p><em class="todo">[one or two lines: what you built and with what result]</em></p></li>
-    <li><span class="when">Jul to Sep 2024</span><h3>Data Science Intern</h3><span class="soft">Knowledge AI, Delhi</span><p><em class="todo">[one or two lines: what you built and with what result]</em></p></li>
-    <li><span class="when"><em class="todo">[years]</em></span><h3>Co-founder, HireKahani</h3><span class="soft">Interview experience sharing platform</span></li>
-    <li><span class="when">2020 to 2024</span><h3>B.Tech in Electronics and Instrumentation Engineering</h3><span class="soft">CVR College of Engineering, India</span></li>
-  </ol>
-</section>
+      var currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+      updateThemeButton(currentTheme);
 
-<section class="wrap" aria-labelledby="h-skills">
-  <h2 id="h-skills">Skills</h2>
-  <div class="facts">
-    <div><h3>Machine learning</h3><ul><li>Python, NumPy, PyTorch</li><li>Transformers, retrieval, recommenders</li><li><em class="todo">[add more]</em></li></ul></div>
-    <div><h3>Engineering</h3><ul><li>FastAPI, React, Node.js</li><li>PostgreSQL, Docker</li><li><em class="todo">[add more]</em></li></ul></div>
-    <div><h3>Certificates and languages</h3><ul><li>IBM Data Science Professional</li><li>Meta Full Stack Developer</li><li>English <em class="todo">[level]</em>, German (learning)</li></ul></div>
-  </div>
-</section>
+      if (toggleBtn) {
+        toggleBtn.addEventListener("click", function () {
+          var now = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", now);
+          try {
+            localStorage.setItem("raghav-theme", now);
+          } catch (e) {}
+          updateThemeButton(now);
+        });
+      }
 
-<section class="wrap" id="contact" aria-labelledby="h-contact">
-  <h2 id="h-contact">Contact</h2>
-  <p>The quickest way to reach me is by email. I'm happy to talk about working-student roles, thesis topics or anything on this page.</p>
-  <div class="actions">
-    <a class="btn primary" href="mailto:raghavbandreddi@gmail.com">raghavbandreddi@gmail.com</a>
-    <a class="btn" href="https://www.linkedin.com/in/raghav-bandreddi-035261398">LinkedIn</a>
-  </div>
-</section>
-</main>
+      // Render data from window.SITE
+      var site = window.SITE;
+      if (!site) return;
 
-<footer class="wrap">
-  <p>Built by hand, hosted on GitHub Pages. The code for everything above is on <a href="https://github.com/RaGHaV-186">GitHub</a>.</p>
-</footer>
+      function resolveHref(href) {
+        if (!href) return "#";
+        return href;
+      }
 
-<script src="assets/data.js"></script>
-<script>
-(function () {
-  const S = window.SITE;
-  const $ = id => document.getElementById(id);
-  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-  // a value still in [brackets] is a placeholder: show it highlighted instead of as a broken link
-  const link = ([label, href]) => href.startsWith("[")
-    ? `<em class="todo">${esc(label)}: ${esc(href)}</em>`
-    : `<a href="${esc(href)}">${esc(label)}</a>`;
+      function escapeHtml(str) {
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      }
 
-  /* the path */
-  const byDay = Object.fromEntries(S.explainers.map(e => [e.day, e]));
-  const phaseNow = S.phases.find(p => S.currentDay >= p.from && S.currentDay <= p.to);
-  $("day-now").textContent = "Day " + S.currentDay;
-  $("day-of").textContent = "of " + S.totalDays + (phaseNow ? ", " + phaseNow.name.toLowerCase() + " phase" : "");
-  $("grid").setAttribute("aria-label", "Day " + S.currentDay + " of " + S.totalDays + " in the learning plan");
-  S.phases.forEach(p => {
-    const block = document.createElement("div");
-    block.className = "phase-block";
-    block.title = p.name;
-    for (let d = p.from; d <= p.to; d++) {
-      const e = byDay[d];
-      const cell = document.createElement(e ? "a" : "span");
-      cell.className = "cell" + (d < S.currentDay ? " done" : "") + (d === S.currentDay ? " now" : "") + (e ? " has" : "");
-      if (e) { cell.href = e.href; cell.title = "Day " + d + ": " + e.title; cell.setAttribute("aria-label", "Day " + d + ": " + e.title); }
-      else cell.title = "Day " + d;
-      block.appendChild(cell);
-    }
-    $("grid").appendChild(block);
-    const li = document.createElement("li");
-    li.textContent = p.name + ", days " + p.from + " to " + p.to;
-    if (p === phaseNow) li.className = "current";
-    $("phases").appendChild(li);
-  });
+      // Build map of explainers by day
+      var explainerByDay = {};
+      (site.explainers || []).forEach(function (item) {
+        explainerByDay[item.day] = item;
+      });
 
-  /* latest explainers (max 3) */
-  $("explainers").innerHTML = [...S.explainers].reverse().slice(0, 3).map(e =>
-    `<li><span class="meta">Day ${e.day}</span><div><h3><a href="${esc(e.href)}">${esc(e.title)}</a></h3><p class="soft">${esc(e.about)}</p></div></li>`
-  ).join("");
+      // Find current phase
+      var activePhase = (site.phases || []).find(function (p) {
+        return site.currentDay >= p.from && site.currentDay <= p.to;
+      }) || (site.phases && site.phases[0]) || { name: "Math", from: 1, to: 21 };
 
-  /* projects */
-  $("project-list").innerHTML = S.projects.map(p =>
-    `<li><span class="meta">${esc(p.tech)}</span><div><h3>${esc(p.name)}</h3><p>${esc(p.what)}</p><div class="links">${p.links.map(link).join("")}</div></div></li>`
-  ).join("");
+      // Update Hero day badge & latest explainer card
+      var heroBadge = document.getElementById("hero-day-badge");
+      if (heroBadge) {
+        heroBadge.textContent = "Day " + site.currentDay + " of " + site.totalDays + " · " + activePhase.name;
+      }
 
-  /* highlight any remaining [placeholder] hrefs in the static HTML */
-  document.querySelectorAll('a[href^="["]').forEach(a => { a.classList.add("todo"); a.removeAttribute("href"); a.title = "Placeholder: add the real link"; });
-})();
-</script>
+      var legendCurrentDay = document.getElementById("legend-current-day");
+      if (legendCurrentDay) {
+        legendCurrentDay.textContent = "Day " + site.currentDay;
+      }
+
+      var heroLatestContainer = document.getElementById("hero-latest-explainer");
+      if (heroLatestContainer && site.explainers && site.explainers.length > 0) {
+        var sortedExplainers = site.explainers.slice().sort(function (a, b) {
+          return b.day - a.day;
+        });
+        var latest = sortedExplainers[0];
+        heroLatestContainer.innerHTML =
+          '<div class="featured-explainer-meta">Latest Interactive Explainer · Day ' +
+          escapeHtml(latest.day) +
+          "</div>" +
+          '<h2 class="featured-explainer-title">' +
+          escapeHtml(latest.title) +
+          "</h2>" +
+          '<p class="featured-explainer-about">' +
+          escapeHtml(latest.about) +
+          "</p>" +
+          '<a class="btn btn-primary btn-full" href="' +
+          escapeHtml(resolveHref(latest.href)) +
+          '">Explore Day ' +
+          escapeHtml(latest.day) +
+          ' Interactive <span aria-hidden="true">→</span></a>';
+      }
+
+      // Update Path live stats
+      var pathStats = document.getElementById("path-live-stats");
+      var percentDone = Math.round((site.currentDay / site.totalDays) * 1000) / 10;
+      if (pathStats) {
+        pathStats.innerHTML =
+          '<div class="stat-pill">' +
+          '<span class="stat-pill-label">Progress</span>' +
+          '<strong class="stat-pill-value">Day ' +
+          escapeHtml(site.currentDay) +
+          " of " +
+          escapeHtml(site.totalDays) +
+          " (" +
+          escapeHtml(percentDone) +
+          "%)</strong>" +
+          "</div>" +
+          '<div class="stat-pill">' +
+          '<span class="stat-pill-label">Current Phase</span>' +
+          '<strong class="stat-pill-value">' +
+          escapeHtml(activePhase.name) +
+          " (Days " +
+          escapeHtml(activePhase.from) +
+          "–" +
+          escapeHtml(activePhase.to) +
+          ")</strong>" +
+          "</div>" +
+          '<div class="stat-pill">' +
+          '<span class="stat-pill-label">Published Explainers</span>' +
+          '<strong class="stat-pill-value">' +
+          escapeHtml((site.explainers || []).length) +
+          " live</strong>" +
+          "</div>";
+      }
+
+      // Render 147-Day Path grouped by the 7 phases
+      var phasesContainer = document.getElementById("path-phases-container");
+      var inspectorDay = document.getElementById("inspector-day");
+      var inspectorText = document.getElementById("inspector-text");
+
+      function updateInspector(dayNum, phaseName, exp) {
+        if (!inspectorDay || !inspectorText) return;
+        var statusLabel =
+          dayNum < site.currentDay
+            ? "Completed"
+            : dayNum === site.currentDay
+            ? "Today (In progress)"
+            : "Upcoming";
+        inspectorDay.textContent = "Day " + dayNum + " · " + phaseName;
+        if (exp) {
+          inspectorText.innerHTML =
+            "<strong>" +
+            escapeHtml(exp.title) +
+            "</strong> — " +
+            escapeHtml(exp.about) +
+            ' · <a href="' +
+            escapeHtml(resolveHref(exp.href)) +
+            '">Open interactive explainer →</a>';
+        } else {
+          inspectorText.textContent = statusLabel + " study day in the " + phaseName + " phase.";
+        }
+      }
+
+      if (phasesContainer && site.phases) {
+        phasesContainer.innerHTML = "";
+        site.phases.forEach(function (phase, phaseIndex) {
+          var isCurrentPhase = site.currentDay >= phase.from && site.currentDay <= phase.to;
+          var isPhaseCompleted = site.currentDay > phase.to;
+          var totalInPhase = phase.to - phase.from + 1;
+          var doneInPhase = Math.max(0, Math.min(totalInPhase, site.currentDay - phase.from));
+
+          var phaseCard = document.createElement("div");
+          phaseCard.className =
+            "phase-card" +
+            (isCurrentPhase ? " phase-card-current" : "") +
+            (isPhaseCompleted ? " phase-card-done" : "");
+
+          var headerHtml =
+            '<div class="phase-card-header">' +
+            '<div>' +
+            '<span class="phase-index">Phase ' +
+            (phaseIndex + 1) +
+            " · Days " +
+            phase.from +
+            "–" +
+            phase.to +
+            "</span>" +
+            '<h3 class="phase-name">' +
+            escapeHtml(phase.name) +
+            (isCurrentPhase ? ' <span class="phase-active-tag">Current Phase</span>' : "") +
+            "</h3>" +
+            "</div>" +
+            '<span class="phase-count">' +
+            doneInPhase +
+            "/" +
+            totalInPhase +
+            " days</span>" +
+            "</div>";
+
+          var daysGrid = document.createElement("div");
+          daysGrid.className = "phase-days-grid";
+
+          for (var d = phase.from; d <= phase.to; d++) {
+            var exp = explainerByDay[d];
+            var isDone = d < site.currentDay;
+            var isToday = d === site.currentDay;
+            var cellClass = "day-node";
+            if (isDone) cellClass += " day-done";
+            else if (isToday) cellClass += " day-today";
+            else cellClass += " day-upcoming";
+            if (exp) cellClass += " day-has-explainer";
+
+            var el = document.createElement(exp ? "a" : "button");
+            el.className = cellClass;
+            if (exp) {
+              el.href = resolveHref(exp.href);
+              el.setAttribute(
+                "aria-label",
+                "Day " + d + " (" + phase.name + "): " + exp.title + " — " + exp.about
+              );
+              el.innerHTML =
+                '<span class="day-num">' +
+                d +
+                '</span><span class="day-star" aria-hidden="true">★</span>';
+            } else {
+              el.type = "button";
+              el.setAttribute(
+                "aria-label",
+                "Day " +
+                  d +
+                  " (" +
+                  phase.name +
+                  ") — " +
+                  (isDone ? "Completed" : isToday ? "Today" : "Upcoming")
+              );
+              el.innerHTML = '<span class="day-num">' + d + "</span>";
+            }
+
+            (function (dayCapture, phaseNameCapture, expCapture) {
+              el.addEventListener("mouseenter", function () {
+                updateInspector(dayCapture, phaseNameCapture, expCapture);
+              });
+              el.addEventListener("focus", function () {
+                updateInspector(dayCapture, phaseNameCapture, expCapture);
+              });
+              if (!expCapture) {
+                el.addEventListener("click", function () {
+                  updateInspector(dayCapture, phaseNameCapture, expCapture);
+                });
+              }
+            })(d, phase.name, exp);
+
+            daysGrid.appendChild(el);
+          }
+
+          phaseCard.innerHTML = headerHtml;
+          phaseCard.appendChild(daysGrid);
+          phasesContainer.appendChild(phaseCard);
+        });
+      }
+
+      // Render Latest 3 Explainers
+      var explainersGrid = document.getElementById("latest-explainers-grid");
+      if (explainersGrid && site.explainers) {
+        var latestThree = site.explainers
+          .slice()
+          .sort(function (a, b) {
+            return b.day - a.day;
+          })
+          .slice(0, 3);
+
+        explainersGrid.innerHTML = latestThree
+          .map(function (item) {
+            var phaseObj = (site.phases || []).find(function (p) {
+              return item.day >= p.from && item.day <= p.to;
+            });
+            var phaseTitle = phaseObj ? phaseObj.name : "ML Path";
+            return (
+              '<article class="explainer-card">' +
+              '<div class="explainer-card-top">' +
+              '<span class="explainer-day-pill">Day ' +
+              escapeHtml(item.day) +
+              " · " +
+              escapeHtml(phaseTitle) +
+              "</span>" +
+              '<span class="explainer-interactive-badge">Interactive SVG + Code</span>' +
+              "</div>" +
+              '<h3 class="explainer-card-title"><a href="' +
+              escapeHtml(resolveHref(item.href)) +
+              '">' +
+              escapeHtml(item.title) +
+              "</a></h3>" +
+              '<p class="explainer-card-desc">' +
+              escapeHtml(item.about) +
+              "</p>" +
+              '<div class="explainer-card-footer">' +
+              '<a class="explainer-read-link" href="' +
+              escapeHtml(resolveHref(item.href)) +
+              '">Launch interactive explanation <span aria-hidden="true">→</span></a>' +
+              "</div>" +
+              "</article>"
+            );
+          })
+          .join("");
+      }
+
+      // Render Projects from window.SITE.projects
+      var projectsGrid = document.getElementById("projects-grid");
+      if (projectsGrid && site.projects) {
+        projectsGrid.innerHTML = site.projects
+          .map(function (proj) {
+            var techHtml = (proj.tech || [])
+              .map(function (t) {
+                return '<span class="tech-tag">' + escapeHtml(t) + "</span>";
+              })
+              .join("");
+
+            var linksHtml = (proj.links || [])
+              .map(function (lnk) {
+                var isPlaceholder =
+                  lnk.placeholder || (lnk.href && lnk.href.indexOf("[") !== -1);
+                if (isPlaceholder) {
+                  return (
+                    '<span class="project-link-placeholder">' +
+                    escapeHtml(lnk.label ? lnk.label + ": " : "") +
+                    '<mark class="todo-placeholder">' +
+                    escapeHtml(lnk.href) +
+                    "</mark></span>"
+                  );
+                }
+                return (
+                  '<a class="project-link" href="' +
+                  escapeHtml(lnk.href) +
+                  '" target="_blank" rel="noopener noreferrer">' +
+                  escapeHtml(lnk.label) +
+                  ' <span aria-hidden="true">↗</span></a>'
+                );
+              })
+              .join("");
+
+            return (
+              '<article class="project-card">' +
+              '<h3 class="project-title">' +
+              escapeHtml(proj.name) +
+              "</h3>" +
+              '<p class="project-desc">' +
+              escapeHtml(proj.description) +
+              "</p>" +
+              (techHtml ? '<div class="project-tech">' + techHtml + "</div>" : "") +
+              '<div class="project-links">' +
+              linksHtml +
+              "</div>" +
+              "</article>"
+            );
+          })
+          .join("");
+      }
+    })();
+  </script>
 </body>
 </html>
