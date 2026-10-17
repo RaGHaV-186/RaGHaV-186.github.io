@@ -1512,3 +1512,62 @@ html[data-theme="dark"] .theme-icon-sun {
     font-size: 0.82rem;
   }
 }
+
+/* ==========================================================================
+   Day 2 concept colours: spread (std / variance) and outliers.
+   Fixed roles across ALL pages, like mean / median / mode.
+   Quartiles and the IQR reuse the median colour (the median IS Q2).
+   ========================================================================== */
+:root {
+  --color-std: #c2680a;
+  --color-std-soft: rgba(194, 104, 10, 0.14);
+  --color-outlier: #be123c;
+  --color-outlier-soft: rgba(190, 18, 60, 0.12);
+}
+
+html[data-theme="dark"] {
+  --color-std: #fbbf24;
+  --color-std-soft: rgba(251, 191, 36, 0.18);
+  --color-outlier: #fb7185;
+  --color-outlier-soft: rgba(251, 113, 133, 0.18);
+}
+
+.pill-std {
+  background: var(--color-std-soft);
+  color: var(--color-std);
+  border: 1px solid var(--color-std);
+}
+
+.pill-outlier {
+  background: var(--color-outlier-soft);
+  color: var(--color-outlier);
+  border: 1px solid var(--color-outlier);
+}
+
+.readout-std {
+  border-left-color: var(--color-std);
+}
+
+.readout-outlier {
+  border-left-color: var(--color-outlier);
+}
+
+.concept-card-std {
+  border-top-color: var(--color-std);
+}
+
+/* Step-by-step tables inside explainers (e.g. Welford, worked variance) */
+.step-table td.hl {
+  color: var(--color-std);
+  font-weight: 700;
+}
+
+.verdict-yes {
+  color: var(--color-outlier);
+  font-weight: 700;
+}
+
+.verdict-no {
+  color: var(--color-median);
+  font-weight: 700;
+}
