@@ -1571,3 +1571,41 @@ html[data-theme="dark"] {
   color: var(--color-median);
   font-weight: 700;
 }
+
+/* ==========================================================================
+   Day 3 concept colours: agreement (both above / both below average)
+   vs disagreement, used for covariance signs and correlation direction.
+   ========================================================================== */
+:root {
+  --color-agree: #15803d;
+  --color-agree-soft: rgba(21, 128, 61, 0.13);
+  --color-disagree: #be185d;
+  --color-disagree-soft: rgba(190, 24, 93, 0.12);
+}
+
+html[data-theme="dark"] {
+  --color-agree: #4ade80;
+  --color-agree-soft: rgba(74, 222, 128, 0.16);
+  --color-disagree: #f472b6;
+  --color-disagree-soft: rgba(244, 114, 182, 0.16);
+}
+
+.pill-agree {
+  background: var(--color-agree-soft);
+  color: var(--color-agree);
+  border: 1px solid var(--color-agree);
+}
+
+.pill-disagree {
+  background: var(--color-disagree-soft);
+  color: var(--color-disagree);
+  border: 1px solid var(--color-disagree);
+}
+
+.concept-card-agree {
+  border-top-color: var(--color-agree);
+}
+
+.concept-card-disagree {
+  border-top-color: var(--color-disagree);
+}
