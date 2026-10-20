@@ -14,6 +14,7 @@ window.SITE = {
     { day: 1, title: "Finding the centre", about: "Mean, median and mode, and when each one lies", href: "learn/day01-finding-the-centre.html" },
     { day: 2, title: "Measuring spread", about: "Standard deviation, why n − 1, z-scores, percentiles and outliers", href: "learn/day02-measuring-spread.html" },
     { day: 3, title: "Moving together", about: "Covariance, Pearson as a cosine, correlation vs causation, and Spearman", href: "learn/day03-moving-together.html" },
+    { day: 4, title: "Counting chances", about: "Permutations vs combinations, at least one, inclusion–exclusion, shrink-the-room conditionals, independence and Monte Carlo", href: "learn/day04-counting-chances.html" },
   ],
   projects: [
     {
