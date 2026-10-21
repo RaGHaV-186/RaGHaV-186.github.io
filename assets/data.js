@@ -15,6 +15,7 @@ window.SITE = {
     { day: 2, title: "Measuring spread", about: "Standard deviation, why n − 1, z-scores, percentiles and outliers", href: "learn/day02-measuring-spread.html" },
     { day: 3, title: "Moving together", about: "Covariance, Pearson as a cosine, correlation vs causation, and Spearman", href: "learn/day03-moving-together.html" },
     { day: 4, title: "Counting chances", about: "Permutations vs combinations, at least one, inclusion–exclusion, shrink-the-room conditionals, independence and Monte Carlo", href: "learn/day04-counting-chances.html" },
+    { day: 5, title: "Chance in numbers", about: "Bayes with natural frequencies, random variables, PMF and CDF, expected value, variance and the Bernoulli", href: "learn/day05-chance-in-numbers.html" },
   ],
   projects: [
     {

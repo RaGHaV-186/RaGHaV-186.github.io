@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 5: Chance in Numbers — Bayes, PMF, CDF, Expectation &amp; Variance | Raghav Bandreddi</title>
+  <meta name="description" content="An interactive visual explanation of Bayes' theorem with natural frequencies, random variables, PMFs and CDFs, expected value, variance and the Bernoulli distribution." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("raghav-theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    .svg-wrap { overflow-x: auto; }
+    .svg-wrap svg { min-width: 520px; width: 100%; height: auto; display: block; }
+    .mono { font-family: var(--font-mono); }
+    .small { font-size: 0.86rem; color: var(--text-secondary); }
+    .seg { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; }
+    .seg .btn { font-size: 0.85rem; }
+    .seg .btn[aria-pressed="true"] { outline: 2px solid var(--text-primary); outline-offset: 1px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.6rem 0; }
+    .chip { font-family: var(--font-mono); font-size: 0.8rem; padding: 0.15rem 0.45rem; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-surface); }
+    .chip b { color: var(--color-hit); }
+    .panel-title { font-family: var(--font-mono); font-size: 0.8rem; margin: 0.6rem 0 0.2rem; color: var(--text-secondary); }
+    .live-formula { font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.8; overflow-wrap: anywhere; margin: 0.6rem 0 0; }
+    .live-formula .hit { color: var(--color-hit); font-weight: 700; }
+    .live-formula .miss { color: var(--color-miss); font-weight: 700; }
+    #main-content input[type="range"] { accent-color: var(--color-hit); }
+    .data-table td.num { font-family: var(--font-mono); }
+    .data-table tr.total td { font-weight: 700; border-top: 2px solid var(--border-strong); }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="../index.html" class="brand" aria-label="Raghav Bandreddi home">
+        <span class="brand-mark" aria-hidden="true">RB</span>
+        <span class="brand-text">
+          <span class="brand-name">Raghav Bandreddi</span>
+          <span class="brand-sub">147-Day ML Notebook</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../index.html#the-path">The Path</a>
+        <a href="index.html" aria-current="page">Explainers</a>
+        <a href="../index.html#projects">Projects</a>
+        <a href="../index.html#research">Research</a>
+        <a href="../index.html#experience">Experience</a>
+        <a href="../index.html#contact">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+          <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+          <span class="theme-label" id="theme-label">Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="concept-legend-bar" role="region" aria-label="Colour key for concepts">
+    <div class="container concept-legend-inner">
+      <span><strong>Day 5 · Phase 1 (Math):</strong> Chance in Numbers</span>
+      <div class="concept-pills">
+        <span class="concept-pill pill-hit">● Matching path / PMF</span>
+        <span class="concept-pill pill-median">▁▃▆ CDF</span>
+        <span class="concept-pill pill-mean">▲ E[X]</span>
+        <span class="concept-pill pill-std">↔ Spread</span>
+      </div>
+    </div>
+  </div>
+
+  <main id="main-content" class="explainer-article">
+    <div class="container-narrow">
+
+      <!-- 1. BAYES -->
+      <section class="explainer-section" id="sec-bayes">
+        <span class="section-kicker">Day 5 of 147 · Probability from First Principles</span>
+        <h1 class="hero-title" style="margin-bottom: 0.6rem;">Chance in Numbers: Bayes, Random Variables &amp; Expected Values</h1>
+        <p class="hero-lead">
+          A sycophancy detector catches 90% of sycophantic answers. It flags an answer. How sure can you be that the answer is really sycophantic? Bayes' theorem flips "flag given sycophantic" into "sycophantic given flag", and it's just Day 4's <em>shrink the room</em> on a tree.
+        </p>
+
+        <div class="interactive-stage">
+          <div class="predict-box">
+            <p class="predict-title">Predict first</p>
+            <p style="margin: 0; font-size: 0.94rem;">2% of answers are sycophantic. The detector flags 90% of those, and wrongly flags 5% of honest answers. It flags an answer. The chance it's really sycophantic is about…</p>
+            <div class="predict-options" role="group" aria-label="Prediction options">
+              <button type="button" class="predict-btn" data-guess="90">90%</button>
+              <button type="button" class="predict-btn" data-guess="50">50%</button>
+              <button type="button" class="predict-btn" data-guess="27">27%</button>
+            </div>
+            <p class="predict-feedback" id="by-feedback" aria-live="polite"></p>
+          </div>
+          <div class="stage-controls" style="margin-top: 0;">
+            <div class="seg" role="group" aria-label="Example stories">
+              <button type="button" class="btn btn-secondary" data-story="syco" aria-pressed="true">Sycophancy 2%</button>
+              <button type="button" class="btn btn-secondary" data-story="worse" aria-pressed="false">Worse model 20%</button>
+              <button type="button" class="btn btn-secondary" data-story="trans" aria-pressed="false">Bad translations 10%</button>
+              <button type="button" class="btn btn-secondary" data-story="spam" aria-pressed="false">Spam 5%</button>
+            </div>
+          </div>
+          <div class="slider-row"><label for="by-prior" class="mono" style="font-size: 0.8rem;">Prior, how common "yes" is: <strong id="by-prior-val"></strong></label><input type="range" id="by-prior" min="1" max="50" step="1" value="2" /></div>
+          <div class="slider-row"><label for="by-hit" class="mono" style="font-size: 0.8rem;">Flags a "yes" (catch rate): <strong id="by-hit-val"></strong></label><input type="range" id="by-hit" min="50" max="100" step="1" value="90" /></div>
+          <div class="slider-row"><label for="by-fa" class="mono" style="font-size: 0.8rem;">Flags a "no" (false alarm): <strong id="by-fa-val"></strong></label><input type="range" id="by-fa" min="1" max="30" step="1" value="5" /></div>
+          <div class="svg-wrap"><svg id="by-svg" viewBox="0 0 680 300" role="img" aria-label="Probability tree of 1000 answers split into yes and no, then flagged and not flagged"></svg></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box"><span class="readout-label">Flagged room (all ★)</span><span class="readout-value" id="by-room" style="color: var(--color-given);"></span></div>
+            <div class="readout-box"><span class="readout-label">Really "yes" in it</span><span class="readout-value" id="by-true" style="color: var(--color-hit);"></span></div>
+            <div class="readout-box"><span class="readout-label">Posterior P(yes given flag)</span><span class="readout-value" id="by-post"></span></div>
+          </div>
+          <p class="live-formula" id="by-formula"></p>
+          <p class="live-narrative" id="by-caption" aria-live="polite"></p>
+        </div>
+
+        <div class="formula-callout">
+          <div><strong>Bayes:</strong> P(A given B) = P(B given A) × P(A) / P(B),   with P(B) = P(B given A)·P(A) + P(B given not A)·P(not A)</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">In tree words: <strong>matching path ÷ all matching paths</strong>. Multiply along a path, add across paths. Prior P(A) = before the evidence; likelihood P(B given A) = the detector's catch rate; evidence P(B) = all flags; posterior P(A given B) = what we want. Counts out of 1000 and probabilities give the same answer, because the 1000 cancels.</div>
+        </div>
+
+        <p class="panel-title" style="margin-top: 1.5rem;">The base-rate effect: same detector, different priors</p>
+        <div class="svg-wrap"><svg id="br-svg" viewBox="0 0 680 230" role="img" aria-label="Posterior as a function of the prior for the current detector"></svg></div>
+        <p class="small">When "yes" is rare, even a small false-alarm rate on the huge "no" group produces more false flags than real catches. So an eval that reports only "the judge catches 90%" hides how many of its flags are wrong: always report the base rate.</p>
+      </section>
+
+      <!-- 2. RANDOM VARIABLE + PMF + CDF -->
+      <section class="explainer-section" id="sec-rv">
+        <span class="section-kicker">Turning Outcomes into Numbers</span>
+        <h2 class="section-title">2. Random Variables, PMF and CDF</h2>
+        <p class="section-subtitle">
+          A random variable X is a <strong>rule that turns each outcome into a number</strong>, and the question decides which number. The same die can give "the face", "1 if even", or "€12 on a six". The recipe never changes: list the outcomes, write X under each, group equal X's, and divide by the total. That table is the PMF. Its running total is the CDF.
+        </p>
+        <div class="interactive-stage">
+          <div class="seg" role="group" aria-label="Choose an experiment and a rule for X" id="rv-btns"></div>
+          <p class="panel-title" id="rv-title"></p>
+          <div class="chips" id="rv-chips"></div>
+          <p class="panel-title">PMF: P(X = x), with E[X] as the balance point ▲ and E ± one std ↔</p>
+          <div class="svg-wrap"><svg id="rv-pmf" viewBox="0 0 680 255" role="img" aria-label="PMF bar chart"></svg></div>
+          <p class="panel-title">CDF: P(X ≤ x), a staircase that ends at 1</p>
+          <div class="svg-wrap"><svg id="rv-cdf" viewBox="0 0 680 190" role="img" aria-label="CDF staircase"></svg></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-mean"><span class="readout-label">E[X]</span><span class="readout-value" id="rv-e"></span></div>
+            <div class="readout-box readout-std"><span class="readout-label">Var(X)</span><span class="readout-value" id="rv-v"></span></div>
+            <div class="readout-box readout-std"><span class="readout-label">std = √Var</span><span class="readout-value" id="rv-s"></span></div>
+          </div>
+          <p class="live-narrative" id="rv-caption" aria-live="polite"></p>
+        </div>
+        <p class="small">There's no single "PMF formula". It's always (outcomes with that x) ÷ (all outcomes), and logic is the method. Formulas are counting shortcuts for when listing gets too long, like C(n, k) / 2ⁿ for heads in n fair flips. Careful with two dice: there are 6² = 36 outcomes, not 12, and a six is 1/6, not 50/50.</p>
+      </section>
+
+      <!-- 3. CDF QUESTIONS -->
+      <section class="explainer-section" id="sec-cdfq">
+        <span class="section-kicker">Reading the Staircase</span>
+        <h2 class="section-title">3. "Or Fewer", "Or More", "Between": One Subtraction Each</h2>
+        <p class="section-subtitle">
+          20 students, how many coffees today: 4 had none, 8 had one, 5 had two, 3 had three. The CDF answers range questions in one step. The trap is always the boundary: "2 or more" includes the 2, so its opposite is "1 or fewer".
+        </p>
+        <div class="interactive-stage">
+          <div class="seg" role="group" aria-label="Choose a question" id="cq-btns"></div>
+          <div class="svg-wrap"><svg id="cq-svg" viewBox="0 0 680 250" role="img" aria-label="Coffee PMF with the bars for the chosen question highlighted, and the CDF values below"></svg></div>
+          <p class="live-formula" id="cq-formula"></p>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Question words</th><th>Use</th><th>Coffee example</th></tr></thead>
+            <tbody>
+              <tr><td>exactly x</td><td>PMF, or F(x) − F(x − 1)</td><td>P(X = 2) = 5/20</td></tr>
+              <tr><td>x or fewer (≤)</td><td>F(x)</td><td>P(X ≤ 2) = 17/20</td></tr>
+              <tr><td>fewer than x (&lt;)</td><td>F(x − 1)</td><td>P(X &lt; 2) = 12/20</td></tr>
+              <tr><td>x or more (≥)</td><td>1 − F(x − 1)</td><td>P(X ≥ 2) = 8/20</td></tr>
+              <tr><td>between a and b</td><td>F(b) − F(a − 1)</td><td>P(1 ≤ X ≤ 2) = 13/20</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. EXPECTATION -->
+      <section class="explainer-section" id="sec-exp">
+        <span class="section-kicker">The Long-Run Average</span>
+        <h2 class="section-title">4. Expected Value: Should You Play This Game?</h2>
+        <p class="section-subtitle">
+          E[X] = Σ x × P(X = x) is the Day 1 mean with the ÷ n moved inside: each value weighted by how often it happens. Roll a die; a six wins €12, anything else wins nothing. Play six times with each face once and you win €12, so €2 per game. If a game costs more than €2, you lose in the long run, and the simulation shows it.
+        </p>
+        <div class="interactive-stage">
+          <div class="slider-row" style="margin-top: 0;"><label for="gm-cost" class="mono" style="font-size: 0.8rem;">Price per game: <strong id="gm-cost-val"></strong></label><input type="range" id="gm-cost" min="0" max="5" step="0.5" value="3" /></div>
+          <div class="stage-controls">
+            <button type="button" class="btn btn-primary" id="gm-10">Play 10 games</button>
+            <button type="button" class="btn btn-secondary" id="gm-100">Play 100</button>
+            <button type="button" class="btn btn-secondary" id="gm-1000">Play 1,000</button>
+            <button type="button" class="btn btn-secondary" id="gm-reset">Reset</button>
+          </div>
+          <div class="svg-wrap"><svg id="gm-svg" viewBox="0 0 680 250" role="img" aria-label="Running average profit per game compared with the expected value"></svg></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-mean"><span class="readout-label">E[winnings]</span><span class="readout-value">€2</span></div>
+            <div class="readout-box readout-mean"><span class="readout-label">E[profit] = €2 − price</span><span class="readout-value" id="gm-ep"></span></div>
+            <div class="readout-box"><span class="readout-label">Games played</span><span class="readout-value" id="gm-n"></span></div>
+            <div class="readout-box"><span class="readout-label">Your average profit</span><span class="readout-value" id="gm-avg"></span></div>
+          </div>
+          <p class="live-narrative" id="gm-caption" aria-live="polite"></p>
+        </div>
+        <div class="formula-callout">
+          <div><strong>Rules:</strong> E[aX + b] = a·E[X] + b    E[X + Y] = E[X] + E[Y] (always)</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">So the profit's expectation is just E[winnings] − price. Sanity-check every E[X]: for 2 coins at €4 per head you expect 1 head, so €4, and the sum 0·¼ + 4·½ + 8·¼ = 4 agrees.</div>
+        </div>
+      </section>
+
+      <!-- 5. VARIANCE -->
+      <section class="explainer-section" id="sec-var">
+        <span class="section-kicker">Same Centre, Different Spread</span>
+        <h2 class="section-title">5. Variance of a Random Variable</h2>
+        <p class="section-subtitle">
+          Two spinners, both with E[X] = 2: one always lands on 2, the other on 0 or 4. Variance measures the gap, exactly like Day 2, but each squared distance is weighted by its probability instead of divided by n. There's no n − 1 here: we know the whole distribution, so it isn't a sample.
+        </p>
+        <div class="interactive-stage">
+          <div class="seg" role="group" aria-label="Choose a distribution" id="vr-btns"></div>
+          <div class="svg-wrap"><svg id="vr-svg" viewBox="0 0 680 170" role="img" aria-label="Values on a number line with their distances from the expected value"></svg></div>
+          <div id="vr-table"></div>
+          <p class="live-narrative" id="vr-caption" aria-live="polite"></p>
+        </div>
+        <div class="formula-callout">
+          <div><strong>Recipe:</strong> Var(X) = Σ (x − E[X])² × P(X = x): E first → distance of each <em>value</em> → square → × its own P → add.</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">Two easy slips: subtracting E from the probability instead of the value, and adding the P instead of multiplying by it. Rules: Var(X + b) = Var(X) (shifting moves the centre, not the spread), Var(aX) = a²·Var(X).</div>
+        </div>
+      </section>
+
+      <!-- 6. BERNOULLI -->
+      <section class="explainer-section" id="sec-bern">
+        <span class="section-kicker">The Smallest Random Variable</span>
+        <h2 class="section-title">6. Bernoulli: One Yes/No Try</h2>
+        <p class="section-subtitle">
+          X = 1 with probability p, X = 0 otherwise. A coin flip, one jailbreak attempt, one answer judged sycophantic or not. Every eval percentage (accuracy, refusal rate, attack success rate) is an average of Bernoullis, and p(1 − p) is how unpredictable one try is.
+        </p>
+        <div class="interactive-stage">
+          <div class="slider-row" style="margin-top: 0;"><label for="bn-p" class="mono" style="font-size: 0.8rem;">p = P(X = 1): <strong id="bn-p-val"></strong></label><input type="range" id="bn-p" min="0" max="100" step="1" value="20" /></div>
+          <div class="svg-wrap"><svg id="bn-svg" viewBox="0 0 680 240" role="img" aria-label="Bernoulli PMF and the variance curve p times one minus p"></svg></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-mean"><span class="readout-label">E[X] = p</span><span class="readout-value" id="bn-e"></span></div>
+            <div class="readout-box readout-std"><span class="readout-label">Var = p(1 − p)</span><span class="readout-value" id="bn-v"></span></div>
+            <div class="readout-box"><span class="readout-label">SE of a rate, N = 100</span><span class="readout-value" id="bn-se"></span></div>
+          </div>
+          <p class="live-narrative" id="bn-caption" aria-live="polite"></p>
+        </div>
+        <p class="small">With p = 0.2 the recipe gives (0 − 0.2)²·0.8 + (1 − 0.2)²·0.2 = 0.032 + 0.128 = 0.16 = 0.2 × 0.8. That p(1 − p) is the one inside Day 4's standard error √(p(1 − p)/N). A 50% refusal rate is the hardest to pin down; a rate near 0 or 1 is easy. Add up n Bernoullis and you get the binomial: the number of successes.</p>
+      </section>
+
+      <!-- 7. CODE -->
+      <section class="explainer-section" id="sec-code" style="border-bottom: none; margin-bottom: 1rem;">
+        <span class="section-kicker">From Scratch Implementation</span>
+        <h2 class="section-title">7. The Code Behind It</h2>
+        <p class="section-subtitle">
+          I wrote all four functions myself. bayes_posterior is the tree, one line per step. variance reuses expectation for E[X]. Two bugs I hit while writing them: assigning the result of list.append (it returns None), and writing + prob instead of × prob.
+        </p>
+        <div class="code-comparison-grid">
+          <div class="code-panel">
+            <div class="code-panel-header"><span>day05_bayes_rv.py</span><span class="code-badge-mine">Python (Mine)</span></div>
+            <pre><code>def bayes_posterior(prior,p_flag_given_yes,p_flag_given_no):
+    p_opposite = 1- prior
+
+    p_spam_flagged = prior * p_flag_given_yes
+    p_notspam_flagged = p_opposite * p_flag_given_no
+    all_flagged = p_spam_flagged + p_notspam_flagged
+
+    return p_spam_flagged/all_flagged
+
+def cdf(probs):
+    running_sum = 0
+    res_cdf = []
+    for num in probs:
+        running_sum = running_sum + num
+        res_cdf.append(running_sum)
+
+    return res_cdf
+
+def expectation(values,probs):
+    exp = 0
+    for value,prob in zip(values,probs):
+        exp += value * prob
+
+    return exp
+
+def variance(values,probs):
+    exp = expectation(values,probs)
+    var = 0
+    for value,prob in zip(values,probs):
+        var += (value-exp)**2 * prob
+
+    return var</code></pre>
+          </div>
+          <div class="code-panel">
+            <div class="code-panel-header"><span>JavaScript port (this page)</span><span class="code-badge-ai">JS (written with AI help)</span></div>
+            <pre><code>function bayesPosterior(prior, pFlagGivenYes, pFlagGivenNo) {
+  const pNo = 1 - prior;
+  const yesAndFlag = prior * pFlagGivenYes;   // matching path
+  const noAndFlag = pNo * pFlagGivenNo;       // false alarms
+  const allFlagged = yesAndFlag + noAndFlag;  // add across
+  return yesAndFlag / allFlagged;
+}
+
+function cdf(probs) {
+  let runningSum = 0;
+  const res = [];
+  for (const p of probs) {
+    runningSum += p;
+    res.push(runningSum);    // push, don't assign its result
+  }
+  return res;
+}
+
+function expectation(values, probs) {
+  let e = 0;
+  values.forEach((x, i) =&gt; { e += x * probs[i]; });
+  return e;
+}
+
+function variance(values, probs) {
+  const e = expectation(values, probs);
+  let v = 0;
+  values.forEach((x, i) =&gt; { v += (x - e) ** 2 * probs[i]; });
+  return v;
+}</code></pre>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-honesty">
+        Day 5 of a 147-day path through the maths and code behind machine learning. The explanations and the Python are mine; the JavaScript port and the page design were built with help from AI.
+      </p>
+      <div class="footer-links">
+        <a href="index.html">← All Explainers</a>
+        <a href="day04-counting-chances.html">← Day 4</a>
+        <a href="../index.html">Home Page</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/data.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    var toggleBtn = document.getElementById("theme-toggle"), themeLabel = document.getElementById("theme-label");
+    function setLabel(t) { themeLabel.textContent = t === "dark" ? "Dark" : "Light"; }
+    setLabel(document.documentElement.getAttribute("data-theme") || "light");
+    toggleBtn.addEventListener("click", function () {
+      var now = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", now);
+      try { localStorage.setItem("raghav-theme", now); } catch (e) {}
+      setLabel(now);
+    });
+
+    /* ---------- JS port of day05_bayes_rv.py ---------- */
+    function bayesPosterior(prior, pYes, pNo) { var no = 1 - prior, a = prior * pYes, b = no * pNo; return a / (a + b); }
+    function cdf(probs) { var s = 0, r = []; probs.forEach(function (p) { s += p; r.push(s); }); return r; }
+    function expectation(values, probs) { var e = 0; values.forEach(function (x, i) { e += x * probs[i]; }); return e; }
+    function variance(values, probs) { var e = expectation(values, probs), v = 0; values.forEach(function (x, i) { v += (x - e) * (x - e) * probs[i]; }); return v; }
+
+    /* ---------- helpers ---------- */
+    var NS = "http://www.w3.org/2000/svg", MONO = "JetBrains Mono, monospace";
+    function $(id) { return document.getElementById(id); }
+    function el(svg, tag, attrs, text) {
+      var e = document.createElementNS(NS, tag), style = "";
+      for (var k in attrs) {
+        var v = attrs[k];
+        if ((k === "fill" || k === "stroke") && String(v).indexOf("var(") === 0) style += k + ":" + v + ";";
+        else e.setAttribute(k, v);
+      }
+      if (style) e.setAttribute("style", style + (attrs.style || ""));
+      if (text !== undefined) e.textContent = text;
+      svg.appendChild(e);
+      return e;
+    }
+    function clear(svg) { while (svg.firstChild) svg.removeChild(svg.firstChild); }
+    function fmt(v, d) {
+      d = typeof d === "number" ? d : 2;
+      if (!isFinite(v)) return "undefined";
+      var r = Math.round(v * Math.pow(10, d)) / Math.pow(10, d);
+      if (Object.is(r, -0)) r = 0;
+      return r.toLocaleString("en-GB", { maximumFractionDigits: d });
+    }
+    function pct(v, d) { return fmt(v * 100, d === undefined ? 1 : d) + "%"; }
+    function gcd(a, b) { return b ? gcd(b, a % b) : a; }
+    function frac(a, b) { if (a === b) return "1"; if (a === 0) return "0"; var g = gcd(a, b) || 1; return (a / g) + "/" + (b / g); }
+    function money(v) { return (v < 0 ? "−€" : "€") + fmt(Math.abs(v), 2); }
+    function pressed(btns, active) { btns.forEach(function (b) { b.setAttribute("aria-pressed", b === active ? "true" : "false"); }); }
+    function T(svg, x, y, s, o) {
+      o = o || {};
+      return el(svg, "text", { x: x, y: y, "text-anchor": o.a || "middle", "font-size": o.s || 12, "font-weight": o.w || 400, fill: o.f || "var(--text-muted)", "font-family": o.ff || MONO }, s);
+    }
+
+    /* =====================================================================
+       1. BAYES TREE
+       ===================================================================== */
+    var STORIES = {
+      syco: { p: 2, h: 90, f: 5, yes: "sycophantic", no: "honest", flag: "flagged" },
+      worse: { p: 20, h: 90, f: 5, yes: "sycophantic", no: "honest", flag: "flagged" },
+      trans: { p: 10, h: 80, f: 10, yes: "bad translation", no: "good translation", flag: "flagged" },
+      spam: { p: 5, h: 90, f: 10, yes: "spam", no: "normal", flag: "flagged" }
+    };
+    var story = STORIES.syco;
+    function drawBayes() {
+      var p = Number($("by-prior").value) / 100, h = Number($("by-hit").value) / 100, f = Number($("by-fa").value) / 100;
+      $("by-prior-val").textContent = pct(p, 0); $("by-hit-val").textContent = pct(h, 0); $("by-fa-val").textContent = pct(f, 0);
+      var N = 1000, yes = N * p, no = N - yes, yf = yes * h, ym = yes - yf, nf = no * f, nn = no - nf;
+      var post = bayesPosterior(p, h, f);
+      var svg = $("by-svg"); clear(svg);
+      var root = [340, 30], A = [175, 120], B = [505, 120], leaves = [[95, 240], [255, 240], [425, 240], [585, 240]];
+      function edge(a, b, w, lbl, on) {
+        el(svg, "line", { x1: a[0], y1: a[1] + 14, x2: b[0], y2: b[1] - 18, stroke: on ? "var(--color-hit)" : "var(--border-strong)", "stroke-width": on ? 3 : 1.5 });
+        T(svg, (a[0] + b[0]) / 2 + (b[0] < a[0] ? -12 : 12), (a[1] + b[1]) / 2 + 4, lbl, { a: b[0] < a[0] ? "end" : "start", s: 11 });
+      }
+      function node(pt, count, label, kind) {
+        var w = 128, hh = 40, fill = "var(--bg-surface)", stroke = "var(--border-strong)", tc = "var(--text-primary)";
+        if (kind === "match") { fill = "var(--color-hit)"; stroke = "var(--color-hit)"; tc = "var(--bg-surface)"; }
+        else if (kind === "false") { fill = "var(--color-given-soft)"; stroke = "var(--color-given)"; tc = "var(--color-given)"; }
+        else if (kind === "out") { fill = "var(--bg-secondary)"; stroke = "var(--border-subtle)"; tc = "var(--text-muted)"; }
+        el(svg, "rect", { x: pt[0] - w / 2, y: pt[1] - hh / 2, width: w, height: hh, rx: 8, fill: fill, stroke: stroke, "stroke-width": kind === "false" ? 2 : 1.5 });
+        T(svg, pt[0], pt[1] - 2, fmt(count, 1), { s: 15, w: 700, f: tc });
+        T(svg, pt[0], pt[1] + 13, label, { s: 10, f: tc });
+      }
+      edge(root, A, 0, pct(p, 0), false); edge(root, B, 0, pct(1 - p, 0), false);
+      edge(A, leaves[0], 0, pct(h, 0), true); edge(A, leaves[1], 0, pct(1 - h, 0), false);
+      edge(B, leaves[2], 0, pct(f, 0), true); edge(B, leaves[3], 0, pct(1 - f, 0), false);
+      node(root, N, "answers", "");
+      node(A, yes, story.yes, ""); node(B, no, story.no, "");
+      node(leaves[0], yf, "★ " + story.yes + " + flag", "match");
+      node(leaves[1], ym, "missed", "out");
+      node(leaves[2], nf, "★ false alarm", "false");
+      node(leaves[3], nn, "not flagged", "out");
+      el(svg, "rect", { x: 20, y: 212, width: 640, height: 56, rx: 12, fill: "none", stroke: "var(--color-given)", "stroke-dasharray": "6 5", "stroke-width": 1.5 });
+      T(svg, 340, 290, "the flagged room = both ★ boxes; missed and not-flagged are thrown out", { s: 11, f: "var(--color-given)" });
+      $("by-room").textContent = fmt(yf, 1) + " + " + fmt(nf, 1) + " = " + fmt(yf + nf, 1);
+      $("by-true").textContent = fmt(yf, 1);
+      $("by-post").textContent = pct(post);
+      $("by-formula").innerHTML = "P(" + story.yes + " given flag) = <span class=\"hit\">" + fmt(p, 2) + " × " + fmt(h, 2) + "</span> / (<span class=\"hit\">" + fmt(p, 2) + " × " + fmt(h, 2) + "</span> + <span class=\"miss\">" + fmt(1 - p, 2) + " × " + fmt(f, 2) + "</span>) = " + fmt(p * h, 4) + " / " + fmt(p * h + (1 - p) * f, 4) + " ≈ <strong>" + fmt(post, 3) + "</strong>";
+      $("by-caption").textContent = "The detector catches " + pct(h, 0) + ", yet only " + pct(post, 0) + " of its flags are really " + story.yes + ". " +
+        (nf > yf ? "False alarms (" + fmt(nf, 1) + ") outnumber real catches (" + fmt(yf, 1) + ") because the \"" + story.no + "\" group is " + fmt(no / yes, 0) + "× bigger." : "Real catches (" + fmt(yf, 1) + ") outnumber false alarms (" + fmt(nf, 1) + "), so a flag is fairly trustworthy here.");
+      drawBaseRate(h, f, p);
+    }
+    function drawBaseRate(h, f, p0) {
+      var svg = $("br-svg"); clear(svg);
+      var L = 60, R = 650, Tp = 15, B = 190, X = function (v) { return L + v * (R - L); }, Y = function (v) { return B - v * (B - Tp); };
+      el(svg, "line", { x1: L, x2: R, y1: B, y2: B, stroke: "var(--border-strong)" });
+      el(svg, "line", { x1: L, x2: L, y1: Tp, y2: B, stroke: "var(--border-strong)" });
+      [0, 0.25, 0.5, 0.75, 1].forEach(function (v) { T(svg, L - 8, Y(v) + 4, (v * 100) + "%", { a: "end", s: 11 }); T(svg, X(v), B + 16, (v * 100) + "%", { s: 11 }); });
+      T(svg, (L + R) / 2, B + 34, "prior: how common \"yes\" is", { s: 12 });
+      var d = "";
+      for (var i = 0; i <= 200; i++) { var q = i / 200; d += (i ? "L" : "M") + X(q) + " " + Y(bayesPosterior(q, h, f)); }
+      el(svg, "line", { x1: L, x2: R, y1: Y(0), y2: Y(1), stroke: "var(--border-subtle)", "stroke-dasharray": "3 4" });
+      T(svg, X(0.62), Y(0.62) + 16, "posterior = prior (a useless test)", { s: 10, a: "start" });
+      el(svg, "path", { d: d, fill: "none", stroke: "var(--color-hit)", "stroke-width": 3 });
+      var py = bayesPosterior(p0, h, f);
+      el(svg, "circle", { cx: X(p0), cy: Y(py), r: 7, fill: "var(--color-hit)" });
+      T(svg, X(p0) + 12, Y(py) + 4, "prior " + pct(p0, 0) + " → posterior " + pct(py, 0), { a: "start", s: 12, w: 700, f: "var(--color-hit)" });
+    }
+    var storyBtns = Array.prototype.slice.call(document.querySelectorAll("[data-story]"));
+    storyBtns.forEach(function (b) {
+      b.addEventListener("click", function () {
+        story = STORIES[b.getAttribute("data-story")]; pressed(storyBtns, b);
+        $("by-prior").value = story.p; $("by-hit").value = story.h; $("by-fa").value = story.f; drawBayes();
+      });
+    });
+    ["by-prior", "by-hit", "by-fa"].forEach(function (id) { $(id).addEventListener("input", drawBayes); });
+    (function () {
+      var btns = document.querySelectorAll("#sec-bayes .predict-btn"), msgs = {
+        "90": "That's the catch rate, P(flag given sycophantic). The question asks the reverse, P(sycophantic given flag). Out of 1000 answers: 18 real catches but 49 false alarms, so 18/67 ≈ 27%.",
+        "50": "Lower still. Out of 1000 answers there are 18 real catches and 49 false alarms, so 18/67 ≈ 27%. The rare base rate drags it down.",
+        "27": "Yes: 18 real catches against 49 false alarms gives 18/67 ≈ 27%. Most flags are false because honest answers are 49× more common."
+      };
+      Array.prototype.forEach.call(btns, function (b) {
+        b.addEventListener("click", function () {
+          Array.prototype.forEach.call(btns, function (o) { o.classList.remove("selected"); });
+          b.classList.add("selected"); $("by-feedback").textContent = msgs[b.getAttribute("data-guess")];
+        });
+      });
+    })();
+    drawBayes();
+
+    /* =====================================================================
+       2. RANDOM VARIABLE BUILDER
+       ===================================================================== */
+    function dieOut(rule) { return [1, 2, 3, 4, 5, 6].map(function (f) { return [String(f), rule(f)]; }); }
+    var RVS = [
+      { id: "face", btn: "Die: the face", title: "Roll one die · X = the face shown", out: dieOut(function (f) { return f; }), unit: "" },
+      { id: "even", btn: "Die: 1 if even", title: "Roll one die · X = 1 if even, 0 if odd (a Bernoulli)", out: dieOut(function (f) { return f % 2 === 0 ? 1 : 0; }), unit: "" },
+      { id: "win", btn: "Die: €12 on a six", title: "Roll one die · X = winnings: €12 on a six, else €0", out: dieOut(function (f) { return f === 6 ? 12 : 0; }), unit: "€" },
+      { id: "heads", btn: "2 coins: heads", title: "Flip 2 coins · X = number of heads", out: [["TT", 0], ["HT", 1], ["TH", 1], ["HH", 2]], unit: "" },
+      { id: "pay", btn: "2 coins: €4 per head", title: "Flip 2 coins · X = winnings, €4 per head", out: [["TT", 0], ["HT", 4], ["TH", 4], ["HH", 8]], unit: "€" },
+      { id: "spin", btn: "Spinner 1, 1, 2, 5", title: "Spin once (4 equal parts) · X = points", out: [["part 1", 1], ["part 2", 1], ["part 3", 2], ["part 4", 5]], unit: "" },
+      { id: "sixes", btn: "2 dice: number of sixes", title: "Roll 2 dice (6² = 36 outcomes) · X = number of sixes", out: (function () { var o = []; for (var a = 1; a <= 6; a++) for (var b = 1; b <= 6; b++) o.push(["" + a + b, (a === 6 ? 1 : 0) + (b === 6 ? 1 : 0)]); return o; })(), unit: "" }
+    ];
+    var rvCur = RVS[2];
+    function group(out) {
+      var m = {}; out.forEach(function (o) { m[o[1]] = (m[o[1]] || 0) + 1; });
+      var xs = Object.keys(m).map(Number).sort(function (a, b) { return a - b; });
+      return { xs: xs, counts: xs.map(function (x) { return m[x]; }), total: out.length };
+    }
+    function drawRv() {
+      var g = group(rvCur.out), probs = g.counts.map(function (c) { return c / g.total; }), F = cdf(probs);
+      var E = expectation(g.xs, probs), V = variance(g.xs, probs), S = Math.sqrt(V), u = rvCur.unit;
+      $("rv-title").textContent = rvCur.title;
+      $("rv-chips").innerHTML = rvCur.out.map(function (o) { return '<span class="chip">' + o[0] + " → <b>" + u + o[1] + "</b></span>"; }).join("");
+      var lo = Math.min(g.xs[0], E - S), hi = Math.max(g.xs[g.xs.length - 1], E + S);
+      var pad = (hi - lo) * 0.12 || 1; lo -= pad; hi += pad;
+      var L = 50, R = 650, X = function (v) { return L + (v - lo) / (hi - lo) * (R - L); };
+      var bw = Math.min(70, (R - L) / (g.xs.length + 1) * 0.7);
+      // PMF
+      var svg = $("rv-pmf"); clear(svg);
+      var Tp = 44, B = 190, pmax = Math.max.apply(null, probs), Y = function (v) { return B - v / pmax * (B - Tp - 14); };
+      el(svg, "line", { x1: L, x2: R, y1: B, y2: B, stroke: "var(--border-strong)" });
+      g.xs.forEach(function (x, i) {
+        el(svg, "rect", { x: X(x) - bw / 2, y: Y(probs[i]), width: bw, height: B - Y(probs[i]), rx: 4, fill: "var(--color-hit-soft)", stroke: "var(--color-hit)" });
+        T(svg, X(x), Y(probs[i]) - 6, frac(g.counts[i], g.total), { s: 12, w: 700, f: "var(--color-hit)" });
+        T(svg, X(x), B + 16, u + x, { s: 12, f: "var(--text-primary)" });
+      });
+      el(svg, "path", { d: "M" + X(E) + " " + (B + 22) + " l-8 12 h16 z", fill: "var(--color-mean)" });
+      T(svg, X(E), B + 48, "E[X] = " + u + fmt(E, 2), { s: 12, w: 700, f: "var(--color-mean)" });
+      if (S > 0) {
+        var yb = 14;
+        el(svg, "line", { x1: X(E - S), x2: X(E + S), y1: yb, y2: yb, stroke: "var(--color-std)", "stroke-width": 2 });
+        el(svg, "line", { x1: X(E - S), x2: X(E - S), y1: yb - 6, y2: yb + 6, stroke: "var(--color-std)", "stroke-width": 2 });
+        el(svg, "line", { x1: X(E + S), x2: X(E + S), y1: yb - 6, y2: yb + 6, stroke: "var(--color-std)", "stroke-width": 2 });
+        T(svg, X(E + S) + 6, yb + 4, "±1 std", { a: "start", s: 11, f: "var(--color-std)" });
+      }
+      // CDF
+      var c = $("rv-cdf"); clear(c);
+      var cT = 26, cB = 165, CY = function (v) { return cB - v * (cB - cT); };
+      el(c, "line", { x1: L, x2: R, y1: cB, y2: cB, stroke: "var(--border-strong)" });
+      [0, 0.5, 1].forEach(function (v) { T(c, L - 8, CY(v) + 4, v, { a: "end", s: 11 }); el(c, "line", { x1: L, x2: R, y1: CY(v), y2: CY(v), stroke: "var(--border-subtle)", "stroke-dasharray": v === 1 ? "4 4" : "2 6" }); });
+      var d = "M" + L + " " + CY(0) + " L" + X(g.xs[0]) + " " + CY(0);
+      g.xs.forEach(function (x, i) {
+        var nx = i + 1 < g.xs.length ? X(g.xs[i + 1]) : R;
+        d += " L" + X(x) + " " + CY(F[i]) + " L" + nx + " " + CY(F[i]);
+      });
+      el(c, "path", { d: d, fill: "none", stroke: "var(--color-median)", "stroke-width": 3 });
+      g.xs.forEach(function (x, i) {
+        el(c, "circle", { cx: X(x), cy: CY(F[i]), r: 5, fill: "var(--color-median)" });
+        var cum = 0; for (var j = 0; j <= i; j++) cum += g.counts[j];
+        T(c, X(x) + 6, CY(F[i]) - 8, frac(cum, g.total), { a: "start", s: 11, w: 700, f: "var(--color-median)" });
+        T(c, X(x), cB + 16, u + x, { s: 12, f: "var(--text-primary)" });
+      });
+      $("rv-e").textContent = u + fmt(E, 3);
+      $("rv-v").textContent = fmt(V, 3);
+      $("rv-s").textContent = u + fmt(S, 3);
+      $("rv-caption").textContent = g.total + " equally likely outcomes, but X takes only " + g.xs.length + " different value" + (g.xs.length === 1 ? "" : "s") + ": " + g.xs.map(function (x) { return u + x; }).join(", ") + ". Group equal X's and divide by " + g.total + " for the PMF; keep adding for the CDF, which ends at 1. E[X] = Σ x · P(x) = " + u + fmt(E, 3) + ".";
+    }
+    $("rv-btns").innerHTML = RVS.map(function (r) { return '<button type="button" class="btn btn-secondary" data-rv="' + r.id + '" aria-pressed="' + (r === rvCur) + '">' + r.btn + "</button>"; }).join("");
+    var rvBtns = Array.prototype.slice.call(document.querySelectorAll("[data-rv]"));
+    rvBtns.forEach(function (b) { b.addEventListener("click", function () { rvCur = RVS.filter(function (r) { return r.id === b.getAttribute("data-rv"); })[0]; pressed(rvBtns, b); drawRv(); }); });
+    drawRv();
+
+    /* =====================================================================
+       3. CDF QUESTIONS (coffee)
+       ===================================================================== */
+    var CNT = [4, 8, 5, 3], CX = [0, 1, 2, 3], CF = cdf(CNT.map(function (c) { return c / 20; }));
+    function Fc(k) { if (k < 0) return 0; var s = 0; for (var i = 0; i <= Math.min(k, 3); i++) s += CNT[i]; return s; }
+    var QS = [
+      { id: "eq", label: "exactly 2", set: [2], f: function () { return "P(X = 2) = F(2) − F(1) = " + Fc(2) + "/20 − " + Fc(1) + "/20 = <strong>" + (Fc(2) - Fc(1)) + "/20</strong>"; } },
+      { id: "le", label: "2 or fewer", set: [0, 1, 2], f: function () { return "P(X ≤ 2) = F(2) = <strong>" + Fc(2) + "/20</strong>"; } },
+      { id: "lt", label: "fewer than 2", set: [0, 1], f: function () { return "P(X < 2) = P(X ≤ 1) = F(1) = <strong>" + Fc(1) + "/20</strong>   (strictly less: the 2 is out)"; } },
+      { id: "ge", label: "2 or more", set: [2, 3], f: function () { return "P(X ≥ 2) = 1 − P(X ≤ 1) = 1 − " + Fc(1) + "/20 = <strong>" + (20 - Fc(1)) + "/20</strong>   (the opposite of \"2 or more\" is \"1 or fewer\")"; } },
+      { id: "gt", label: "more than 2", set: [3], f: function () { return "P(X > 2) = 1 − F(2) = 1 − " + Fc(2) + "/20 = <strong>" + (20 - Fc(2)) + "/20</strong>"; } },
+      { id: "bt", label: "between 1 and 2", set: [1, 2], f: function () { return "P(1 ≤ X ≤ 2) = F(2) − F(0) = " + Fc(2) + "/20 − " + Fc(0) + "/20 = <strong>" + (Fc(2) - Fc(0)) + "/20</strong>   (the 3 was never inside F(2))"; } }
+    ];
+    var cq = QS[3];
+    function drawCq() {
+      var svg = $("cq-svg"); clear(svg);
+      var L = 80, R = 620, B = 150, Tp = 25, bw = 90, X = function (i) { return L + (i + 0.5) * (R - L) / 4; }, Y = function (c) { return B - c / 8 * (B - Tp); };
+      el(svg, "line", { x1: L, x2: R, y1: B, y2: B, stroke: "var(--border-strong)" });
+      CX.forEach(function (x, i) {
+        var on = cq.set.indexOf(x) >= 0;
+        el(svg, "rect", { x: X(i) - bw / 2, y: Y(CNT[i]), width: bw, height: B - Y(CNT[i]), rx: 5, fill: on ? "var(--color-hit)" : "var(--color-miss-soft)", stroke: on ? "var(--color-hit)" : "var(--color-miss)" });
+        T(svg, X(i), Y(CNT[i]) - 6, CNT[i] + " students", { s: 11, w: on ? 700 : 400, f: on ? "var(--color-hit)" : "var(--text-muted)" });
+        T(svg, X(i), B + 18, x + " coffee" + (x === 1 ? "" : "s"), { s: 12, f: "var(--text-primary)" });
+        el(svg, "rect", { x: X(i) - 40, y: B + 30, width: 80, height: 34, rx: 6, fill: "var(--bg-secondary)", stroke: "var(--color-median)" });
+        T(svg, X(i), B + 44, "F(" + x + ")", { s: 10, f: "var(--color-median)" });
+        T(svg, X(i), B + 58, Fc(i) + "/20", { s: 12, w: 700, f: "var(--color-median)" });
+      });
+      T(svg, L - 10, B + 51, "CDF", { a: "end", s: 11, w: 700, f: "var(--color-median)" });
+      $("cq-formula").innerHTML = cq.f() + "    <span class=\"small\">check by counting the blue bars: " + cq.set.map(function (x) { return CNT[x]; }).join(" + ") + " = " + cq.set.reduce(function (s, x) { return s + CNT[x]; }, 0) + "</span>";
+    }
+    $("cq-btns").innerHTML = QS.map(function (q) { return '<button type="button" class="btn btn-secondary" data-cq="' + q.id + '" aria-pressed="' + (q === cq) + '">' + q.label + "</button>"; }).join("");
+    var cqBtns = Array.prototype.slice.call(document.querySelectorAll("[data-cq]"));
+    cqBtns.forEach(function (b) { b.addEventListener("click", function () { cq = QS.filter(function (q) { return q.id === b.getAttribute("data-cq"); })[0]; pressed(cqBtns, b); drawCq(); }); });
+    drawCq();
+
+    /* =====================================================================
+       4. THE DIE GAME
+       ===================================================================== */
+    var gmN = 0, gmWin = 0, gmPath = [];
+    function gmPlay(k) {
+      for (var i = 0; i < k; i++) { if (1 + Math.floor(Math.random() * 6) === 6) gmWin += 12; gmN++; gmPath.push(gmWin / gmN); }
+      drawGm();
+    }
+    function drawGm() {
+      var cost = Number($("gm-cost").value); $("gm-cost-val").textContent = "€" + fmt(cost, 2);
+      var ep = 2 - cost, svg = $("gm-svg"); clear(svg);
+      var L = 60, R = 640, Tp = 15, B = 210, lo = -5, hi = 7, Nmax = Math.max(10, gmN);
+      var X = function (t) { return L + t / Nmax * (R - L); }, Y = function (v) { return B - (Math.max(lo, Math.min(hi, v)) - lo) / (hi - lo) * (B - Tp); };
+      el(svg, "rect", { x: L, y: Y(0), width: R - L, height: B - Y(0), fill: "var(--color-miss-soft)" });
+      T(svg, L + 8, B - 8, "below €0: losing money", { a: "start", s: 11, f: "var(--color-miss)" });
+      el(svg, "line", { x1: L, x2: L, y1: Tp, y2: B, stroke: "var(--border-strong)" });
+      [-4, -2, 0, 2, 4, 6].forEach(function (v) { T(svg, L - 8, Y(v) + 4, money(v).replace(",00", ""), { a: "end", s: 11 }); });
+      el(svg, "line", { x1: L, x2: R, y1: Y(0), y2: Y(0), stroke: "var(--border-strong)" });
+      el(svg, "line", { x1: L, x2: R, y1: Y(ep), y2: Y(ep), stroke: "var(--color-mean)", "stroke-width": 2, "stroke-dasharray": "6 5" });
+      T(svg, R - 6, Y(ep) - 8, "E[profit] = " + money(ep), { a: "end", s: 11, w: 700, f: "var(--color-mean)" });
+      T(svg, R, B + 16, Nmax.toLocaleString("en-GB") + " games", { a: "end", s: 11 });
+      if (gmN) {
+        var step = Math.max(1, Math.floor(gmPath.length / 600)), d = "";
+        for (var i = 0; i < gmPath.length; i += step) d += (i ? "L" : "M") + X(i + 1) + " " + Y(gmPath[i] - cost);
+        d += "L" + X(gmPath.length) + " " + Y(gmPath[gmPath.length - 1] - cost);
+        el(svg, "path", { d: d, fill: "none", stroke: "var(--color-hit)", "stroke-width": 2 });
+        var avg = gmWin / gmN - cost;
+        $("gm-n").textContent = gmN.toLocaleString("en-GB");
+        $("gm-avg").textContent = (avg < 0 ? "−€" : "€") + fmt(Math.abs(avg), 2);
+        $("gm-caption").textContent = "After " + gmN.toLocaleString("en-GB") + " games you won €" + gmWin.toLocaleString("en-GB") + " and paid €" + (gmN * cost).toLocaleString("en-GB") + ": " + (avg < 0 ? "−€" : "€") + fmt(Math.abs(avg), 2) + " per game. The more you play, the closer it hugs E[profit] = " + money(ep) + (ep < 0 ? ", so over the long run you lose, exactly how casinos make money." : ep === 0 ? ": a fair game." : ": a game worth playing.");
+      } else {
+        $("gm-n").textContent = "0"; $("gm-avg").textContent = "–";
+        $("gm-caption").textContent = "Pick a price and play. The expected profit per game is €2 − price.";
+      }
+      $("gm-ep").textContent = (ep < 0 ? "−€" : "€") + fmt(Math.abs(ep), 2);
+    }
+    $("gm-10").addEventListener("click", function () { gmPlay(10); });
+    $("gm-100").addEventListener("click", function () { gmPlay(100); });
+    $("gm-1000").addEventListener("click", function () { gmPlay(1000); });
+    $("gm-reset").addEventListener("click", function () { gmN = 0; gmWin = 0; gmPath = []; drawGm(); });
+    $("gm-cost").addEventListener("input", drawGm);
+    drawGm();
+
+    /* =====================================================================
+       5. VARIANCE TABLE
+       ===================================================================== */
+    var VRS = [
+      { id: "A", label: "Spinner A: 2, 2, 2, 2", xs: [2], ps: [1], pl: ["4/4"] },
+      { id: "B", label: "Spinner B: 0, 0, 4, 4", xs: [0, 4], ps: [0.5, 0.5], pl: ["2/4", "2/4"] },
+      { id: "C", label: "Spinner 1, 1, 2, 5", xs: [1, 2, 5], ps: [0.5, 0.25, 0.25], pl: ["2/4", "1/4", "1/4"] },
+      { id: "D", label: "Bernoulli p = 0.2", xs: [0, 1], ps: [0.8, 0.2], pl: ["0.8", "0.2"] }
+    ];
+    var vr = VRS[1];
+    function drawVr() {
+      var E = expectation(vr.xs, vr.ps), V = variance(vr.xs, vr.ps);
+      var svg = $("vr-svg"); clear(svg);
+      var lo = Math.min(-0.5, vr.xs[0] - 0.5), hi = Math.max(5.5, vr.xs[vr.xs.length - 1] + 0.5);
+      var L = 50, R = 640, ax = 110, X = function (v) { return L + (v - lo) / (hi - lo) * (R - L); };
+      el(svg, "line", { x1: L, x2: R, y1: ax, y2: ax, stroke: "var(--border-strong)" });
+      for (var t = Math.ceil(lo); t <= hi; t++) { el(svg, "line", { x1: X(t), x2: X(t), y1: ax - 4, y2: ax + 4, stroke: "var(--border-strong)" }); T(svg, X(t), ax + 20, t, { s: 11 }); }
+      el(svg, "path", { d: "M" + X(E) + " " + (ax + 26) + " l-8 12 h16 z", fill: "var(--color-mean)" });
+      T(svg, X(E), ax + 54, "E = " + fmt(E, 2), { s: 12, w: 700, f: "var(--color-mean)" });
+      vr.xs.forEach(function (x, i) {
+        var r = 8 + 18 * Math.sqrt(vr.ps[i]), y = ax - 10 - r;
+        if (Math.abs(x - E) > 1e-9) {
+          var yy = 22 + i * 12;
+          el(svg, "line", { x1: X(E), x2: X(x), y1: yy, y2: yy, stroke: "var(--color-std)", "stroke-width": 2 });
+          el(svg, "line", { x1: X(x), x2: X(x), y1: yy - 5, y2: yy + 5, stroke: "var(--color-std)", "stroke-width": 2 });
+          T(svg, (X(E) + X(x)) / 2, yy - 4, (x - E > 0 ? "+" : "") + fmt(x - E, 2), { s: 10, f: "var(--color-std)" });
+        }
+        el(svg, "circle", { cx: X(x), cy: y, r: r, fill: "var(--color-hit-soft)", stroke: "var(--color-hit)", "stroke-width": 2 });
+        T(svg, X(x), y + 4, vr.pl[i], { s: 10, w: 700, f: "var(--color-hit)" });
+      });
+      var rows = vr.xs.map(function (x, i) {
+        var d = x - E, sq = d * d;
+        return "<tr><td class=\"num\">" + x + "</td><td class=\"num\">" + vr.pl[i] + "</td><td class=\"num\">" + fmt(x, 2) + " − " + fmt(E, 2) + " = " + fmt(d, 2) + "</td><td class=\"num\">" + fmt(sq, 4) + "</td><td class=\"num\">" + fmt(sq, 4) + " × " + vr.pl[i] + " = <strong>" + fmt(sq * vr.ps[i], 4) + "</strong></td></tr>";
+      }).join("");
+      $("vr-table").innerHTML = '<div class="table-scroll"><table class="data-table"><thead><tr><th>value x</th><th>P</th><th>x − E[X]</th><th>squared</th><th>× its own P</th></tr></thead><tbody>' + rows +
+        '<tr class="total"><td colspan="4" style="text-align:right">Var(X) = sum =</td><td class="num">' + fmt(V, 4) + "   (std = " + fmt(Math.sqrt(V), 3) + ")</td></tr></tbody></table></div>";
+      $("vr-caption").textContent = vr.id === "A" ? "Every value sits exactly on E = 2, so every distance is 0 and Var = 0: no spread at all."
+        : vr.id === "B" ? "Same E = 2 as spinner A, but every outcome is 2 away, so Var = 4 and std = 2. Same centre, very different spread."
+        : vr.id === "C" ? "The rare 5 is far from E = 2.25, and squaring makes its distance count most: it supplies most of the variance."
+        : "Bernoulli: the recipe gives 0.032 + 0.128 = 0.16, which is exactly p(1 − p) = 0.2 × 0.8.";
+    }
+    $("vr-btns").innerHTML = VRS.map(function (v) { return '<button type="button" class="btn btn-secondary" data-vr="' + v.id + '" aria-pressed="' + (v === vr) + '">' + v.label + "</button>"; }).join("");
+    var vrBtns = Array.prototype.slice.call(document.querySelectorAll("[data-vr]"));
+    vrBtns.forEach(function (b) { b.addEventListener("click", function () { vr = VRS.filter(function (v) { return v.id === b.getAttribute("data-vr"); })[0]; pressed(vrBtns, b); drawVr(); }); });
+    drawVr();
+
+    /* =====================================================================
+       6. BERNOULLI
+       ===================================================================== */
+    function drawBn() {
+      var p = Number($("bn-p").value) / 100; $("bn-p-val").textContent = fmt(p, 2);
+      var svg = $("bn-svg"); clear(svg);
+      var B = 190, Tp = 25;
+      // left: PMF
+      var Y = function (v) { return B - v * (B - Tp); };
+      el(svg, "line", { x1: 40, x2: 280, y1: B, y2: B, stroke: "var(--border-strong)" });
+      [[100, 1 - p, "X = 0"], [220, p, "X = 1"]].forEach(function (b, i) {
+        el(svg, "rect", { x: b[0] - 35, y: Y(b[1]), width: 70, height: B - Y(b[1]), rx: 5, fill: i ? "var(--color-hit)" : "var(--color-miss-soft)", stroke: i ? "var(--color-hit)" : "var(--color-miss)" });
+        T(svg, b[0], Y(b[1]) - 6, fmt(b[1], 2), { s: 12, w: 700, f: i ? "var(--color-hit)" : "var(--color-miss)" });
+        T(svg, b[0], B + 18, b[2], { s: 12, f: "var(--text-primary)" });
+      });
+      T(svg, 160, 14, "PMF", { s: 11 });
+      // right: parabola
+      var L = 350, R = 650, X = function (q) { return L + q * (R - L); }, VY = function (v) { return B - v / 0.25 * (B - Tp - 10); };
+      el(svg, "line", { x1: L, x2: R, y1: B, y2: B, stroke: "var(--border-strong)" });
+      el(svg, "line", { x1: L, x2: L, y1: Tp, y2: B, stroke: "var(--border-strong)" });
+      [0, 0.5, 1].forEach(function (q) { T(svg, X(q), B + 18, "p = " + q, { s: 11 }); });
+      [0, 0.25].forEach(function (v) { T(svg, L - 6, VY(v) + 4, v, { a: "end", s: 11 }); });
+      var d = ""; for (var i = 0; i <= 100; i++) { var q = i / 100; d += (i ? "L" : "M") + X(q) + " " + VY(q * (1 - q)); }
+      el(svg, "path", { d: d, fill: "none", stroke: "var(--color-std)", "stroke-width": 3 });
+      el(svg, "circle", { cx: X(p), cy: VY(p * (1 - p)), r: 7, fill: "var(--color-std)" });
+      T(svg, 500, 14, "Var = p(1 − p): largest at p = 0.5", { s: 11 });
+      var v = p * (1 - p), se = Math.sqrt(v / 100);
+      $("bn-e").textContent = fmt(p, 2);
+      $("bn-v").textContent = fmt(v, 4);
+      $("bn-se").textContent = "±" + fmt(se, 3);
+      $("bn-caption").textContent = (p === 0 || p === 1) ? "The outcome is certain, so there's no spread at all: Var = 0."
+        : "One try is " + (Math.abs(p - 0.5) < 0.1 ? "about as unpredictable as it gets" : "fairly predictable") + ": Var = " + fmt(p, 2) + " × " + fmt(1 - p, 2) + " = " + fmt(v, 4) + ". Measuring this rate on 100 prompts gives " + pct(p, 0) + " ± " + pct(se, 1) + " (one standard error).";
+    }
+    $("bn-p").addEventListener("input", drawBn);
+    drawBn();
+  })();
+  </script>
+</body>
+</html>
