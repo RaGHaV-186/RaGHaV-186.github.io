@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 6: What Drives Medical Costs? An EDA with Predictions First | Raghav Bandreddi</title>
+  <meta name="description" content="An interactive exploratory data analysis of 1,338 insurance records: skew, a hidden duplicate, outlier rules and masking, Pearson vs Spearman, Bayes on real data and the ECDF, with every prediction written down before the code ran." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,400&amp;family=JetBrains+Mono:wght@400;500;600&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/style.css" />
+  <script>
+    (function () {
+      try {
+        var saved = localStorage.getItem("raghav-theme");
+        var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+      } catch (e) {}
+    })();
+  </script>
+  <style>
+    .svg-wrap { overflow-x: auto; }
+    .svg-wrap svg { min-width: 520px; width: 100%; height: auto; display: block; }
+    .mono { font-family: var(--font-mono); }
+    .small { font-size: 0.86rem; color: var(--text-secondary); }
+    .seg { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; }
+    .seg .btn { font-size: 0.85rem; }
+    .seg .btn[aria-pressed="true"] { outline: 2px solid var(--text-primary); outline-offset: 1px; }
+    .panel-title { font-family: var(--font-mono); font-size: 0.8rem; margin: 0.6rem 0 0.2rem; color: var(--text-secondary); }
+    .live-formula { font-family: var(--font-mono); font-size: 0.9rem; line-height: 1.8; overflow-wrap: anywhere; margin: 0.6rem 0 0; }
+    .live-formula .sm { color: var(--color-smoker); font-weight: 700; }
+    .live-formula .ns { color: var(--color-nonsmoker); font-weight: 700; }
+    #main-content input[type="range"] { accent-color: var(--color-smoker); }
+    .data-table td.num { font-family: var(--font-mono); }
+    .check-row { display: flex; align-items: center; gap: 0.45rem; font-size: 0.86rem; color: var(--text-secondary); margin: 0.3rem 0; }
+    .hyp-list { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: 0.45rem; }
+    .hyp-list li { font-size: 0.92rem; padding: 0.55rem 0.75rem; border-radius: 8px; background: var(--bg-surface); border: 1px solid var(--border-subtle); }
+    .hyp-list .tag { font-family: var(--font-mono); font-weight: 700; margin-right: 0.4rem; }
+    .verdict-held { color: var(--color-agree); font-weight: 700; }
+    .verdict-failed { color: var(--color-disagree); font-weight: 700; }
+    .verdict-partly { color: var(--color-std); font-weight: 700; }
+    .score-strip { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0 0; }
+    .score-strip span { font-family: var(--font-mono); font-size: 0.82rem; padding: 0.25rem 0.6rem; border-radius: 999px; border: 1px solid var(--border-subtle); background: var(--bg-surface); }
+    .explore-note { border-left: 3px solid var(--color-std); padding: 0.5rem 0.8rem; background: var(--color-std-soft); border-radius: 0 8px 8px 0; font-size: 0.88rem; margin: 1rem 0; }
+    .mistake-list li { margin-bottom: 0.55rem; }
+    /* SVG classes (colours come from the shared tokens) */
+    .f-smoker { fill: var(--color-smoker); }
+    .f-nonsmoker { fill: var(--color-nonsmoker); }
+    .f-given { fill: var(--color-given-soft); stroke: var(--color-given); stroke-width: 2; stroke-dasharray: 6 4; }
+    .s-mean { stroke: var(--color-mean); }
+    .s-median { stroke: var(--color-median); }
+    .s-outlier { stroke: var(--color-outlier); }
+    .s-smoker { stroke: var(--color-smoker); }
+    .s-nonsmoker { stroke: var(--color-nonsmoker); }
+    .s-all { stroke: var(--text-primary); }
+    .axis { stroke: var(--border-strong); stroke-width: 1; }
+    .grid { stroke: var(--border-subtle); stroke-width: 1; }
+    .t-label { fill: var(--text-secondary); font-family: var(--font-mono); font-size: 11px; }
+    .t-strong { fill: var(--text-primary); font-family: var(--font-mono); font-size: 13px; font-weight: 600; }
+    .t-mean { fill: var(--color-mean); font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
+    .t-median { fill: var(--color-median); font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
+    .t-outlier { fill: var(--color-outlier); font-family: var(--font-mono); font-size: 11px; font-weight: 600; }
+    .t-given { fill: var(--color-given); font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+    .node { fill: var(--bg-elevated); stroke: var(--border-strong); stroke-width: 1.2; }
+    .dimmed { opacity: 0.18; }
+    @media (prefers-reduced-motion: no-preference) { .tween { transition: opacity 0.25s ease; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="../index.html" class="brand" aria-label="Raghav Bandreddi home">
+        <span class="brand-mark" aria-hidden="true">RB</span>
+        <span class="brand-text">
+          <span class="brand-name">Raghav Bandreddi</span>
+          <span class="brand-sub">147-Day ML Notebook</span>
+        </span>
+      </a>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="../index.html#the-path">The Path</a>
+        <a href="index.html" aria-current="page">Explainers</a>
+        <a href="../index.html#projects">Projects</a>
+        <a href="../index.html#research">Research</a>
+        <a href="../index.html#experience">Experience</a>
+        <a href="../index.html#contact">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+          <span class="theme-icon theme-icon-sun" aria-hidden="true">☀</span>
+          <span class="theme-icon theme-icon-moon" aria-hidden="true">☾</span>
+          <span class="theme-label" id="theme-label">Theme</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <div class="concept-legend-bar" role="region" aria-label="Colour key for concepts">
+    <div class="container concept-legend-inner">
+      <span><strong>Day 6 · Project:</strong> What drives medical costs?</span>
+      <div class="concept-pills">
+        <span class="concept-pill pill-smoker">● Smoker</span>
+        <span class="concept-pill pill-nonsmoker">● Non-smoker</span>
+        <span class="concept-pill pill-agree">✓ Prediction held</span>
+        <span class="concept-pill pill-disagree">✗ Prediction failed</span>
+      </div>
+    </div>
+  </div>
+
+  <main id="main-content" class="explainer-article">
+    <div class="container-narrow">
+
+      <!-- 0. INTRO -->
+      <section class="explainer-section" id="sec-intro">
+        <span class="section-kicker">Day 6 of 147 · Project: Every Statistic Hand-Coded</span>
+        <h1 class="hero-title" style="margin-bottom: 0.6rem;">What Drives Medical Costs? An EDA with the Predictions Written First</h1>
+        <p class="hero-lead">
+          1,338 people with health insurance: their age, sex, BMI, children, whether they smoke, their region, and what their medical care cost in a year. Days 1–5 gave me the tools. Today I point them at real data, with one rule: <strong>write down what I expect before any code runs</strong>, and keep every wrong guess.
+        </p>
+        <p>Why predictions first? Once you've seen a result, it always looks obvious. A written, timestamped guess is the only proof of what I actually expected. Here are mine, exactly as I committed them:</p>
+        <ul class="hyp-list">
+          <li><span class="tag">H1</span>Charges are right-skewed: the mean is above the median by about 15%.</li>
+          <li><span class="tag">H2</span>Age has the strongest Pearson correlation with charges (stronger than BMI or children).</li>
+          <li><span class="tag">H3</span>For age vs charges, Spearman will be <em>smaller</em> than Pearson, because charges grow linearly with age.</li>
+          <li><span class="tag">H3b</span>BMI vs charges is U-shaped (very low and very high BMI cost more), so Pearson will be near 0 (|r| &lt; 0.1).</li>
+          <li><span class="tag">H3c</span>Children and charges have no link (|r| &lt; 0.1).</li>
+          <li><span class="tag">H4</span>Smokers are about 4× as common among the most expensive 25% as overall.</li>
+          <li><span class="tag">H5</span>Tukey's 1.5 × IQR rule flags more outliers than |z| &gt; 3, because of masking.</li>
+          <li><span class="tag">H6</span>Men's smoking rate is at least 40 percentage points higher than women's.</li>
+        </ul>
+        <p class="small">Every number on this page is computed live in your browser from the full dataset (Kaggle, "Medical Cost Personal Datasets"). My Python versions were checked against NumPy, SciPy and pandas: every check passed. The scorecard is at the end. Try to predict each answer yourself before you click.</p>
+      </section>
+
+      <!-- 1. CENTRE -->
+      <section class="explainer-section" id="sec-centre">
+        <span class="section-kicker">Days 1–2 on Real Data</span>
+        <h2 class="section-title">1. A Few Patients Pull the Mean</h2>
+        <p class="section-subtitle">Mean vs median on money data, and how much of the gap a handful of people causes.</p>
+
+        <div class="interactive-stage">
+          <div class="predict-box">
+            <p class="predict-title">Predict first (H1)</p>
+            <p style="margin: 0; font-size: 0.94rem;">The median person pays about $9,400 a year. How far above the median is the mean?</p>
+            <div class="predict-options" role="group" aria-label="Prediction options">
+              <button type="button" class="predict-btn" data-box="h1" data-guess="15">about 15%</button>
+              <button type="button" class="predict-btn" data-box="h1" data-guess="40">about 40%</button>
+              <button type="button" class="predict-btn" data-box="h1" data-guess="80">about 80%</button>
+            </div>
+            <p class="predict-feedback" id="h1-feedback" aria-live="polite"></p>
+          </div>
+
+          <label class="check-row"><input type="checkbox" id="hist-stack" /> Colour the bars by smoking status</label>
+          <div class="svg-wrap"><svg id="hist-svg" viewBox="0 0 680 270" role="img" aria-label="Histogram of yearly medical charges with the mean and median marked"></svg></div>
+          <div class="slider-row"><label for="hist-k" class="mono" style="font-size: 0.8rem;">Remove the most expensive people: <strong id="hist-k-val"></strong></label><input type="range" id="hist-k" min="0" max="300" step="1" value="0" /></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-mean"><span class="readout-label">Mean</span><span class="readout-value" id="hist-mean"></span></div>
+            <div class="readout-box readout-median"><span class="readout-label">Median</span><span class="readout-value" id="hist-median"></span></div>
+            <div class="readout-box"><span class="readout-label">Mean above median</span><span class="readout-value" id="hist-gap"></span></div>
+          </div>
+          <p class="live-narrative" id="hist-caption" aria-live="polite"></p>
+        </div>
+
+        <div class="formula-callout">
+          <div><strong>Gap</strong> = (mean − median) ÷ median × 100</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">The histogram uses Freedman–Diaconis bins: width = 2 × IQR ÷ n<sup>1/3</sup>, which gives 30 bars here (Sturges would give 12, too coarse to show the long tail). For skewed money data, the <strong>median</strong> answers "what does a typical person pay?", while the <strong>mean</strong> answers "what does the insurer pay per person on average?" Both are correct; they answer different questions.</div>
+        </div>
+      </section>
+
+      <!-- 2. DUPLICATE -->
+      <section class="explainer-section" id="sec-duplicate">
+        <span class="section-kicker">The Mode as a Detective</span>
+        <h2 class="section-title">2. A Mode That Shouldn't Exist</h2>
+        <p class="section-subtitle">On Day 2 I learned that continuous data has no useful mode. On real data, a mode is a clue.</p>
+        <p>Charges are stored to four decimal places. Two different people paying <em>exactly</em> the same amount down to a hundredth of a cent is very unlikely, yet my <span class="mono">mode()</span> found a repeated value: <strong class="mono" id="dup-value"></strong>. So I looked at the rows behind it:</p>
+        <div class="table-scroll">
+          <table class="data-table" aria-label="The two rows that share the modal charge">
+            <thead><tr><th>Row</th><th>Age</th><th>Sex</th><th>BMI</th><th>Children</th><th>Smoker</th><th>Region</th><th>Charges</th></tr></thead>
+            <tbody id="dup-body"></tbody>
+          </table>
+        </div>
+        <p>My first guess was "two different people who happen to pay the same". The rows say otherwise: they match in <strong>all seven columns</strong>, including BMI to two decimals. That's one record entered twice. I kept it, because one row in 1,338 moves the mean by about 0.07% and age–charges Pearson by 0.0007, and I report it under limitations instead of silently changing the raw data.</p>
+        <div class="formula-callout">
+          <div><strong>Lesson:</strong> for continuous data the mode is useless as a "centre", but useful as a <strong>duplicate detector</strong>.</div>
+        </div>
+      </section>
+
+      <!-- 3. OUTLIERS -->
+      <section class="explainer-section" id="sec-outliers">
+        <span class="section-kicker">Tukey vs z-score, and Masking</span>
+        <h2 class="section-title">3. When 1 in 10 Is an "Outlier"</h2>
+        <p class="section-subtitle">Two outlier rules, one dataset, very different answers.</p>
+
+        <div class="interactive-stage">
+          <div class="predict-box">
+            <p class="predict-title">Predict first (H5)</p>
+            <p style="margin: 0; font-size: 0.94rem;">Which rule flags more of the 1,338 charges as outliers?</p>
+            <div class="predict-options" role="group" aria-label="Prediction options">
+              <button type="button" class="predict-btn" data-box="h5" data-guess="tukey">Tukey 1.5 × IQR</button>
+              <button type="button" class="predict-btn" data-box="h5" data-guess="same">About the same</button>
+              <button type="button" class="predict-btn" data-box="h5" data-guess="z">|z| &gt; 3</button>
+            </div>
+            <p class="predict-feedback" id="h5-feedback" aria-live="polite"></p>
+          </div>
+          <div class="stage-controls" style="margin-top: 0;">
+            <div class="seg" role="group" aria-label="Outlier rule">
+              <button type="button" class="btn btn-secondary" data-rule="tukey" aria-pressed="true">Tukey (IQR fences)</button>
+              <button type="button" class="btn btn-secondary" data-rule="z" aria-pressed="false">z-score</button>
+            </div>
+          </div>
+          <div class="slider-row"><label for="out-k" class="mono" style="font-size: 0.8rem;"><span id="out-k-name">Fence multiplier k</span>: <strong id="out-k-val"></strong></label><input type="range" id="out-k" min="1" max="3" step="0.1" value="1.5" /></div>
+          <div class="svg-wrap"><svg id="out-svg" viewBox="0 0 680 220" role="img" aria-label="Every charge as a dot on a number line, with the outlier cut-off marked"></svg></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box readout-outlier"><span class="readout-label">Flagged as outliers</span><span class="readout-value" id="out-n"></span></div>
+            <div class="readout-box"><span class="readout-label">…of whom smoke</span><span class="readout-value" id="out-sm" style="color: var(--color-smoker);"></span></div>
+            <div class="readout-box"><span class="readout-label">Upper cut-off</span><span class="readout-value" id="out-cut"></span></div>
+          </div>
+          <p class="live-narrative" id="out-caption" aria-live="polite"></p>
+        </div>
+
+        <div class="formula-callout">
+          <div><strong>Tukey:</strong> outside [Q1 − k·IQR, Q3 + k·IQR]   ·   <strong>z-score:</strong> |x − mean| ÷ std &gt; k</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;"><strong>Masking:</strong> the expensive values inflate the mean and, even more, the std. That pushes the z cut-off far out, so the very points that are unusual hide themselves. Tukey's quartiles barely notice the tail, so they aren't fooled. The lower Tukey fence is negative here, and charges can't be negative, so every flagged point is on the expensive side.</div>
+        </div>
+        <p>The bigger lesson is in the colours. When a rule flags about 1 in 10 people, they're rarely mistakes. Almost all of them are smokers: the data is <strong>two groups mixed together</strong>, and Tukey assumes one. "Outlier" is a statement about a rule, not a fact about a person.</p>
+      </section>
+
+      <!-- 4. RELATIONSHIPS -->
+      <section class="explainer-section" id="sec-corr">
+        <span class="section-kicker">Day 3 on Real Data</span>
+        <h2 class="section-title">4. Pearson vs Spearman: Straight Line or Same Direction?</h2>
+        <p class="section-subtitle">Pearson asks "how close to a straight line?" Spearman asks "when x goes up, does y tend to go up?"</p>
+
+        <div class="interactive-stage">
+          <div class="predict-box">
+            <p class="predict-title">Predict first (H3)</p>
+            <p style="margin: 0; font-size: 0.94rem;">For age vs charges, which correlation is bigger?</p>
+            <div class="predict-options" role="group" aria-label="Prediction options">
+              <button type="button" class="predict-btn" data-box="h3" data-guess="pearson">Pearson</button>
+              <button type="button" class="predict-btn" data-box="h3" data-guess="equal">About equal</button>
+              <button type="button" class="predict-btn" data-box="h3" data-guess="spearman">Spearman</button>
+            </div>
+            <p class="predict-feedback" id="h3-feedback" aria-live="polite"></p>
+          </div>
+          <div class="stage-controls" style="margin-top: 0; flex-wrap: wrap; gap: 0.6rem;">
+            <div class="seg" role="group" aria-label="Variable on the x-axis">
+              <button type="button" class="btn btn-secondary" data-x="age" aria-pressed="true">Age</button>
+              <button type="button" class="btn btn-secondary" data-x="bmi" aria-pressed="false">BMI</button>
+              <button type="button" class="btn btn-secondary" data-x="children" aria-pressed="false">Children</button>
+            </div>
+            <div class="seg" role="group" aria-label="Which people">
+              <button type="button" class="btn btn-secondary" data-grp="all" aria-pressed="true">Everyone</button>
+              <button type="button" class="btn btn-secondary" data-grp="0" aria-pressed="false">Non-smokers</button>
+              <button type="button" class="btn btn-secondary" data-grp="1" aria-pressed="false">Smokers</button>
+            </div>
+          </div>
+          <div class="svg-wrap"><svg id="sc-svg" viewBox="0 0 680 300" role="img" aria-label="Scatter plot of the chosen variable against charges, coloured by smoking status"></svg></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box"><span class="readout-label">Pearson r</span><span class="readout-value" id="sc-p"></span></div>
+            <div class="readout-box"><span class="readout-label">Spearman ρ</span><span class="readout-value" id="sc-s"></span></div>
+            <div class="readout-box"><span class="readout-label">People shown</span><span class="readout-value" id="sc-n"></span></div>
+          </div>
+          <p class="live-narrative" id="sc-caption" aria-live="polite"></p>
+        </div>
+
+        <div class="formula-callout">
+          <div><strong>Spearman = Pearson on ranks.</strong> It detects <strong>monotonic</strong> relationships (always up or always down, any curve), but not U-shapes.</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">When Spearman ≫ Pearson, the relationship goes one way but isn't a straight line, or a few huge values are pulling Pearson around. Neither number can show a shape: only the scatter plot can. And all of this is observational data, so a correlation here is not a cause.</div>
+        </div>
+        <div class="explore-note"><strong>Exploratory, not pre-registered:</strong> splitting by smoking status wasn't one of my hypotheses. I found it while looking, so it's a lead to test properly later, not a result. With that caveat: within non-smokers, age and charges are strongly related (Pearson about 0.63, Spearman about 0.82). Mixing in the smokers' higher band is what drags the overall Pearson down to 0.30. And BMI isn't U-shaped in this data: for smokers, charges jump around BMI 30.</div>
+      </section>
+
+      <!-- 5. BAYES -->
+      <section class="explainer-section" id="sec-bayes">
+        <span class="section-kicker">Days 4–5 on Real Data</span>
+        <h2 class="section-title">5. Who Are the Expensive People?</h2>
+        <p class="section-subtitle">Shrink the room to the most expensive patients, then count smokers. Then do it again with Bayes and check both agree.</p>
+
+        <div class="interactive-stage">
+          <div class="predict-box">
+            <p class="predict-title">Predict first (H4)</p>
+            <p style="margin: 0; font-size: 0.94rem;">20.5% of everyone smokes. Among the most expensive 25%, what share smokes?</p>
+            <div class="predict-options" role="group" aria-label="Prediction options">
+              <button type="button" class="predict-btn" data-box="h4" data-guess="20">about 20%</button>
+              <button type="button" class="predict-btn" data-box="h4" data-guess="40">about 40%</button>
+              <button type="button" class="predict-btn" data-box="h4" data-guess="75">about 75%</button>
+            </div>
+            <p class="predict-feedback" id="h4-feedback" aria-live="polite"></p>
+          </div>
+          <div class="slider-row"><label for="top-p" class="mono" style="font-size: 0.8rem;">The room: the most expensive <strong id="top-p-val"></strong> of people</label><input type="range" id="top-p" min="5" max="50" step="5" value="25" /></div>
+          <div class="svg-wrap"><svg id="tree-svg" viewBox="0 0 680 290" role="img" aria-label="Tree of all people split into smokers and non-smokers, then into the expensive room or not"></svg></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box"><span class="readout-label">People in the room</span><span class="readout-value" id="top-room" style="color: var(--color-given);"></span></div>
+            <div class="readout-box"><span class="readout-label">P(smoker | in the room)</span><span class="readout-value" id="top-post" style="color: var(--color-smoker);"></span></div>
+            <div class="readout-box"><span class="readout-label">vs overall 20.5%</span><span class="readout-value" id="top-ratio"></span></div>
+          </div>
+          <p class="live-formula" id="top-formula"></p>
+          <p class="live-narrative" id="top-caption" aria-live="polite"></p>
+        </div>
+
+        <div class="formula-callout">
+          <div><strong>Two ways, one answer:</strong> counting in the room, and Bayes with prior P(smoker), likelihoods P(top | smoker) and P(top | non-smoker).</div>
+          <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">In P(A | B), the denominator is <strong>everyone who has B</strong>: the word after the bar names the room. Agreement between the two methods proves the formula is consistent; it does not prove the input is right. (Mine agreed perfectly while my Q3 was wrong, see the mistakes below.)</div>
+        </div>
+
+        <h3 class="panel-title" style="font-size: 0.95rem; margin-top: 1.6rem;">H6: do men smoke much more than women?</h3>
+        <div class="table-scroll">
+          <table class="data-table" aria-label="Smokers by sex">
+            <thead><tr><th></th><th>Smoker</th><th>Non-smoker</th><th>Total</th><th>Smoking rate</th></tr></thead>
+            <tbody id="sex-body"></tbody>
+          </table>
+        </div>
+        <p id="sex-caption"></p>
+      </section>
+
+      <!-- 6. ECDF -->
+      <section class="explainer-section" id="sec-ecdf">
+        <span class="section-kicker">Day 5's CDF, Built from Data</span>
+        <h2 class="section-title">6. The ECDF: What Share Pays at Most t?</h2>
+        <p class="section-subtitle">The empirical CDF is a running share: sort the charges, and at every value count how many are at or below it.</p>
+        <div class="interactive-stage">
+          <label class="check-row"><input type="checkbox" id="ecdf-split" /> Show smokers and non-smokers separately</label>
+          <div class="svg-wrap"><svg id="ecdf-svg" viewBox="0 0 680 280" role="img" aria-label="Empirical cumulative distribution of charges with a movable threshold"></svg></div>
+          <div class="slider-row"><label for="ecdf-t" class="mono" style="font-size: 0.8rem;">Threshold t: <strong id="ecdf-t-val"></strong></label><input type="range" id="ecdf-t" min="0" max="64000" step="500" value="10000" /></div>
+          <div class="readout-grid" aria-live="polite">
+            <div class="readout-box"><span class="readout-label">Everyone, P(charges ≤ t)</span><span class="readout-value" id="ecdf-all"></span></div>
+            <div class="readout-box"><span class="readout-label">Non-smokers</span><span class="readout-value" id="ecdf-ns" style="color: var(--color-nonsmoker);"></span></div>
+            <div class="readout-box"><span class="readout-label">Smokers</span><span class="readout-value" id="ecdf-sm" style="color: var(--color-smoker);"></span></div>
+          </div>
+          <p class="live-narrative" id="ecdf-caption" aria-live="polite"></p>
+        </div>
+      </section>
+
+      <!-- 7. SCORECARD -->
+      <section class="explainer-section" id="sec-score">
+        <span class="section-kicker">Predictions vs Data</span>
+        <h2 class="section-title">7. Scorecard</h2>
+        <p class="section-subtitle">Every prediction, including the wrong ones. The misses taught me more than the hits.</p>
+        <div class="table-scroll">
+          <table class="data-table" aria-label="Hypotheses against results">
+            <thead><tr><th>H</th><th>I predicted</th><th>The data said</th><th>Verdict</th></tr></thead>
+            <tbody>
+              <tr><td class="num">H1</td><td>mean above median by ~15%</td><td class="num">+41.4% (13,270 vs 9,382)</td><td class="verdict-partly">direction ✓, size ✗</td></tr>
+              <tr><td class="num">H2</td><td>age has the strongest Pearson r</td><td class="num">age 0.299 · bmi 0.198 · children 0.068</td><td class="verdict-held">✓ held</td></tr>
+              <tr><td class="num">H3</td><td>Spearman &lt; Pearson for age</td><td class="num">Spearman 0.534 vs Pearson 0.299</td><td class="verdict-failed">✗ failed</td></tr>
+              <tr><td class="num">H3b</td><td>BMI is U-shaped, |Pearson| &lt; 0.1</td><td class="num">0.198; no U in the scatter</td><td class="verdict-failed">✗ failed</td></tr>
+              <tr><td class="num">H3c</td><td>children: |r| &lt; 0.1</td><td class="num">Pearson 0.068, Spearman 0.133</td><td class="verdict-partly">✓ Pearson, ✗ Spearman</td></tr>
+              <tr><td class="num">H4</td><td>smokers ~4× as common in the top 25%</td><td class="num">76.1% vs 20.5% = 3.7×</td><td class="verdict-held">✓ held</td></tr>
+              <tr><td class="num">H5</td><td>Tukey flags more than |z| &gt; 3</td><td class="num">139 vs 7</td><td class="verdict-held">✓ held</td></tr>
+              <tr><td class="num">H6</td><td>men smoke ≥ 40 points more</td><td class="num">23.5% vs 17.4% = 6.1 points</td><td class="verdict-failed">✗ failed</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="score-strip"><span class="verdict-held">3 held</span><span class="verdict-partly">2 partly</span><span class="verdict-failed">3 failed</span></div>
+      </section>
+
+      <!-- 8. MISTAKES -->
+      <section class="explainer-section" id="sec-mistakes">
+        <span class="section-kicker">Learning in Public</span>
+        <h2 class="section-title">8. Mistakes I Caught</h2>
+        <ul class="mistake-list">
+          <li><strong>Wrong percentile scale.</strong> I first computed Q3 with 0.75 where my function expects 0–100, and got $1,242. Both of my Bayes methods still agreed perfectly on the wrong answer. What caught it was a sanity check: the Tukey fences already implied Q3 ≈ $16,640.</li>
+          <li><strong>Wrong room in Bayes.</strong> I divided P(top | smoker) by all 1,338 people instead of the 274 smokers. The word after the bar names the room.</li>
+          <li><strong>"Left-skewed".</strong> I described a long tail of expensive patients, which is <em>right</em> skew: skew is named after the tail, not the hump.</li>
+          <li><strong>Code inside the loop.</strong> Twice I indented new lines under a <span class="mono">for</span>, so results printed seven times.</li>
+        </ul>
+      </section>
+
+      <!-- 9. CODE -->
+      <section class="explainer-section" id="sec-code">
+        <span class="section-kicker">The Code</span>
+        <h2 class="section-title">9. My Python and the Page's JavaScript</h2>
+        <p class="section-subtitle">The analysis imports my functions from Days 1–5 instead of rewriting them. pandas only loads the file.</p>
+        <div class="code-comparison-grid">
+          <div class="code-panel">
+            <div class="code-panel-header"><span>eda.py</span><span class="code-badge-mine">Python (Mine)</span></div>
+            <pre><code>def load_columns(path):
+    df = pd.read_csv(path)
+    data = {}
+
+    for name in df.columns:
+        data[name] = df[name].tolist()
+
+    return data
+
+def frequency_table(values):
+    counts = {}
+    for v in values:
+        if v in counts:
+            counts[v] += 1
+        else:
+            counts[v] = 1
+    return counts
+
+# H6: smoking rate by sex
+pairs = list(zip(data["sex"], data["smoker"]))
+table = frequency_table(pairs)
+p_smoke_male = table[("male", "yes")] / (table[("male", "yes")] + table[("male","no" )])
+
+# H4: P(smoker | top 25%), two ways
+q3 = percentile(charges, 75)
+is_top = [c > q3 for c in charges]
+table2 = frequency_table(list(zip(data["smoker"], is_top)))
+p_direct = table2[("yes", True)] / (table2[("yes", True)] + table2[("no", True)])
+smoker_counts = frequency_table(data["smoker"])
+prior = smoker_counts["yes"] / len(charges)
+p_top_given_smoker = table2[("yes", True)] / smoker_counts["yes"]
+p_top_given_non = table2[("no", True)] / smoker_counts["no"]
+p_bayes = bayes_posterior(prior, p_top_given_smoker, p_top_given_non)</code></pre>
+          </div>
+          <div class="code-panel">
+            <div class="code-panel-header"><span>eda.py (parts)</span><span class="code-badge-ai">Python (written with AI help)</span></div>
+            <pre><code># The two conditions were written with AI help;
+# the if/elif/else structure is mine.
+def column_type(values):
+    if isinstance(values[0], str):
+        return "categorical"
+    elif all(isinstance(v, int) for v in values):
+        return "discrete"
+    else:
+        return "continuous"
+
+def ecdf(x, t):
+    count = 0
+    for v in x:
+        if v &lt;= t:
+            count += 1
+    return count / len(x)
+
+# Also with AI help: the Day 2 outlier and bin
+# functions I imported, the figure script and
+# check_vs_library.py (all checks passed).</code></pre>
+          </div>
+        </div>
+        <div class="code-comparison-grid" style="margin-top: 1rem;">
+          <div class="code-panel" style="grid-column: 1 / -1;">
+            <div class="code-panel-header"><span>JavaScript port (this page)</span><span class="code-badge-ai">JS (written with AI help)</span></div>
+            <pre><code>function frequencyTable(values) {
+  const counts = new Map();
+  for (const v of values) counts.set(v, (counts.get(v) || 0) + 1);
+  return counts;
+}
+
+function pSmokerGivenTop(rows, topShare) {
+  const cut = percentile(rows.map(r =&gt; r.charges), 100 - topShare);
+  const top = rows.filter(r =&gt; r.charges &gt; cut);           // the room
+  const direct = top.filter(r =&gt; r.smoker).length / top.length;
+  const smokers = rows.filter(r =&gt; r.smoker), non = rows.filter(r =&gt; !r.smoker);
+  const prior = smokers.length / rows.length;
+  const pTopS = smokers.filter(r =&gt; r.charges &gt; cut).length / smokers.length;
+  const pTopN = non.filter(r =&gt; r.charges &gt; cut).length / non.length;
+  return { direct, bayes: bayesPosterior(prior, pTopS, pTopN) };
+}
+
+function ecdf(x, t) { return x.filter(v =&gt; v &lt;= t).length / x.length; }</code></pre>
+          </div>
+        </div>
+      </section>
+
+      <!-- 10. LIMITS -->
+      <section class="explainer-section" id="sec-limits">
+        <span class="section-kicker">What This Does Not Show</span>
+        <h2 class="section-title">10. Limitations and Next Steps</h2>
+        <ul>
+          <li><strong>Observational data.</strong> Smoking is strongly <em>associated</em> with high charges here. This dataset alone can't show that it causes them.</li>
+          <li><strong>No uncertainty yet.</strong> Is a 6.1-point gap between men and women more than chance? That needs a chi-square test (Day 10). The correlations need confidence intervals (bootstrap, Day 9).</li>
+          <li><strong>One duplicate row</strong> (rows 195 and 581) was kept and reported.</li>
+          <li><strong>Data origin.</strong> I haven't verified how this teaching dataset was collected, so none of this describes any real population.</li>
+          <li><strong>Exploratory findings</strong> (the smoker split, the BMI-30 jump) weren't pre-registered. They're leads for a future test, not results.</li>
+        </ul>
+        <p>The research link: an eval set is a dataset too. The "most expensive 25%" room is the same idea as the "flagged" room in last week's detector problem, and the same base-rate trap applies. Before I compare English and German sycophancy rates, I'll write the predictions down first, exactly like today.</p>
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p class="footer-honesty">
+        Day 6 of a 147-day path through the maths and code behind machine learning. The analysis, predictions and most of the Python are mine; the parts written with AI help are labelled above. The JavaScript port and the page design were built with help from AI.
+      </p>
+      <div class="footer-links">
+        <a href="index.html">← All Explainers</a>
+        <a href="day05-chance-in-numbers.html">← Day 5</a>
+        <a href="../index.html">Home Page</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../assets/data.js"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    var toggleBtn = document.getElementById("theme-toggle"), themeLabel = document.getElementById("theme-label");
+    function setLabel(t) { themeLabel.textContent = t === "dark" ? "Dark" : "Light"; }
+    setLabel(document.documentElement.getAttribute("data-theme") || "light");
+    toggleBtn.addEventListener("click", function () {
+      var now = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", now);
+      try { localStorage.setItem("raghav-theme", now); } catch (e) {}
+      setLabel(now);
+    });
+
+    /* ---------- data: [age, bmi, children, smoker, male, charges, region] ---------- */
+    var REGIONS = ["northeast", "northwest", "southeast", "southwest"];
+    var RAW = [[19,27.9,0,1,0,16884.924,3],[18,33.77,1,0,1,1725.5523,2],[28,33.0,3,0,1,4449.462,2],[33,22.705,0,0,1,21984.4706,1],[32,28.88,0,0,1,3866.8552,1],[31,25.74,0,0,0,3756.6216,2],[46,33.44,1,0,0,8240.5896,2],[37,27.74,3,0,0,7281.5056,1],[37,29.83,2,0,1,6406.4107,0],[60,25.84,0,0,0,28923.1369,1],[25,26.22,0,0,1,2721.3208,0],[62,26.29,0,1,0,27808.7251,2],[23,34.4,0,0,1,1826.843,3],[56,39.82,0,0,0,11090.7178,2],[27,42.13,0,1,1,39611.7577,2],[19,24.6,1,0,1,1837.237,3],[52,30.78,1,0,0,10797.3362,0],[23,23.845,0,0,1,2395.1716,0],[56,40.3,0,0,1,10602.385,3],[30,35.3,0,1,1,36837.467,3],[60,36.005,0,0,0,13228.8469,0],[30,32.4,1,0,0,4149.736,3],[18,34.1,0,0,1,1137.011,2],[34,31.92,1,1,0,37701.8768,0],[37,28.025,2,0,1,6203.9017,1],[59,27.72,3,0,0,14001.1338,2],[63,23.085,0,0,0,14451.8352,0],[55,32.775,2,0,0,12268.6323,1],[23,17.385,1,0,1,2775.1921,1],[31,36.3,2,1,1,38711.0,3],[22,35.6,0,1,1,35585.576,3],[18,26.315,0,0,0,2198.1899,0],[19,28.6,5,0,0,4687.797,3],[63,28.31,0,0,1,13770.0979,1],[28,36.4,1,1,1,51194.5591,3],[19,20.425,0,0,1,1625.4337,1],[62,32.965,3,0,0,15612.1933,1],[26,20.8,0,0,1,2302.3,3],[35,36.67,1,1,1,39774.2763,0],[60,39.9,0,1,1,48173.361,3],[24,26.6,0,0,0,3046.062,0],[31,36.63,2,0,0,4949.7587,2],[41,21.78,1,0,1,6272.4772,2],[37,30.8,2,0,0,6313.759,2],[38,37.05,1,0,1,6079.6715,0],[55,37.3,0,0,1,20630.2835,3],[18,38.665,2,0,0,3393.3564,0],[28,34.77,0,0,0,3556.9223,1],[60,24.53,0,0,0,12629.8967,2],[36,35.2,1,1,1,38709.176,2],[18,35.625,0,0,0,2211.1307,0],[21,33.63,2,0,0,3579.8287,1],[48,28.0,1,1,1,23568.272,3],[36,34.43,0,1,1,37742.5757,2],[40,28.69,3,0,0,8059.6791,1],[58,36.955,2,1,1,47496.4944,1],[58,31.825,2,0,0,13607.3687,0],[18,31.68,2,1,1,34303.1672,2],[53,22.88,1,1,0,23244.7902,2],[34,37.335,2,0,0,5989.5237,1],[43,27.36,3,0,1,8606.2174,0],[25,33.66,4,0,1,4504.6624,2],[64,24.7,1,0,1,30166.6182,1],[28,25.935,1,0,0,4133.6416,1],[20,22.42,0,1,0,14711.7438,1],[19,28.9,0,0,0,1743.214,3],[61,39.1,2,0,0,14235.072,3],[40,26.315,1,0,1,6389.3778,1],[40,36.19,0,0,0,5920.1041,2],[28,23.98,3,1,1,17663.1442,2],[27,24.75,0,1,0,16577.7795,2],[31,28.5,5,0,1,6799.458,0],[53,28.1,3,0,0,11741.726,3],[58,32.01,1,0,1,11946.6259,2],[44,27.4,2,0,1,7726.854,3],[57,34.01,0,0,1,11356.6609,1],[29,29.59,1,0,0,3947.4131,2],[21,35.53,0,0,1,1532.4697,2],[22,39.805,0,0,0,2755.021,0],[41,32.965,0,0,0,6571.0243,1],[31,26.885,1,0,1,4441.2131,0],[45,38.285,0,0,0,7935.2912,0],[22,37.62,1,1,1,37165.1638,2],[48,41.23,4,0,0,11033.6617,1],[37,34.8,2,1,0,39836.519,3],[45,22.895,2,1,1,21098.554,1],[57,31.16,0,1,0,43578.9394,1],[56,27.2,0,0,0,11073.176,3],[46,27.74,0,0,0,8026.6666,1],[55,26.98,0,0,0,11082.5772,1],[21,39.49,0,0,0,2026.9741,2],[53,24.795,1,0,0,10942.1321,1],[59,29.83,3,1,1,30184.9367,0],[35,34.77,2,0,1,5729.0053,1],[64,31.3,2,1,0,47291.055,3],[28,37.62,1,0,0,3766.8838,2],[54,30.8,3,0,0,12105.32,3],[55,38.28,0,0,1,10226.2842,2],[56,19.95,0,1,1,22412.6485,0],[38,19.3,0,1,1,15820.699,3],[41,31.6,0,0,0,6186.127,3],[30,25.46,0,0,1,3645.0894,0],[18,30.115,0,0,0,21344.8467,0],[61,29.92,3,1,0,30942.1918,2],[34,27.5,1,0,0,5003.853,3],[20,28.025,1,1,1,17560.3798,1],[19,28.4,1,0,0,2331.519,3],[26,30.875,2,0,1,3877.3043,1],[29,27.94,0,0,1,2867.1196,2],[63,35.09,0,1,1,47055.5321,2],[54,33.63,1,0,1,10825.2537,1],[55,29.7,2,0,0,11881.358,3],[37,30.8,0,0,1,4646.759,3],[21,35.72,0,0,0,2404.7338,1],[52,32.205,3,0,1,11488.317,0],[60,28.595,0,0,1,30259.9956,0],[58,49.06,0,0,1,11381.3254,2],[29,27.94,1,1,0,19107.7796,2],[49,27.17,0,0,0,8601.3293,2],[37,23.37,2,0,0,6686.4313,1],[44,37.1,2,0,1,7740.337,3],[18,23.75,0,0,1,1705.6245,0],[20,28.975,0,0,0,2257.4752,1],[44,31.35,1,1,1,39556.4945,0],[47,33.915,3,0,0,10115.0089,1],[26,28.785,0,0,0,3385.3992,0],[19,28.3,0,1,0,17081.08,3],[52,37.4,0,0,0,9634.538,3],[32,17.765,2,1,0,32734.1863,1],[38,34.7,2,0,1,6082.405,3],[59,26.505,0,0,0,12815.4449,0],[61,22.04,0,0,0,13616.3586,0],[53,35.9,2,0,0,11163.568,3],[19,25.555,0,0,1,1632.5645,1],[20,28.785,0,0,0,2457.2112,0],[22,28.05,0,0,0,2155.6815,2],[19,34.1,0,0,1,1261.442,3],[22,25.175,0,0,1,2045.6852,1],[54,31.9,3,0,0,27322.7339,2],[22,36.0,0,0,0,2166.732,3],[34,22.42,2,0,1,27375.9048,0],[26,32.49,1,0,1,3490.5491,0],[34,25.3,2,1,1,18972.495,2],[29,29.735,2,0,1,18157.876,1],[30,28.69,3,1,1,20745.9891,1],[29,38.83,3,0,0,5138.2567,2],[46,30.495,3,1,1,40720.5511,1],[51,37.73,1,0,0,9877.6077,2],[53,37.43,1,0,0,10959.6947,1],[19,28.4,1,0,1,1842.519,3],[35,24.13,1,0,1,5125.2157,1],[48,29.7,0,0,1,7789.635,2],[32,37.145,3,0,0,6334.3435,0],[42,23.37,0,1,0,19964.7463,0],[40,25.46,1,0,0,7077.1894,0],[44,39.52,0,0,1,6948.7008,1],[48,24.42,0,1,1,21223.6758,2],[18,25.175,0,1,1,15518.1802,0],[30,35.53,0,1,1,36950.2567,2],[50,27.83,3,0,0,19749.3834,2],[42,26.6,0,1,0,21348.706,1],[18,36.85,0,1,0,36149.4835,2],[54,39.6,1,0,1,10450.552,3],[32,29.8,2,0,0,5152.134,3],[37,29.64,0,0,1,5028.1466,1],[47,28.215,4,0,1,10407.0858,0],[20,37.0,5,0,0,4830.63,3],[32,33.155,3,0,0,6128.7975,1],[19,31.825,1,0,0,2719.2798,1],[27,18.905,3,0,1,4827.905,0],[63,41.47,0,0,1,13405.3903,2],[49,30.3,0,0,1,8116.68,3],[18,15.96,0,0,1,1694.7964,0],[35,34.8,1,0,0,5246.047,3],[24,33.345,0,0,0,2855.4376,1],[63,37.7,0,1,0,48824.45,3],[38,27.835,2,0,1,6455.8627,1],[54,29.2,1,0,1,10436.096,3],[46,28.9,2,0,0,8823.279,3],[41,33.155,3,0,0,8538.2885,0],[58,28.595,0,0,1,11735.879,1],[18,38.28,0,0,0,1631.8212,2],[22,19.95,3,0,1,4005.4225,0],[44,26.41,0,0,0,7419.4779,1],[44,30.69,2,0,1,7731.4271,2],[36,41.895,3,1,1,43753.3371,0],[26,29.92,2,0,0,3981.9768,2],[30,30.9,3,0,0,5325.651,3],[41,32.2,1,0,0,6775.961,3],[29,32.11,2,0,0,4922.9159,1],[61,31.57,0,0,1,12557.6053,2],[36,26.2,0,0,0,4883.866,3],[25,25.74,0,0,1,2137.6536,2],[56,26.6,1,0,0,12044.342,1],[18,34.43,0,0,1,1137.4697,2],[19,30.59,0,0,1,1639.5631,1],[39,32.8,0,0,0,5649.715,3],[45,28.6,2,0,0,8516.829,2],[51,18.05,0,0,0,9644.2525,1],[64,39.33,0,0,0,14901.5167,0],[19,32.11,0,0,0,2130.6759,1],[48,32.23,1,0,0,8871.1517,2],[60,24.035,0,0,0,13012.2087,1],[27,36.08,0,1,0,37133.8982,2],[46,22.3,0,0,1,7147.105,3],[28,28.88,1,0,0,4337.7352,0],[59,26.4,0,0,1,11743.299,2],[35,27.74,2,1,1,20984.0936,0],[63,31.8,0,0,0,13880.949,3],[40,41.23,1,0,1,6610.1097,0],[20,33.0,1,0,1,1980.07,3],[40,30.875,4,0,1,8162.7163,1],[24,28.5,2,0,1,3537.703,1],[34,26.73,1,0,0,5002.7827,2],[45,30.9,2,0,0,8520.026,3],[41,37.1,2,0,0,7371.772,3],[53,26.6,0,0,0,10355.641,1],[27,23.1,0,0,1,2483.736,2],[26,29.92,1,0,0,3392.9768,2],[24,23.21,0,0,0,25081.7678,2],[34,33.7,1,0,0,5012.471,3],[53,33.25,0,0,0,10564.8845,0],[32,30.8,3,0,1,5253.524,3],[19,34.8,0,1,1,34779.615,3],[42,24.64,0,1,1,19515.5416,2],[55,33.88,3,0,1,11987.1682,2],[28,38.06,0,0,1,2689.4954,2],[58,41.91,0,0,0,24227.3372,2],[41,31.635,1,0,0,7358.1757,0],[47,25.46,2,0,1,9225.2564,0],[42,36.195,1,0,0,7443.643,1],[59,27.83,3,0,0,14001.2867,2],[19,17.8,0,0,0,1727.785,3],[59,27.5,1,0,1,12333.828,3],[39,24.51,2,0,1,6710.1919,1],[40,22.22,2,1,0,19444.2658,2],[18,26.73,0,0,0,1615.7667,2],[31,38.39,2,0,1,4463.2051,2],[19,29.07,0,1,1,17352.6803,1],[44,38.06,1,0,1,7152.6714,2],[23,36.67,2,1,0,38511.6283,0],[33,22.135,1,0,0,5354.0746,0],[55,26.8,1,0,0,35160.1346,3],[40,35.3,3,0,1,7196.867,3],[63,27.74,0,1,0,29523.1656,0],[54,30.02,0,0,1,24476.4785,1],[60,38.06,0,0,0,12648.7034,2],[24,35.86,0,0,1,1986.9334,2],[19,20.9,1,0,1,1832.094,3],[29,28.975,1,0,1,4040.5583,0],[18,17.29,2,1,1,12829.4551,0],[63,32.2,2,1,0,47305.305,3],[54,34.21,2,1,1,44260.7499,2],[27,30.3,3,0,1,4260.744,3],[50,31.825,0,1,1,41097.1617,0],[55,25.365,3,0,0,13047.3324,0],[56,33.63,0,1,1,43921.1837,1],[38,40.15,0,0,0,5400.9805,2],[51,24.415,4,0,1,11520.0999,1],[19,31.92,0,1,1,33750.2918,1],[58,25.2,0,0,0,11837.16,3],[20,26.84,1,1,0,17085.2676,2],[52,24.32,3,1,1,24869.8368,0],[19,36.955,0,1,1,36219.4054,1],[53,38.06,3,0,0,20462.9977,2],[46,42.35,3,1,1,46151.1245,2],[40,19.8,1,1,1,17179.522,2],[59,32.395,3,0,0,14590.6321,0],[45,30.2,1,0,1,7441.053,3],[49,25.84,1,0,1,9282.4806,0],[18,29.37,1,0,1,1719.4363,2],[50,34.2,2,1,1,42856.838,3],[41,37.05,2,0,1,7265.7025,1],[50,27.455,1,0,1,9617.6624,0],[25,27.55,0,0,1,2523.1695,1],[47,26.6,2,0,0,9715.841,0],[19,20.615,2,0,1,2803.6979,1],[22,24.3,0,0,0,2150.469,3],[59,31.79,2,0,1,12928.7911,2],[51,21.56,1,0,0,9855.1314,2],[40,28.12,1,1,0,22331.5668,0],[54,40.565,3,1,1,48549.1784,0],[30,27.645,1,0,1,4237.1265,0],[55,32.395,1,0,0,11879.104,0],[52,31.2,0,0,0,9625.92,3],[46,26.62,1,0,1,7742.1098,2],[46,48.07,2,0,0,9432.9253,0],[63,26.22,0,0,0,14256.1928,1],[59,36.765,1,1,0,47896.7913,0],[52,26.4,3,0,1,25992.821,2],[28,33.4,0,0,0,3172.018,3],[29,29.64,1,0,1,20277.8075,0],[25,45.54,2,1,1,42112.2356,2],[22,28.82,0,0,0,2156.7518,2],[25,26.8,3,0,1,3906.127,3],[18,22.99,0,0,1,1704.5681,0],[19,27.7,0,1,1,16297.846,3],[47,25.41,1,1,1,21978.6769,2],[31,34.39,3,1,1,38746.3551,1],[48,28.88,1,0,0,9249.4952,1],[36,27.55,3,0,1,6746.7425,0],[53,22.61,3,1,0,24873.3849,0],[56,37.51,2,0,0,12265.5069,2],[28,33.0,2,0,0,4349.462,2],[57,38.0,2,0,0,12646.207,3],[29,33.345,2,0,1,19442.3535,1],[28,27.5,2,0,0,20177.6711,3],[30,33.33,1,0,0,4151.0287,2],[58,34.865,0,0,1,11944.5943,0],[41,33.06,2,0,0,7749.1564,1],[50,26.6,0,0,1,8444.474,3],[19,24.7,0,0,0,1737.376,3],[43,35.97,3,1,1,42124.5153,2],[49,35.86,0,0,1,8124.4084,2],[27,31.4,0,1,0,34838.873,3],[52,33.25,0,0,1,9722.7695,0],[50,32.205,0,0,1,8835.265,1],[54,32.775,0,0,1,10435.0652,0],[44,27.645,0,0,0,7421.1946,1],[32,37.335,1,0,1,4667.6076,0],[34,25.27,1,0,1,4894.7533,1],[26,29.64,4,0,0,24671.6633,0],[34,30.8,0,1,1,35491.64,3],[57,40.945,0,0,1,11566.3005,0],[29,27.2,0,0,1,2866.091,3],[40,34.105,1,0,1,6600.2059,0],[27,23.21,1,0,0,3561.8889,2],[45,36.48,2,1,1,42760.5022,1],[64,33.8,1,1,0,47928.03,3],[52,36.7,0,0,1,9144.565,3],[61,36.385,1,1,0,48517.5632,0],[52,27.36,0,1,1,24393.6224,1],[61,31.16,0,0,0,13429.0354,1],[56,28.785,0,0,0,11658.3792,0],[43,35.72,2,0,0,19144.5765,0],[64,34.5,0,0,1,13822.803,3],[60,25.74,0,0,1,12142.5786,2],[62,27.55,1,0,1,13937.6665,1],[50,32.3,1,1,1,41919.097,0],[46,27.72,1,0,0,8232.6388,2],[24,27.6,0,0,0,18955.2202,3],[62,30.02,0,0,1,13352.0998,1],[60,27.55,0,0,0,13217.0945,0],[63,36.765,0,0,1,13981.8504,0],[49,41.47,4,0,0,10977.2063,2],[34,29.26,3,0,0,6184.2994,2],[33,35.75,2,0,1,4889.9995,2],[46,33.345,1,0,1,8334.4575,0],[36,29.92,1,0,0,5478.0368,2],[19,27.835,0,0,1,1635.7336,1],[57,23.18,0,0,0,11830.6072,1],[50,25.6,0,0,0,8932.084,3],[30,27.7,0,0,0,3554.203,3],[33,35.245,0,0,1,12404.8791,0],[18,38.28,0,0,0,14133.0377,2],[46,27.6,0,0,1,24603.0484,3],[46,43.89,3,0,1,8944.1151,2],[47,29.83,3,0,1,9620.3307,1],[23,41.91,0,0,1,1837.2819,2],[18,20.79,0,0,0,1607.5101,2],[48,32.3,2,0,0,10043.249,0],[35,30.5,1,0,1,4751.07,3],[19,21.7,0,1,0,13844.506,3],[21,26.4,1,0,0,2597.779,3],[21,21.89,2,0,0,3180.5101,2],[49,30.78,1,0,0,9778.3472,0],[56,32.3,3,0,0,13430.265,0],[42,24.985,2,0,0,8017.0612,1],[44,32.015,2,0,1,8116.2689,1],[18,30.4,3,0,1,3481.868,0],[61,21.09,0,0,0,13415.0381,1],[57,22.23,0,0,0,12029.2867,0],[42,33.155,1,0,0,7639.4174,0],[26,32.9,2,1,1,36085.219,3],[20,33.33,0,0,1,1391.5287,2],[23,28.31,0,1,0,18033.9679,1],[39,24.89,3,1,0,21659.9301,0],[24,40.15,0,1,1,38126.2465,2],[64,30.115,3,0,0,16455.7078,1],[62,31.46,1,0,1,27000.9847,2],[27,17.955,2,1,0,15006.5794,0],[55,30.685,0,1,1,42303.6922,0],[55,33.0,0,0,1,20781.4889,2],[35,43.34,2,0,0,5846.9176,2],[44,22.135,2,0,1,8302.5356,0],[19,34.4,0,0,1,1261.859,3],[58,39.05,0,0,0,11856.4115,2],[50,25.365,2,0,1,30284.6429,1],[26,22.61,0,0,0,3176.8159,1],[24,30.21,3,0,0,4618.0799,1],[48,35.625,4,0,1,10736.8708,0],[19,37.43,0,0,0,2138.0707,1],[48,31.445,1,0,1,8964.0606,0],[49,31.35,1,0,1,9290.1395,0],[46,32.3,2,0,0,9411.005,0],[46,19.855,0,0,1,7526.7064,1],[43,34.4,3,0,0,8522.003,3],[21,31.02,0,0,1,16586.4977,2],[64,25.6,2,0,1,14988.432,3],[18,38.17,0,0,0,1631.6683,2],[51,20.6,0,0,0,9264.797,3],[47,47.52,1,0,1,8083.9198,2],[64,32.965,0,0,0,14692.6694,1],[49,32.3,3,0,1,10269.46,1],[31,20.4,0,0,1,3260.199,3],[52,38.38,2,0,0,11396.9002,0],[33,24.31,0,0,0,4185.0979,2],[47,23.6,1,0,0,8539.671,3],[38,21.12,3,0,1,6652.5288,2],[32,30.03,1,0,1,4074.4537,2],[19,17.48,0,0,1,1621.3402,1],[44,20.235,1,1,0,19594.8096,0],[26,17.195,2,1,0,14455.6441,0],[25,23.9,5,0,1,5080.096,3],[19,35.15,0,0,0,2134.9015,1],[43,35.64,1,0,0,7345.7266,2],[52,34.1,0,0,1,9140.951,2],[36,22.6,2,1,0,18608.262,3],[64,39.16,1,0,1,14418.2804,2],[63,26.98,0,1,0,28950.4692,1],[64,33.88,0,1,1,46889.2612,2],[61,35.86,0,1,1,46599.1084,2],[40,32.775,1,1,1,39125.3322,0],[25,30.59,0,0,1,2727.3951,0],[48,30.2,2,0,1,8968.33,3],[45,24.31,5,0,1,9788.8659,2],[38,27.265,1,0,0,6555.0703,0],[18,29.165,0,0,0,7323.7348,0],[21,16.815,1,0,0,3167.4558,0],[27,30.4,3,0,0,18804.7524,1],[19,33.1,0,0,1,23082.9553,3],[29,20.235,2,0,0,4906.4096,1],[42,26.9,0,0,1,5969.723,3],[60,30.5,0,0,0,12638.195,3],[31,28.595,1,0,1,4243.59,1],[60,33.11,3,0,1,13919.8229,2],[22,31.73,0,0,1,2254.7967,0],[35,28.9,3,0,1,5926.846,3],[52,46.75,5,0,0,12592.5345,2],[26,29.45,0,0,1,2897.3235,0],[31,32.68,1,0,0,4738.2682,1],[33,33.5,0,1,0,37079.372,3],[18,43.01,0,0,1,1149.3959,2],[59,36.52,1,0,0,28287.8977,2],[56,26.695,1,1,1,26109.3291,1],[45,33.1,0,0,0,7345.084,3],[60,29.64,0,0,1,12730.9996,0],[56,25.65,0,0,0,11454.0215,1],[40,29.6,0,0,0,5910.944,3],[35,38.6,1,0,1,4762.329,3],[39,29.6,4,0,1,7512.267,3],[30,24.13,1,0,1,4032.2407,1],[24,23.4,0,0,1,1969.614,3],[20,29.735,0,0,1,1769.5316,1],[32,46.53,2,0,1,4686.3887,2],[59,37.4,0,0,1,21797.0004,3],[55,30.14,2,0,0,11881.9696,2],[57,30.495,0,0,0,11840.7751,1],[56,39.6,0,0,1,10601.412,3],[40,33.0,3,0,0,7682.67,2],[49,36.63,3,0,0,10381.4787,2],[42,30.0,0,1,1,22144.032,3],[62,38.095,2,0,0,15230.324,0],[56,25.935,0,0,1,11165.4176,0],[19,25.175,0,0,1,1632.0363,1],[30,28.38,1,1,0,19521.9682,2],[60,28.7,1,0,0,13224.693,3],[56,33.82,2,0,0,12643.3778,1],[28,24.32,1,0,0,23288.9284,0],[18,24.09,1,0,0,2201.0971,2],[27,32.67,0,0,1,2497.0383,2],[18,30.115,0,0,0,2203.4718,0],[19,29.8,0,0,0,1744.465,3],[47,33.345,0,0,0,20878.7844,0],[54,25.1,3,1,1,25382.297,3],[61,28.31,1,1,1,28868.6639,1],[24,28.5,0,1,1,35147.5285,0],[25,35.625,0,0,1,2534.3938,1],[21,36.85,0,0,1,1534.3045,2],[23,32.56,0,0,1,1824.2854,2],[63,41.325,3,0,1,15555.1887,1],[49,37.51,2,0,1,9304.7019,2],[18,31.35,0,0,0,1622.1885,2],[51,39.5,1,0,0,9880.068,3],[48,34.3,3,0,1,9563.029,3],[31,31.065,0,0,0,4347.0234,0],[54,21.47,3,0,0,12475.3513,1],[19,28.7,0,0,1,1253.936,3],[44,38.06,0,1,0,48885.1356,2],[53,31.16,1,0,1,10461.9794,1],[19,32.9,0,0,0,1748.774,3],[61,25.08,0,0,0,24513.0913,2],[18,25.08,0,0,0,2196.4732,0],[61,43.4,0,0,1,12574.049,3],[21,25.7,4,1,1,17942.106,3],[20,27.93,0,0,1,1967.0227,0],[31,23.6,2,0,0,4931.647,3],[45,28.7,2,0,1,8027.968,3],[44,23.98,2,0,0,8211.1002,2],[62,39.2,0,0,0,13470.86,3],[29,34.4,0,1,1,36197.699,3],[43,26.03,0,0,1,6837.3687,0],[51,23.21,1,1,1,22218.1149,2],[19,30.25,0,1,1,32548.3405,2],[38,28.93,1,0,0,5974.3847,2],[37,30.875,3,0,1,6796.8633,1],[22,31.35,1,0,1,2643.2685,1],[21,23.75,2,0,1,3077.0955,1],[24,25.27,0,0,0,3044.2133,0],[57,28.7,0,0,0,11455.28,3],[56,32.11,1,0,1,11763.0009,0],[27,33.66,0,0,1,2498.4144,2],[51,22.42,0,0,1,9361.3268,0],[19,30.4,0,0,1,1256.299,3],[39,28.3,1,1,1,21082.16,3],[58,35.7,0,0,1,11362.755,3],[20,35.31,1,0,1,27724.2887,2],[45,30.495,2,0,1,8413.4631,1],[35,31.0,1,0,0,5240.765,3],[31,30.875,0,0,1,3857.7593,0],[50,27.36,0,0,0,25656.5753,0],[32,44.22,0,0,0,3994.1778,2],[51,33.915,0,0,0,9866.3049,0],[38,37.73,0,0,0,5397.6167,2],[42,26.07,1,1,1,38245.5933,2],[18,33.88,0,0,0,11482.6349,2],[19,30.59,2,0,0,24059.6802,1],[51,25.8,1,0,0,9861.025,3],[46,39.425,1,0,1,8342.9088,0],[18,25.46,0,0,1,1708.0014,0],[57,42.13,1,1,1,48675.5177,2],[62,31.73,0,0,0,14043.4767,0],[59,29.7,2,0,1,12925.886,2],[37,36.19,0,0,1,19214.7055,2],[64,40.48,0,0,1,13831.1152,2],[38,28.025,1,0,1,6067.1268,0],[33,38.9,3,0,0,5972.378,3],[46,30.2,2,0,0,8825.086,3],[46,28.05,1,0,0,8233.0975,2],[53,31.35,0,0,1,27346.0421,2],[34,38.0,3,0,0,6196.448,3],[20,31.79,2,0,0,3056.3881,2],[63,36.3,0,0,0,13887.204,2],[54,47.41,0,1,0,63770.428,2],[54,30.21,0,0,1,10231.4999,1],[49,25.84,2,1,1,23807.2406,1],[28,35.435,0,0,1,3268.8466,0],[54,46.7,2,0,0,11538.421,3],[25,28.595,0,0,0,3213.622,0],[43,46.2,0,1,0,45863.205,2],[63,30.8,0,0,1,13390.559,3],[32,28.93,0,0,0,3972.9247,2],[62,21.4,0,0,1,12957.118,3],[52,31.73,2,0,0,11187.6567,1],[25,41.325,0,0,0,17878.9007,0],[28,23.8,2,0,1,3847.674,3],[46,33.44,1,0,1,8334.5896,0],[34,34.21,0,0,1,3935.1799,2],[35,34.105,3,1,0,39983.4259,1],[19,35.53,0,0,1,1646.4297,1],[46,19.95,2,0,0,9193.8385,1],[54,32.68,0,0,0,10923.9332,0],[27,30.5,0,0,1,2494.022,3],[50,44.77,1,0,1,9058.7303,2],[18,32.12,2,0,0,2801.2588,2],[19,30.495,0,0,0,2128.4311,1],[38,40.565,1,0,0,6373.5574,1],[41,30.59,2,0,1,7256.7231,1],[49,31.9,5,0,0,11552.904,3],[48,40.565,2,1,1,45702.0223,1],[31,29.1,0,0,0,3761.292,3],[18,37.29,1,0,0,2219.4451,2],[30,43.12,2,0,0,4753.6368,2],[62,36.86,1,0,0,31620.0011,0],[57,34.295,2,0,0,13224.057,0],[58,27.17,0,0,0,12222.8983,1],[22,26.84,0,0,1,1664.9996,2],[31,38.095,1,1,0,58571.0745,0],[52,30.2,1,0,1,9724.53,3],[25,23.465,0,0,0,3206.4913,0],[59,25.46,1,0,1,12913.9924,0],[19,30.59,0,0,1,1639.5631,1],[39,45.43,2,0,1,6356.2707,2],[32,23.65,1,0,0,17626.2395,2],[19,20.7,0,0,1,1242.816,3],[33,28.27,1,0,0,4779.6023,2],[21,20.235,3,0,1,3861.2096,0],[34,30.21,1,1,0,43943.8761,1],[61,35.91,0,0,0,13635.6379,0],[38,30.69,1,0,0,5976.8311,2],[58,29.0,0,0,0,11842.442,3],[47,19.57,1,0,1,8428.0693,1],[20,31.13,2,0,1,2566.4707,2],[21,21.85,1,1,0,15359.1045,0],[41,40.26,0,0,1,5709.1644,2],[46,33.725,1,0,0,8823.9857,0],[42,29.48,2,0,0,7640.3092,2],[34,33.25,1,0,0,5594.8455,0],[43,32.6,2,0,1,7441.501,3],[52,37.525,2,0,0,33471.9719,1],[18,39.16,0,0,0,1633.0444,2],[51,31.635,0,0,1,9174.1357,1],[56,25.3,0,0,0,11070.535,3],[64,39.05,3,0,0,16085.1275,2],[19,28.31,0,1,0,17468.9839,1],[51,34.1,0,0,0,9283.562,2],[27,25.175,0,0,0,3558.6202,0],[59,23.655,0,1,0,25678.7785,1],[28,26.98,2,0,1,4435.0942,0],[30,37.8,2,1,1,39241.442,3],[47,29.37,1,0,0,8547.6913,2],[38,34.8,2,0,0,6571.544,3],[18,33.155,0,0,0,2207.6975,0],[34,19.0,3,0,0,6753.038,0],[20,33.0,0,0,0,1880.07,2],[47,36.63,1,1,0,42969.8527,2],[56,28.595,0,0,0,11658.1151,0],[49,25.6,2,1,1,23306.547,3],[19,33.11,0,1,0,34439.8559,2],[55,37.1,0,0,0,10713.644,3],[30,31.4,1,0,1,3659.346,3],[37,34.1,4,1,1,40182.246,3],[49,21.3,1,0,0,9182.17,3],[18,33.535,0,1,1,34617.8406,0],[59,28.785,0,0,1,12129.6141,1],[29,26.03,0,0,0,3736.4647,1],[36,28.88,3,0,1,6748.5912,0],[33,42.46,1,0,1,11326.7149,2],[58,38.0,0,0,1,11365.952,3],[44,38.95,0,1,0,42983.4585,1],[53,36.1,1,0,1,10085.846,3],[24,29.3,0,0,1,1977.815,3],[29,35.53,0,0,0,3366.6697,2],[40,22.705,2,0,1,7173.36,0],[51,39.7,1,0,1,9391.346,3],[64,38.19,0,0,1,14410.9321,0],[19,24.51,1,0,0,2709.1119,1],[35,38.095,2,0,0,24915.0463,0],[39,26.41,0,1,1,20149.3229,0],[56,33.66,4,0,1,12949.1554,2],[33,42.4,5,0,1,6666.243,3],[42,28.31,3,1,1,32787.4586,1],[61,33.915,0,0,1,13143.8648,0],[23,34.96,3,0,0,4466.6214,1],[43,35.31,2,0,1,18806.1455,2],[48,30.78,3,0,1,10141.1362,0],[39,26.22,1,0,1,6123.5688,1],[40,23.37,3,0,0,8252.2843,0],[18,28.5,0,0,1,1712.227,0],[58,32.965,0,0,0,12430.9533,0],[49,42.68,2,0,0,9800.8882,2],[53,39.6,1,0,0,10579.711,2],[48,31.13,0,0,0,8280.6227,2],[45,36.3,2,0,0,8527.532,2],[59,35.2,0,0,0,12244.531,2],[52,25.3,2,1,0,24667.419,2],[26,42.4,1,0,0,3410.324,3],[27,33.155,2,0,1,4058.7124,1],[48,35.91,1,0,0,26392.2603,0],[57,28.785,4,0,0,14394.3982,0],[37,46.53,3,0,1,6435.6237,2],[57,23.98,1,0,0,22192.4371,2],[32,31.54,1,0,0,5148.5526,0],[18,33.66,0,0,1,1136.3994,2],[64,22.99,0,1,0,27037.9141,2],[43,38.06,2,1,1,42560.4304,2],[49,28.7,1,0,1,8703.456,3],[40,32.775,2,1,0,40003.3322,1],[62,32.015,0,1,1,45710.2078,0],[40,29.81,1,0,0,6500.2359,2],[30,31.57,3,0,1,4837.5823,2],[29,31.16,0,0,0,3943.5954,0],[36,29.7,0,0,1,4399.731,2],[41,31.02,0,0,0,6185.3208,2],[44,43.89,2,1,0,46200.9851,2],[45,21.375,0,0,1,7222.7863,1],[55,40.81,3,0,0,12485.8009,2],[60,31.35,3,1,1,46130.5265,1],[56,36.1,3,0,1,12363.547,3],[49,23.18,2,0,0,10156.7832,1],[21,17.4,1,0,0,2585.269,3],[19,20.3,0,0,1,1242.26,3],[39,35.3,2,1,1,40103.89,3],[53,24.32,0,0,1,9863.4718,1],[33,18.5,1,0,0,4766.022,3],[53,26.41,2,0,1,11244.3769,0],[42,26.125,2,0,1,7729.6457,0],[40,41.69,0,0,1,5438.7491,2],[47,24.1,1,0,0,26236.58,3],[27,31.13,1,1,1,34806.4677,2],[21,27.36,0,0,1,2104.1134,0],[47,36.2,1,0,1,8068.185,3],[20,32.395,1,0,1,2362.229,1],[24,23.655,0,0,1,2352.9684,1],[27,34.8,1,0,0,3577.999,3],[26,40.185,0,0,0,3201.2452,1],[53,32.3,2,0,0,29186.4824,0],[41,35.75,1,1,1,40273.6455,2],[56,33.725,0,0,1,10976.2458,1],[23,39.27,2,0,0,3500.6123,2],[21,34.87,0,0,0,2020.5523,2],[50,44.745,0,0,0,9541.6956,0],[53,41.47,0,0,1,9504.3103,2],[34,26.41,1,0,0,5385.3379,1],[47,29.545,1,0,0,8930.9345,1],[33,32.9,2,0,0,5375.038,3],[51,38.06,0,1,0,44400.4064,2],[49,28.69,3,0,1,10264.4421,1],[31,30.495,3,0,0,6113.2311,0],[36,27.74,0,0,0,5469.0066,0],[18,35.2,1,0,1,1727.54,2],[50,23.54,2,0,0,10107.2206,2],[43,30.685,2,0,0,8310.8391,1],[20,40.47,0,0,1,1984.4533,0],[24,22.6,0,0,0,2457.502,3],[60,28.9,0,0,1,12146.971,3],[49,22.61,1,0,0,9566.9909,1],[60,24.32,1,0,1,13112.6048,1],[51,36.67,2,0,0,10848.1343,1],[58,33.44,0,0,0,12231.6136,1],[51,40.66,0,0,0,9875.6804,0],[53,36.6,3,0,1,11264.541,3],[62,37.4,0,0,1,12979.358,3],[19,35.4,0,0,1,1263.249,3],[50,27.075,1,0,0,10106.1342,0],[30,39.05,3,1,0,40932.4295,2],[41,28.405,1,0,1,6664.686,1],[29,21.755,1,1,0,16657.7175,0],[18,40.28,0,0,0,2217.6012,0],[41,36.08,1,0,0,6781.3542,2],[35,24.42,3,1,1,19361.9988,2],[53,21.4,1,0,1,10065.413,3],[24,30.1,3,0,0,4234.927,3],[48,27.265,1,0,0,9447.2504,0],[59,32.1,3,0,0,14007.222,3],[49,34.77,1,0,0,9583.8933,1],[37,38.39,0,1,0,40419.0191,2],[26,23.7,2,0,1,3484.331,3],[23,31.73,3,1,1,36189.1017,0],[29,35.5,2,1,1,44585.4559,3],[45,24.035,2,0,1,8604.4837,0],[27,29.15,0,1,1,18246.4955,2],[53,34.105,0,1,1,43254.418,0],[31,26.62,0,0,0,3757.8448,2],[50,26.41,0,0,1,8827.2099,1],[50,30.115,1,0,0,9910.3599,1],[34,27.0,2,0,1,11737.8488,3],[19,21.755,0,0,1,1627.2824,1],[47,36.0,1,0,0,8556.907,3],[28,30.875,0,0,1,3062.5082,1],[37,26.4,0,1,0,19539.243,2],[21,28.975,0,0,1,1906.3582,1],[64,37.905,0,0,1,14210.5359,1],[58,22.77,0,0,0,11833.7823,2],[24,33.63,4,0,1,17128.4261,0],[31,27.645,2,0,1,5031.2695,0],[39,22.8,3,0,0,7985.815,0],[47,27.83,0,1,0,23065.4207,2],[30,37.43,3,0,1,5428.7277,0],[18,38.17,0,1,1,36307.7983,2],[22,34.58,2,0,0,3925.7582,0],[23,35.2,1,0,1,2416.955,3],[33,27.1,1,1,1,19040.876,3],[27,26.03,0,0,1,3070.8087,0],[45,25.175,2,0,0,9095.0683,0],[57,31.825,0,0,0,11842.6238,1],[47,32.3,1,0,1,8062.764,3],[42,29.0,1,0,0,7050.642,3],[64,39.7,0,0,0,14319.031,3],[38,19.475,2,0,0,6933.2423,1],[61,36.1,3,0,1,27941.2876,3],[53,26.7,2,0,0,11150.78,3],[44,36.48,0,0,0,12797.2096,0],[19,28.88,0,1,0,17748.5062,1],[41,34.2,2,0,1,7261.741,1],[51,33.33,3,0,1,10560.4917,2],[40,32.3,2,0,1,6986.697,1],[45,39.805,0,0,1,7448.4039,0],[35,34.32,3,0,1,5934.3798,2],[53,28.88,0,0,1,9869.8102,1],[30,24.4,3,1,1,18259.216,3],[18,41.14,0,0,1,1146.7966,2],[51,35.97,1,0,1,9386.1613,2],[50,27.6,1,1,0,24520.264,3],[31,29.26,1,0,0,4350.5144,2],[35,27.7,3,0,0,6414.178,3],[60,36.955,0,0,1,12741.1675,0],[21,36.86,0,0,1,1917.3184,1],[29,22.515,3,0,1,5209.5788,0],[62,29.92,0,0,0,13457.9608,2],[39,41.8,0,0,0,5662.225,2],[19,27.6,0,0,1,1252.407,3],[22,23.18,0,0,0,2731.9122,0],[53,20.9,0,1,1,21195.818,2],[39,31.92,2,0,0,7209.4918,1],[27,28.5,0,1,1,18310.742,1],[30,44.22,2,0,1,4266.1658,2],[30,22.895,1,0,0,4719.524,0],[58,33.1,0,0,0,11848.141,3],[33,24.795,0,1,1,17904.5271,0],[42,26.18,1,0,0,7046.7222,2],[64,35.97,0,0,0,14313.8463,2],[21,22.3,1,0,1,2103.08,3],[18,42.24,0,1,0,38792.6856,2],[23,26.51,0,0,1,1815.8759,2],[45,35.815,0,0,0,7731.8579,1],[40,41.42,1,0,0,28476.735,1],[19,36.575,0,0,0,2136.8823,1],[18,30.14,0,0,1,1131.5066,2],[25,25.84,1,0,1,3309.7926,0],[46,30.8,3,0,0,9414.92,3],[33,42.94,3,0,0,6360.9936,1],[54,21.01,2,0,1,11013.7119,2],[28,22.515,2,0,1,4428.8879,0],[36,34.43,2,0,1,5584.3057,2],[20,31.46,0,0,0,1877.9294,2],[24,24.225,0,0,0,2842.7607,1],[23,37.1,3,0,1,3597.596,3],[47,26.125,1,1,0,23401.3057,0],[33,35.53,0,1,0,55135.4021,1],[45,33.7,1,0,1,7445.918,3],[26,17.67,0,0,1,2680.9493,1],[18,31.13,0,0,0,1621.8827,2],[44,29.81,2,0,0,8219.2039,2],[60,24.32,0,0,1,12523.6048,1],[64,31.825,2,0,0,16069.0847,0],[56,31.79,2,1,1,43813.8661,2],[36,28.025,1,1,1,20773.6277,0],[41,30.78,3,1,1,39597.4072,0],[39,21.85,1,0,1,6117.4945,1],[63,33.1,0,0,1,13393.756,3],[36,25.84,0,0,0,5266.3656,1],[28,23.845,2,0,0,4719.7365,1],[58,34.39,0,0,1,11743.9341,1],[36,33.82,1,0,1,5377.4578,1],[42,35.97,2,0,1,7160.3303,2],[36,31.5,0,0,1,4402.233,3],[56,28.31,0,0,0,11657.7189,0],[35,23.465,2,0,0,6402.2914,0],[59,31.35,0,0,0,12622.1795,1],[21,31.1,0,0,1,1526.312,3],[59,24.7,0,0,1,12323.936,0],[23,32.78,2,1,0,36021.0112,2],[57,29.81,0,1,0,27533.9129,2],[53,30.495,0,0,1,10072.0551,0],[60,32.45,0,1,0,45008.9555,2],[51,34.2,1,0,0,9872.701,3],[23,50.38,1,0,1,2438.0552,2],[27,24.1,0,0,0,2974.126,3],[55,32.775,0,0,1,10601.6323,1],[37,30.78,0,1,0,37270.1512,0],[61,32.3,2,0,1,14119.62,1],[46,35.53,0,1,0,42111.6647,0],[53,23.75,2,0,0,11729.6795,0],[49,23.845,3,1,0,24106.9126,0],[20,29.6,0,0,0,1875.344,3],[48,33.11,0,1,0,40974.1649,2],[25,24.13,0,1,1,15817.9857,1],[25,32.23,1,0,0,18218.1614,2],[57,28.1,0,0,1,10965.446,3],[37,47.6,2,1,0,46113.511,3],[38,28.0,3,0,0,7151.092,3],[55,33.535,2,0,0,12269.6887,1],[36,19.855,0,0,0,5458.0464,0],[51,25.4,0,0,1,8782.469,3],[40,29.9,2,0,1,6600.361,3],[18,37.29,0,0,1,1141.4451,2],[57,43.7,1,0,1,11576.13,3],[61,23.655,0,0,1,13129.6035,0],[25,24.3,3,0,0,4391.652,3],[50,36.2,0,0,1,8457.818,3],[26,29.48,1,0,0,3392.3652,2],[42,24.86,0,0,1,5966.8874,2],[43,30.1,1,0,1,6849.026,3],[44,21.85,3,0,1,8891.1395,0],[23,28.12,0,0,0,2690.1138,1],[49,27.1,1,0,0,26140.3603,3],[33,33.44,5,0,1,6653.7886,2],[41,28.8,1,0,1,6282.235,3],[37,29.5,2,0,0,6311.952,3],[22,34.8,3,0,1,3443.064,3],[23,27.36,1,0,1,2789.0574,1],[21,22.135,0,0,0,2585.8506,0],[51,37.05,3,1,0,46255.1125,0],[25,26.695,4,0,1,4877.9811,1],[32,28.93,1,1,1,19719.6947,2],[57,28.975,0,1,1,27218.4372,0],[36,30.02,0,0,0,5272.1758,1],[22,39.5,0,0,1,1682.597,3],[57,33.63,1,0,1,11945.1327,1],[64,26.885,0,1,0,29330.9832,1],[36,29.04,4,0,0,7243.8136,2],[54,24.035,0,0,1,10422.9166,0],[47,38.94,2,1,1,44202.6536,2],[62,32.11,0,0,1,13555.0049,0],[61,44.0,0,0,0,13063.883,3],[43,20.045,2,1,0,19798.0546,0],[19,25.555,1,0,1,2221.5644,1],[18,40.26,0,0,0,1634.5734,2],[19,22.515,0,0,0,2117.3389,1],[49,22.515,0,0,1,8688.8589,0],[60,40.92,0,1,1,48673.5588,2],[26,27.265,3,0,1,4661.2864,0],[49,36.85,0,0,1,8125.7845,2],[60,35.1,0,0,0,12644.589,3],[26,29.355,2,0,0,4564.1915,0],[27,32.585,3,0,1,4846.9201,0],[44,32.34,1,0,0,7633.7206,2],[63,39.8,3,0,1,15170.069,3],[32,24.6,0,1,0,17496.306,3],[22,28.31,1,0,1,2639.0429,1],[18,31.73,0,1,1,33732.6867,0],[59,26.695,3,0,0,14382.709,1],[44,27.5,1,0,0,7626.993,3],[33,24.605,2,0,1,5257.508,1],[24,33.99,0,0,0,2473.3341,2],[43,26.885,0,1,0,21774.3221,1],[45,22.895,0,1,1,35069.3745,0],[61,28.2,0,0,0,13041.921,3],[35,34.21,1,0,0,5245.2269,2],[62,25.0,0,0,0,13451.122,3],[62,33.2,0,0,0,13462.52,3],[38,31.0,1,0,1,5488.262,3],[34,35.815,0,0,1,4320.4109,1],[43,23.2,0,0,1,6250.435,3],[50,32.11,2,0,1,25333.3328,0],[19,23.4,2,0,0,2913.569,3],[57,20.1,1,0,0,12032.326,3],[62,39.16,0,0,0,13470.8044,2],[41,34.21,1,0,1,6289.7549,2],[26,46.53,1,0,1,2927.0647,2],[39,32.5,1,0,0,6238.298,3],[46,25.8,5,0,1,10096.97,3],[45,35.3,0,0,0,7348.142,3],[32,37.18,2,0,1,4673.3922,2],[59,27.5,0,0,0,12233.828,3],[44,29.735,2,0,1,32108.6628,0],[39,24.225,5,0,0,8965.7957,1],[18,26.18,2,0,1,2304.0022,2],[53,29.48,0,0,1,9487.6442,2],[18,23.21,0,0,1,1121.8739,2],[50,46.09,1,0,0,9549.5651,2],[18,40.185,0,0,0,2217.4691,0],[19,22.61,0,0,1,1628.4709,1],[62,39.93,0,0,1,12982.8747,2],[56,35.8,1,0,0,11674.13,3],[42,35.8,2,0,1,7160.094,3],[37,34.2,1,1,1,39047.285,0],[42,31.255,0,0,1,6358.7765,1],[25,29.7,3,1,1,19933.458,3],[57,18.335,0,0,1,11534.8726,0],[51,42.9,2,1,1,47462.894,2],[30,28.405,1,0,0,4527.183,1],[44,30.2,2,1,1,38998.546,3],[34,27.835,1,1,1,20009.6336,1],[31,39.49,1,0,1,3875.7341,2],[54,30.8,1,1,1,41999.52,2],[24,26.79,1,0,1,12609.887,1],[43,34.96,1,1,1,41034.2214,0],[48,36.67,1,0,1,28468.919,1],[19,39.615,1,0,0,2730.1078,1],[29,25.9,0,0,0,3353.284,3],[63,35.2,1,0,0,14474.675,2],[46,24.795,3,0,1,9500.5731,0],[52,36.765,2,0,1,26467.0974,1],[35,27.1,1,0,1,4746.344,3],[51,24.795,2,1,1,23967.3831,1],[44,25.365,1,0,1,7518.0253,1],[21,25.745,2,0,1,3279.8686,0],[39,34.32,5,0,0,8596.8278,2],[50,28.16,3,0,0,10702.6424,2],[34,23.56,0,0,0,4992.3764,0],[22,20.235,0,0,0,2527.8187,1],[19,40.5,0,0,0,1759.338,3],[26,35.42,0,0,1,2322.6218,2],[29,22.895,0,1,1,16138.762,0],[48,40.15,0,0,1,7804.1605,2],[26,29.15,1,0,1,2902.9065,2],[45,39.995,3,0,0,9704.6681,0],[36,29.92,0,0,0,4889.0368,2],[54,25.46,1,0,1,25517.1136,0],[34,21.375,0,0,1,4500.3392,0],[31,25.9,3,1,1,19199.944,3],[27,30.59,1,0,0,16796.4119,0],[20,30.115,5,0,1,4915.0598,0],[44,25.8,1,0,0,7624.63,3],[43,30.115,3,0,1,8410.0469,1],[45,27.645,1,0,0,28340.1888,1],[34,34.675,0,0,1,4518.8263,0],[24,20.52,0,1,0,14571.8908,0],[26,19.8,1,0,0,3378.91,3],[38,27.835,2,0,0,7144.8627,0],[50,31.6,2,0,0,10118.424,3],[38,28.27,1,0,1,5484.4673,2],[27,20.045,3,1,0,16420.4945,1],[39,23.275,3,0,0,7986.4753,0],[39,34.1,3,0,0,7418.522,3],[63,36.85,0,0,0,13887.9685,2],[33,36.29,3,0,0,6551.7501,0],[36,26.885,0,0,0,5267.8182,1],[30,22.99,2,1,1,17361.7661,1],[24,32.7,0,1,1,34472.841,3],[24,25.8,0,0,1,1972.95,3],[48,29.6,0,0,1,21232.1823,3],[47,19.19,1,0,1,8627.5411,0],[29,31.73,2,0,1,4433.3877,1],[28,29.26,2,0,1,4438.2634,0],[47,28.215,3,1,1,24915.2209,1],[25,24.985,2,0,1,23241.4745,0],[51,27.74,1,0,1,9957.7216,0],[48,22.8,0,0,0,8269.044,3],[43,20.13,2,1,1,18767.7377,2],[61,33.33,4,0,0,36580.2822,2],[48,32.3,1,0,1,8765.249,1],[38,27.6,0,0,0,5383.536,3],[59,25.46,0,0,1,12124.9924,1],[19,24.605,1,0,0,2709.244,1],[26,34.2,2,0,0,3987.926,3],[54,35.815,3,0,0,12495.2908,1],[21,32.68,2,0,0,26018.9505,1],[51,37.0,0,0,1,8798.593,3],[22,31.02,3,1,0,35595.5898,2],[47,36.08,1,1,1,42211.1382,2],[18,23.32,1,0,1,1711.0268,2],[47,45.32,1,0,0,8569.8618,2],[21,34.6,0,0,0,2020.177,3],[19,26.03,1,1,1,16450.8947,1],[23,18.715,0,0,1,21595.3823,1],[54,31.6,0,0,1,9850.432,3],[37,17.29,2,0,0,6877.9801,0],[46,23.655,1,1,0,21677.2834,1],[55,35.2,0,1,0,44423.803,2],[30,27.93,0,0,0,4137.5227,0],[18,21.565,0,1,1,13747.8723,0],[61,38.38,0,0,1,12950.0712,1],[54,23.0,3,0,0,12094.478,3],[22,37.07,2,1,1,37484.4493,2],[45,30.495,1,1,0,39725.518,1],[22,28.88,0,0,1,2250.8352,0],[19,27.265,2,0,1,22493.6596,1],[35,28.025,0,1,0,20234.8547,1],[18,23.085,0,0,1,1704.7001,0],[20,30.685,0,1,1,33475.8172,0],[28,25.8,0,0,0,3161.454,3],[55,35.245,1,0,1,11394.0655,0],[43,24.7,2,1,0,21880.82,1],[43,25.08,0,0,0,7325.0482,0],[22,52.58,1,1,1,44501.3982,2],[25,22.515,1,0,0,3594.1708,1],[49,30.9,0,1,1,39727.614,3],[44,36.955,1,0,0,8023.1354,1],[64,26.41,0,0,1,14394.5579,0],[49,29.83,1,0,1,9288.0267,0],[47,29.8,3,1,1,25309.489,3],[27,21.47,0,0,0,3353.4703,1],[55,27.645,0,0,1,10594.5016,1],[48,28.9,0,0,0,8277.523,3],[45,31.79,0,0,0,17929.3034,2],[24,39.49,0,0,0,2480.9791,2],[32,33.82,1,0,1,4462.7218,1],[24,32.01,0,0,1,1981.5819,2],[57,27.94,1,0,1,11554.2236,2],[59,41.14,1,1,1,48970.2476,2],[36,28.595,3,0,1,6548.1951,1],[29,25.6,4,0,0,5708.867,3],[42,25.3,1,0,0,7045.499,3],[48,37.29,2,0,1,8978.1851,2],[39,42.655,0,0,1,5757.4135,0],[63,21.66,1,0,1,14349.8544,1],[54,31.9,1,0,0,10928.849,2],[37,37.07,1,1,1,39871.7043,2],[63,31.445,0,0,1,13974.4556,0],[21,31.255,0,0,1,1909.5275,1],[54,28.88,2,0,0,12096.6512,0],[60,18.335,0,0,0,13204.2856,0],[32,29.59,1,0,0,4562.8421,2],[47,32.0,1,0,0,8551.347,3],[21,26.03,0,0,1,2102.2647,0],[28,31.68,0,1,1,34672.1472,2],[63,33.66,3,0,1,15161.5344,2],[18,21.78,2,0,1,11884.0486,2],[32,27.835,1,0,1,4454.4026,1],[38,19.95,1,0,1,5855.9025,1],[32,31.5,1,0,1,4076.497,3],[62,30.495,2,0,0,15019.7601,1],[39,18.3,5,1,0,19023.26,3],[55,28.975,0,0,1,10796.3502,0],[57,31.54,0,0,1,11353.2276,1],[52,47.74,1,0,1,9748.9106,2],[56,22.1,0,0,1,10577.087,3],[47,36.19,0,1,1,41676.0811,2],[55,29.83,0,0,0,11286.5387,0],[23,32.7,3,0,1,3591.48,3],[22,30.4,0,1,0,33907.548,1],[50,33.7,4,0,0,11299.343,3],[18,31.35,4,0,0,4561.1885,0],[51,34.96,2,1,0,44641.1974,0],[22,33.77,0,0,1,1674.6323,2],[52,30.875,0,0,0,23045.5662,0],[25,33.99,1,0,0,3227.1211,2],[33,19.095,2,1,0,16776.304,0],[53,28.6,3,0,1,11253.421,3],[29,38.94,1,0,1,3471.4096,2],[58,36.08,0,0,1,11363.2832,2],[37,29.8,0,0,1,20420.6047,3],[54,31.24,0,0,0,10338.9316,2],[49,29.925,0,0,0,8988.1588,1],[50,26.22,2,0,0,10493.9458,1],[26,30.0,1,0,1,2904.088,3],[45,20.35,3,0,1,8605.3615,2],[54,32.3,1,0,0,11512.405,0],[38,38.39,3,1,1,41949.2441,2],[48,25.85,3,1,0,24180.9335,2],[28,26.315,3,0,0,5312.1699,1],[23,24.51,0,0,1,2396.0959,0],[55,32.67,1,0,1,10807.4863,2],[41,29.64,5,0,1,9222.4026,0],[25,33.33,2,1,1,36124.5737,2],[33,35.75,1,1,1,38282.7495,2],[30,19.95,3,0,0,5693.4305,1],[23,31.4,0,1,0,34166.273,3],[46,38.17,2,0,1,8347.1643,2],[53,36.86,3,1,0,46661.4424,1],[27,32.395,1,0,0,18903.4914,0],[23,42.75,1,1,0,40904.1995,0],[63,25.08,0,0,0,14254.6082,1],[55,29.9,0,0,1,10214.636,3],[35,35.86,2,0,0,5836.5204,2],[34,32.8,1,0,1,14358.3644,3],[19,18.6,0,0,0,1728.897,3],[39,23.87,5,0,0,8582.3023,2],[27,45.9,2,0,1,3693.428,3],[57,40.28,0,0,1,20709.0203,0],[52,18.335,0,0,0,9991.0377,1],[28,33.82,0,0,1,19673.3357,1],[50,28.12,3,0,0,11085.5868,1],[44,25.0,1,0,0,7623.518,3],[26,22.23,0,0,0,3176.2877,1],[33,30.25,0,0,1,3704.3545,2],[19,32.49,0,1,0,36898.7331,1],[50,37.07,1,0,1,9048.0273,2],[41,32.6,3,0,0,7954.517,3],[52,24.86,0,0,0,27117.9938,2],[39,32.34,2,0,1,6338.0756,2],[50,32.3,2,0,1,9630.397,3],[52,32.775,3,0,1,11289.1092,1],[60,32.8,0,1,1,52590.8294,3],[20,31.92,0,0,0,2261.5688,1],[55,21.5,1,0,1,10791.96,3],[42,34.1,0,0,1,5979.731,3],[18,30.305,0,0,0,2203.7359,0],[58,36.48,0,0,0,12235.8392,1],[43,32.56,3,1,0,40941.2854,2],[35,35.815,1,0,0,5630.4578,1],[48,27.93,4,0,0,11015.1747,1],[36,22.135,3,0,0,7228.2157,0],[19,44.88,0,1,1,39722.7462,2],[23,23.18,2,0,0,14426.0739,1],[20,30.59,0,0,0,2459.7201,0],[32,41.1,0,0,0,3989.841,3],[43,34.58,1,0,0,7727.2532,1],[34,42.13,2,0,1,5124.1887,2],[30,38.83,1,0,1,18963.1719,2],[18,28.215,0,0,0,2200.8308,0],[41,28.31,1,0,0,7153.5539,1],[35,26.125,0,0,0,5227.9888,0],[57,40.37,0,0,1,10982.5013,2],[29,24.6,2,0,0,4529.477,3],[32,35.2,2,0,1,4670.64,3],[37,34.105,1,0,0,6112.353,1],[18,27.36,1,1,1,17178.6824,0],[43,26.7,2,1,0,22478.6,3],[56,41.91,0,0,0,11093.6229,2],[38,29.26,2,0,1,6457.8434,1],[29,32.11,2,0,1,4433.9159,1],[22,27.1,0,0,0,2154.361,3],[52,24.13,1,1,0,23887.6627,1],[40,27.4,1,0,0,6496.886,3],[23,34.865,0,0,0,2899.4893,0],[31,29.81,0,1,1,19350.3689,2],[42,41.325,1,0,0,7650.7738,0],[24,29.925,0,0,0,2850.6838,1],[25,30.3,0,0,0,2632.992,3],[48,27.36,1,0,0,9447.3824,0],[23,28.49,1,1,0,18328.2381,2],[45,23.56,2,0,1,8603.8234,0],[20,35.625,3,1,1,37465.3438,1],[62,32.68,0,0,0,13844.7972,1],[43,25.27,1,1,0,21771.3423,0],[23,28.0,0,0,0,13126.6774,3],[31,32.775,2,0,0,5327.4002,1],[41,21.755,1,0,0,13725.4718,0],[58,32.395,1,0,0,13019.1611,0],[48,36.575,0,0,0,8671.1912,1],[31,21.755,0,0,0,4134.0824,1],[19,27.93,3,0,0,18838.7037,1],[19,30.02,0,1,0,33307.5508,1],[41,33.55,0,0,1,5699.8375,2],[40,29.355,1,0,1,6393.6034,1],[31,25.8,2,0,0,4934.705,3],[37,24.32,2,0,1,6198.7518,1],[46,40.375,2,0,1,8733.2293,1],[22,32.11,0,0,1,2055.3249,1],[51,32.3,1,0,1,9964.06,0],[18,27.28,3,1,0,18223.4512,2],[35,17.86,1,0,1,5116.5004,1],[59,34.8,2,0,0,36910.608,3],[36,33.4,2,1,1,38415.474,3],[37,25.555,1,1,0,20296.8635,0],[59,37.1,1,0,1,12347.172,3],[36,30.875,1,0,1,5373.3642,1],[39,34.1,2,0,1,23563.0162,2],[18,21.47,0,0,1,1702.4553,0],[52,33.3,2,0,0,10806.839,3],[27,31.255,1,0,0,3956.0714,1],[18,39.14,0,0,1,12890.0577,0],[40,25.08,0,0,1,5415.6612,2],[29,37.29,2,0,1,4058.1161,2],[46,34.6,1,1,0,41661.602,3],[38,30.21,3,0,0,7537.1639,1],[30,21.945,1,0,0,4718.2036,0],[40,24.97,2,0,1,6593.5083,2],[50,25.3,0,0,1,8442.667,2],[20,24.42,0,1,0,26125.6748,2],[41,23.94,1,0,1,6858.4796,0],[33,39.82,1,0,0,4795.6568,2],[38,16.815,2,0,1,6640.5449,0],[42,37.18,2,0,1,7162.0122,2],[56,34.43,0,0,1,10594.2257,2],[58,30.305,0,0,1,11938.256,0],[52,34.485,3,1,1,60021.399,1],[20,21.8,0,1,0,20167.336,3],[54,24.605,3,0,0,12479.709,1],[58,23.3,0,0,1,11345.519,3],[45,27.83,2,0,0,8515.7587,2],[26,31.065,0,0,1,2699.5684,1],[63,21.66,0,0,0,14449.8544,0],[58,28.215,0,0,0,12224.3509,1],[37,22.705,3,0,1,6985.5069,0],[25,42.13,1,0,0,3238.4357,2],[52,41.8,2,1,1,47269.854,2],[64,36.96,2,1,1,49577.6624,2],[22,21.28,3,0,0,4296.2712,1],[28,33.11,0,0,0,3171.6149,2],[18,33.33,0,0,1,1135.9407,2],[28,24.3,5,0,1,5615.369,3],[45,25.7,3,0,0,9101.798,3],[33,29.4,4,0,1,6059.173,3],[18,39.82,0,0,0,1633.9618,2],[32,33.63,1,1,1,37607.5277,0],[24,29.83,0,1,1,18648.4217,0],[19,19.8,0,0,1,1241.565,3],[20,27.3,0,1,1,16232.847,3],[40,29.3,4,0,0,15828.8217,3],[34,27.72,0,0,0,4415.1588,2],[42,37.9,0,0,0,6474.013,3],[51,36.385,3,0,0,11436.7381,1],[54,27.645,1,0,0,11305.9345,1],[55,37.715,3,0,1,30063.5805,1],[52,23.18,0,0,0,10197.7722,0],[32,20.52,0,0,0,4544.2348,0],[28,37.1,1,0,1,3277.161,3],[41,28.05,1,0,0,6770.1925,2],[43,29.9,1,0,0,7337.748,3],[49,33.345,2,0,0,10370.9125,0],[64,23.76,0,1,1,26926.5144,2],[55,30.5,0,0,0,10704.47,3],[24,31.065,0,1,1,34254.0534,0],[20,33.3,0,0,0,1880.487,3],[45,27.5,3,0,1,8615.3,3],[26,33.915,1,0,1,3292.5298,1],[25,34.485,0,0,0,3021.8092,1],[43,25.52,5,0,1,14478.3301,2],[35,27.61,1,0,1,4747.0529,2],[26,27.06,0,1,1,17043.3414,2],[57,23.7,0,0,1,10959.33,3],[22,30.4,0,0,0,2741.948,0],[32,29.735,0,0,0,4357.0436,1],[39,29.925,1,1,1,22462.0438,0],[25,26.79,2,0,0,4189.1131,1],[48,33.33,0,0,0,8283.6807,2],[47,27.645,2,1,0,24535.6986,1],[18,21.66,0,1,0,14283.4594,0],[18,30.03,1,0,1,1720.3537,2],[61,36.3,1,1,1,47403.88,3],[47,24.32,0,0,0,8534.6718,0],[28,17.29,0,0,0,3732.6251,0],[36,25.9,1,0,0,5472.449,3],[20,39.4,2,1,1,38344.566,3],[44,34.32,1,0,1,7147.4728,2],[38,19.95,2,0,0,7133.9025,0],[19,34.9,0,1,1,34828.654,3],[21,23.21,0,0,1,1515.3449,2],[46,25.745,3,0,1,9301.8936,1],[58,25.175,0,0,1,11931.1252,0],[20,22.0,1,0,1,1964.78,3],[18,26.125,0,0,1,1708.9258,0],[28,26.51,2,0,0,4340.4409,2],[33,27.455,2,0,1,5261.4694,1],[19,25.745,1,0,0,2710.8286,1],[45,30.36,0,1,1,62592.8731,2],[62,30.875,3,1,1,46718.1632,1],[25,20.8,1,0,0,3208.787,3],[43,27.8,0,1,1,37829.7242,3],[42,24.605,2,1,1,21259.3779,0],[24,27.72,0,0,0,2464.6188,2],[29,21.85,0,1,0,16115.3045,0],[32,28.12,4,1,1,21472.4788,1],[25,30.2,0,1,0,33900.653,3],[41,32.2,2,0,1,6875.961,3],[42,26.315,1,0,1,6940.9099,1],[33,26.695,0,0,0,4571.4131,1],[34,42.9,1,0,1,4536.259,3],[19,34.7,2,1,0,36397.576,3],[30,23.655,3,1,0,18765.8754,1],[18,28.31,1,0,1,11272.3314,0],[19,20.6,0,0,0,1731.677,3],[18,53.13,0,0,1,1163.4627,2],[35,39.71,4,0,1,19496.7192,0],[39,26.315,2,0,0,7201.7009,1],[31,31.065,3,0,1,5425.0234,1],[62,26.695,0,1,1,28101.3331,0],[62,38.83,0,0,1,12981.3457,2],[42,40.37,2,1,0,43896.3763,2],[31,25.935,1,0,1,4239.8926,1],[61,33.535,0,0,1,13143.3366,0],[42,32.87,0,0,0,7050.0213,0],[51,30.03,1,0,1,9377.9047,2],[23,24.225,2,0,0,22395.7442,0],[52,38.6,2,0,1,10325.206,3],[57,25.74,2,0,0,12629.1656,2],[23,33.4,0,0,0,10795.9373,3],[52,44.7,3,0,0,11411.685,3],[50,30.97,3,0,1,10600.5483,1],[18,31.92,0,0,0,2205.9808,0],[18,36.85,0,0,0,1629.8335,2],[21,25.8,0,0,0,2007.945,3],[61,29.07,0,1,0,29141.3603,1]];
+    var ROWS = RAW.map(function (r, i) { return { row: i, age: r[0], bmi: r[1], children: r[2], smoker: r[3] === 1, male: r[4] === 1, charges: r[5], region: REGIONS[r[6]] }; });
+    var N = ROWS.length;
+    var CH = ROWS.map(function (r) { return r.charges; });
+
+    /* ---------- JS ports of my Day 1–5 functions ---------- */
+    function mean(x) { var s = 0; for (var i = 0; i < x.length; i++) s += x[i]; return s / x.length; }
+    function sorted(x) { return x.slice().sort(function (a, b) { return a - b; }); }
+    function percentile(x, q) { var s = sorted(x), h = (s.length - 1) * q / 100, lo = Math.floor(h), hi = Math.min(lo + 1, s.length - 1); return s[lo] + (h - lo) * (s[hi] - s[lo]); }
+    function median(x) { return percentile(x, 50); }
+    function std(x) { var m = mean(x), s = 0; for (var i = 0; i < x.length; i++) s += (x[i] - m) * (x[i] - m); return Math.sqrt(s / (x.length - 1)); }
+    function pearson(x, y) { var mx = mean(x), my = mean(y), sxy = 0, sxx = 0, syy = 0; for (var i = 0; i < x.length; i++) { var a = x[i] - mx, b = y[i] - my; sxy += a * b; sxx += a * a; syy += b * b; } return sxy / Math.sqrt(sxx * syy); }
+    function rank(x) { var idx = x.map(function (v, i) { return i; }).sort(function (a, b) { return x[a] - x[b]; }), r = new Array(x.length), i = 0; while (i < idx.length) { var j = i; while (j + 1 < idx.length && x[idx[j + 1]] === x[idx[i]]) j++; var avg = (i + j) / 2 + 1; for (var k = i; k <= j; k++) r[idx[k]] = avg; i = j + 1; } return r; }
+    function spearman(x, y) { return pearson(rank(x), rank(y)); }
+    function bayesPosterior(prior, pYes, pNo) { var a = prior * pYes, b = (1 - prior) * pNo; return a / (a + b); }
+    function ecdf(x, t) { var c = 0; for (var i = 0; i < x.length; i++) if (x[i] <= t) c++; return c / x.length; }
+    function frequencyTable(values) { var m = new Map(); values.forEach(function (v) { m.set(v, (m.get(v) || 0) + 1); }); return m; }
+
+    /* ---------- helpers ---------- */
+    var NS = "http://www.w3.org/2000/svg";
+    function el(tag, attrs, parent, text) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (text !== undefined) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+    function clear(svg) { while (svg.firstChild) svg.removeChild(svg.firstChild); }
+    function $(id) { return document.getElementById(id); }
+    function money(v) { return "$" + Math.round(v).toLocaleString("en-US"); }
+    function pct(v, d) { return (v * 100).toFixed(d === undefined ? 1 : d) + "%"; }
+    function niceTicks(max, step) { var t = []; for (var v = 0; v <= max + 1e-9; v += step) t.push(v); return t; }
+
+    /* ---------- predict-first boxes ---------- */
+    var ANSWERS = {
+      h1: { right: "40", text: "The mean is 41.4% above the median ($13,270 vs $9,382). I predicted 15%: right direction, but the expensive tail is almost 3× heavier than I expected." },
+      h5: { right: "tukey", text: "Tukey flags 139 charges, |z| > 3 only 7. That's masking: the big values inflate the std, which hides them from the z-score. I predicted Tukey: ✓." },
+      h3: { right: "spearman", text: "Spearman is 0.534, Pearson only 0.299. I predicted Pearson would win because charges 'grow linearly' with age. They don't: older people do pay more, but a separate high band breaks the straight line." },
+      h4: { right: "75", text: "76.1% of the most expensive 25% smoke, 3.7× the overall 20.5%. And 255 of the 274 smokers (93%) are in that group. I predicted ~4×: ✓." }
+    };
+    Array.prototype.forEach.call(document.querySelectorAll(".predict-btn"), function (btn) {
+      btn.addEventListener("click", function () {
+        var box = btn.getAttribute("data-box"), a = ANSWERS[box];
+        Array.prototype.forEach.call(document.querySelectorAll('.predict-btn[data-box="' + box + '"]'), function (b) { b.classList.remove("selected"); });
+        btn.classList.add("selected");
+        var ok = btn.getAttribute("data-guess") === a.right;
+        $(box + "-feedback").innerHTML = (ok ? "<strong>Good call.</strong> " : "<strong>Not quite.</strong> ") + a.text;
+      });
+    });
+
+    /* ---------- 1. histogram with remove-the-top slider ---------- */
+    var SORTED_CH = sorted(CH);
+    var Q1 = percentile(CH, 25), Q3 = percentile(CH, 75), IQR = Q3 - Q1;
+    var MINC = SORTED_CH[0], MAXC = SORTED_CH[N - 1];
+    var FD_WIDTH = 2 * IQR / Math.cbrt(N), FD_BINS = Math.ceil((MAXC - MINC) / FD_WIDTH), BIN_W = (MAXC - MINC) / FD_BINS;
+    function binOf(v) { return Math.min(FD_BINS - 1, Math.floor((v - MINC) / BIN_W)); }
+    var CUT_ORDER = ROWS.slice().sort(function (a, b) { return b.charges - a.charges; });
+
+    function drawHist() {
+      var k = +$("hist-k").value, stack = $("hist-stack").checked;
+      var removed = new Set(CUT_ORDER.slice(0, k).map(function (r) { return r.row; }));
+      var keep = ROWS.filter(function (r) { return !removed.has(r.row); });
+      var cs = new Array(FD_BINS).fill(0), ns = new Array(FD_BINS).fill(0), gone = new Array(FD_BINS).fill(0);
+      ROWS.forEach(function (r) { var b = binOf(r.charges); if (removed.has(r.row)) gone[b]++; else if (r.smoker) cs[b]++; else ns[b]++; });
+      var svg = $("hist-svg"); clear(svg);
+      var L = 50, R = 665, T = 18, B = 230, maxCount = 0;
+      for (var i = 0; i < FD_BINS; i++) maxCount = Math.max(maxCount, cs[i] + ns[i] + gone[i]);
+      maxCount = Math.ceil(maxCount / 50) * 50;
+      function X(v) { return L + (v - MINC) / (MAXC - MINC) * (R - L); }
+      function Y(c) { return B - c / maxCount * (B - T); }
+      niceTicks(maxCount, 50).forEach(function (t) { el("line", { x1: L, x2: R, y1: Y(t), y2: Y(t), "class": "grid" }, svg); el("text", { x: L - 6, y: Y(t) + 4, "text-anchor": "end", "class": "t-label" }, svg, t); });
+      [10000, 20000, 30000, 40000, 50000, 60000].forEach(function (t) { el("text", { x: X(t), y: B + 16, "text-anchor": "middle", "class": "t-label" }, svg, "$" + t / 1000 + "k"); });
+      el("line", { x1: L, x2: R, y1: B, y2: B, "class": "axis" }, svg);
+      for (i = 0; i < FD_BINS; i++) {
+        var x0 = X(MINC + i * BIN_W) + 0.6, w = Math.max(1, X(MINC + (i + 1) * BIN_W) - X(MINC + i * BIN_W) - 1.2);
+        var y = B;
+        var parts = stack ? [[ns[i], "f-nonsmoker", 0.85], [cs[i], "f-smoker", 0.85]] : [[ns[i] + cs[i], "f-nonsmoker", 0.75]];
+        parts.push([gone[i], "f-nonsmoker", 0.15]);
+        parts.forEach(function (p) { if (!p[0]) return; var h = p[0] / maxCount * (B - T); el("rect", { x: x0, y: y - h, width: w, height: h, "class": p[1], opacity: p[2] }, svg); y -= h; });
+      }
+      var m = mean(keep.map(function (r) { return r.charges; })), md = median(keep.map(function (r) { return r.charges; }));
+      el("line", { x1: X(md), x2: X(md), y1: T, y2: B, "class": "s-median", "stroke-width": 2.5 }, svg);
+      el("line", { x1: X(m), x2: X(m), y1: T, y2: B, "class": "s-mean", "stroke-width": 2.5, "stroke-dasharray": "6 4" }, svg);
+      el("text", { x: X(md) - 5, y: T + 10, "text-anchor": "end", "class": "t-median" }, svg, "median");
+      el("text", { x: X(m) + 5, y: T + 10, "class": "t-mean" }, svg, "mean");
+      el("text", { x: R, y: B + 34, "text-anchor": "end", "class": "t-label" }, svg, "yearly charges · " + FD_BINS + " Freedman–Diaconis bins");
+      var gap = (m - md) / md;
+      $("hist-k-val").textContent = k === 0 ? "nobody" : k + " people (" + pct(k / N) + ")";
+      $("hist-mean").textContent = money(m);
+      $("hist-median").textContent = money(md);
+      $("hist-gap").textContent = "+" + pct(gap);
+      $("hist-caption").textContent = k === 0
+        ? "All 1,338 people. A long tail to the right: most pay under $15,000, a few pay over $40,000. Drag the slider to remove the most expensive people one by one."
+        : "Removing the " + k + " most expensive people moved the mean by " + money(mean(CH) - m) + " but the median by only " + money(median(CH) - md) + ". The median only cares about the middle person; the mean feels every dollar.";
+    }
+    $("hist-k").addEventListener("input", drawHist);
+    $("hist-stack").addEventListener("change", drawHist);
+
+    /* ---------- 2. duplicate via the mode ---------- */
+    (function () {
+      var ft = frequencyTable(CH), best = null, bestN = 0;
+      ft.forEach(function (n, v) { if (n > bestN) { bestN = n; best = v; } });
+      $("dup-value").textContent = "$" + best.toFixed(4) + " (" + bestN + "×)";
+      var body = $("dup-body");
+      ROWS.filter(function (r) { return r.charges === best; }).forEach(function (r) {
+        var tr = document.createElement("tr");
+        [r.row, r.age, r.male ? "male" : "female", r.bmi.toFixed(2), r.children, r.smoker ? "yes" : "no", r.region, r.charges.toFixed(4)].forEach(function (v, i) { var td = document.createElement("td"); if (i !== 2 && i !== 5 && i !== 6) td.className = "num"; td.textContent = v; tr.appendChild(td); });
+        body.appendChild(tr);
+      });
+    })();
+
+    /* ---------- 3. outliers ---------- */
+    var MEAN_C = mean(CH), STD_C = std(CH), rule = "tukey";
+    var JITTER = ROWS.map(function (r, i) { var s = Math.sin(i * 12.9898) * 43758.5453; return s - Math.floor(s); });
+    function drawOutliers() {
+      var k = +$("out-k").value, cutHi, cutLo;
+      if (rule === "tukey") { cutLo = Q1 - k * IQR; cutHi = Q3 + k * IQR; }
+      else { cutLo = MEAN_C - k * STD_C; cutHi = MEAN_C + k * STD_C; }
+      var svg = $("out-svg"); clear(svg);
+      var L = 30, R = 660, T = 26, B = 170;
+      function X(v) { return L + (v - 0) / 65000 * (R - L); }
+      [0, 10000, 20000, 30000, 40000, 50000, 60000].forEach(function (t) { el("line", { x1: X(t), x2: X(t), y1: T, y2: B, "class": "grid" }, svg); el("text", { x: X(t), y: B + 16, "text-anchor": "middle", "class": "t-label" }, svg, "$" + t / 1000 + "k"); });
+      el("rect", { x: X(cutHi), y: T - 6, width: Math.max(0, R - X(cutHi)), height: B - T + 12, fill: "var(--color-outlier-soft)" }, svg);
+      var nFlag = 0, nSm = 0;
+      ROWS.forEach(function (r, i) {
+        var flag = r.charges > cutHi || r.charges < cutLo;
+        if (flag) { nFlag++; if (r.smoker) nSm++; }
+        el("circle", { cx: X(r.charges), cy: T + 6 + JITTER[i] * (B - T - 12), r: flag ? 3.2 : 2.4, "class": (r.smoker ? "f-smoker" : "f-nonsmoker") + (flag ? " s-outlier" : ""), "stroke-width": flag ? 1.4 : 0, opacity: flag ? 0.95 : 0.45 }, svg);
+      });
+      el("line", { x1: X(cutHi), x2: X(cutHi), y1: T - 8, y2: B + 4, "class": "s-outlier", "stroke-width": 2 }, svg);
+      el("text", { x: X(cutHi) + 4, y: T - 12, "class": "t-outlier" }, svg, "cut-off " + money(cutHi));
+      $("out-k-name").textContent = rule === "tukey" ? "Fence multiplier k (classic 1.5)" : "z threshold k (classic 3)";
+      $("out-k-val").textContent = k.toFixed(1);
+      $("out-n").textContent = nFlag + " (" + pct(nFlag / N) + ")";
+      $("out-sm").textContent = nSm + " of " + nFlag;
+      $("out-cut").textContent = money(cutHi);
+      $("out-caption").textContent = rule === "tukey"
+        ? "Tukey uses the quartiles (Q1 " + money(Q1) + ", Q3 " + money(Q3) + "), which ignore the tail. The lower fence is " + money(cutLo) + ", below zero, so only expensive charges can be flagged."
+        : "The z-score uses the mean (" + money(MEAN_C) + ") and std (" + money(STD_C) + "), and the expensive tail has inflated both. So the cut-off lands at " + money(cutHi) + ", and the tail hides itself. That's masking.";
+    }
+    Array.prototype.forEach.call(document.querySelectorAll("[data-rule]"), function (b) {
+      b.addEventListener("click", function () {
+        rule = b.getAttribute("data-rule");
+        Array.prototype.forEach.call(document.querySelectorAll("[data-rule]"), function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+        var s = $("out-k");
+        if (rule === "tukey") { s.min = 1; s.max = 3; s.value = 1.5; } else { s.min = 2; s.max = 4; s.value = 3; }
+        drawOutliers();
+      });
+    });
+    $("out-k").addEventListener("input", drawOutliers);
+
+    /* ---------- 4. scatter: Pearson vs Spearman ---------- */
+    var xVar = "age", grp = "all";
+    var XINFO = { age: { min: 15, max: 67, ticks: [20, 30, 40, 50, 60], label: "age (years)" }, bmi: { min: 14, max: 56, ticks: [20, 30, 40, 50], label: "BMI" }, children: { min: -0.5, max: 5.5, ticks: [0, 1, 2, 3, 4, 5], label: "children on the policy" } };
+    function drawScatter() {
+      var info = XINFO[xVar], svg = $("sc-svg"); clear(svg);
+      var L = 56, R = 665, T = 14, B = 262;
+      function X(v) { return L + (v - info.min) / (info.max - info.min) * (R - L); }
+      function Y(v) { return B - v / 65000 * (B - T); }
+      [0, 20000, 40000, 60000].forEach(function (t) { el("line", { x1: L, x2: R, y1: Y(t), y2: Y(t), "class": "grid" }, svg); el("text", { x: L - 6, y: Y(t) + 4, "text-anchor": "end", "class": "t-label" }, svg, "$" + t / 1000 + "k"); });
+      info.ticks.forEach(function (t) { el("text", { x: X(t), y: B + 16, "text-anchor": "middle", "class": "t-label" }, svg, t); });
+      el("text", { x: R, y: B + 32, "text-anchor": "end", "class": "t-label" }, svg, info.label);
+      el("line", { x1: L, x2: R, y1: B, y2: B, "class": "axis" }, svg);
+      var shown = ROWS.filter(function (r) { return grp === "all" || (r.smoker ? "1" : "0") === grp; });
+      ROWS.forEach(function (r, i) {
+        var on = grp === "all" || (r.smoker ? "1" : "0") === grp;
+        var jx = xVar === "children" ? (JITTER[i] - 0.5) * 0.5 : 0;
+        el("circle", { cx: X(r[xVar] + jx), cy: Y(r.charges), r: 2.6, "class": (r.smoker ? "f-smoker" : "f-nonsmoker") + (on ? "" : " dimmed"), opacity: on ? 0.6 : 0.12 }, svg);
+      });
+      var xs = shown.map(function (r) { return r[xVar]; }), ys = shown.map(function (r) { return r.charges; });
+      var p = pearson(xs, ys), s = spearman(xs, ys);
+      $("sc-p").textContent = p.toFixed(3);
+      $("sc-s").textContent = s.toFixed(3);
+      $("sc-n").textContent = shown.length.toLocaleString("en-US");
+      var who = grp === "all" ? "everyone" : grp === "1" ? "smokers only" : "non-smokers only";
+      var msg;
+      if (s - p > 0.1) msg = "Spearman is clearly bigger than Pearson: charges tend to rise with " + xVar + ", but not along a straight line. Look for separate bands.";
+      else if (p - s > 0.1) msg = "Pearson is bigger than Spearman: a few large values line up and boost the straight-line fit more than the ranks.";
+      else msg = "Pearson and Spearman roughly agree here.";
+      if (Math.abs(p) < 0.1 && Math.abs(s) < 0.1) msg = "Both are close to 0: no straight-line and no monotonic relationship.";
+      $("sc-caption").textContent = xVar + " vs charges, " + who + ": r² = " + (p * p * 100).toFixed(1) + "% of the variation explained by a straight line. " + msg;
+    }
+    Array.prototype.forEach.call(document.querySelectorAll("[data-x]"), function (b) {
+      b.addEventListener("click", function () { xVar = b.getAttribute("data-x"); Array.prototype.forEach.call(document.querySelectorAll("[data-x]"), function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); }); drawScatter(); });
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-grp]"), function (b) {
+      b.addEventListener("click", function () { grp = b.getAttribute("data-grp"); Array.prototype.forEach.call(document.querySelectorAll("[data-grp]"), function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); }); drawScatter(); });
+    });
+
+    /* ---------- 5. Bayes tree ---------- */
+    function drawTree() {
+      var share = +$("top-p").value, cut = percentile(CH, 100 - share);
+      var sm = ROWS.filter(function (r) { return r.smoker; }), non = ROWS.filter(function (r) { return !r.smoker; });
+      var a = sm.filter(function (r) { return r.charges > cut; }).length, b = non.filter(function (r) { return r.charges > cut; }).length;
+      var room = a + b, direct = a / room, prior = sm.length / N;
+      var post = bayesPosterior(prior, a / sm.length, b / non.length);
+      var svg = $("tree-svg"); clear(svg);
+      function node(x, y, w, label, n, cls) { el("rect", { x: x - w / 2, y: y - 22, width: w, height: 44, rx: 8, "class": "node" }, svg); el("text", { x: x, y: y - 4, "text-anchor": "middle", "class": "t-label" }, svg, label); el("text", { x: x, y: y + 14, "text-anchor": "middle", "class": cls || "t-strong" }, svg, n.toLocaleString("en-US")); }
+      function edge(x1, y1, x2, y2, label) { el("line", { x1: x1, y1: y1, x2: x2, y2: y2, "class": "axis" }, svg); el("text", { x: (x1 + x2) / 2 + (x2 < x1 ? -8 : 8), y: (y1 + y2) / 2 - 4, "text-anchor": x2 < x1 ? "end" : "start", "class": "t-label" }, svg, label); }
+      el("rect", { x: 22, y: 200, width: 168, height: 60, rx: 10, "class": "f-given" }, svg);
+      el("rect", { x: 362, y: 200, width: 168, height: 60, rx: 10, "class": "f-given" }, svg);
+      el("text", { x: 340, y: 284, "text-anchor": "middle", "class": "t-given" }, svg, "the room = the top " + share + "%: " + a + " + " + b + " = " + room + " people");
+      edge(340, 44, 190, 106, "smoke " + pct(prior)); edge(340, 44, 490, 106, "don't " + pct(1 - prior));
+      edge(190, 150, 106, 208, "top " + pct(a / sm.length, 0)); edge(190, 150, 274, 208, "rest");
+      edge(490, 150, 446, 208, "top " + pct(b / non.length, 0)); edge(490, 150, 594, 208, "rest");
+      node(340, 30, 150, "everyone", N);
+      node(190, 128, 130, "smokers", sm.length, "t-strong");
+      node(490, 128, 130, "non-smokers", non.length, "t-strong");
+      node(106, 230, 130, "smoker, top", a, "t-strong");
+      node(274, 230, 110, "smoker, rest", sm.length - a);
+      node(446, 230, 130, "non-smoker, top", b, "t-strong");
+      node(594, 230, 110, "non-smoker, rest", non.length - b);
+      Array.prototype.forEach.call(svg.querySelectorAll("rect.node"), function (r, i) { if (i === 1 || i === 3) r.setAttribute("style", "stroke: var(--color-smoker); stroke-width: 2"); if (i === 2 || i === 5) r.setAttribute("style", "stroke: var(--color-nonsmoker); stroke-width: 2"); });
+      $("top-p-val").textContent = share + "%";
+      $("top-room").textContent = room.toLocaleString("en-US");
+      $("top-post").textContent = pct(direct);
+      $("top-ratio").textContent = (direct / prior).toFixed(1) + "×";
+      $("top-formula").innerHTML = "counting: <span class='sm'>" + a + "</span> ÷ (<span class='sm'>" + a + "</span> + <span class='ns'>" + b + "</span>) = " + direct.toFixed(4) +
+        "<br>Bayes: " + prior.toFixed(3) + " × " + (a / sm.length).toFixed(3) + " ÷ (" + prior.toFixed(3) + " × " + (a / sm.length).toFixed(3) + " + " + (1 - prior).toFixed(3) + " × " + (b / non.length).toFixed(3) + ") = " + post.toFixed(4) +
+        (Math.abs(post - direct) < 1e-9 ? "  ✓ same" : "  ✗ differ");
+      $("top-caption").textContent = "Cut-off for the top " + share + "%: " + money(cut) + ". " + a + " of the " + sm.length + " smokers (" + pct(a / sm.length, 0) + ") are in this room, but only " + b + " of the " + non.length + " non-smokers (" + pct(b / non.length, 0) + ")." + (share <= 10 ? " At the very top, almost everyone smokes." : "");
+    }
+    $("top-p").addEventListener("input", drawTree);
+
+    /* ---------- H6 table ---------- */
+    (function () {
+      var ft = frequencyTable(ROWS.map(function (r) { return (r.male ? "male" : "female") + "|" + (r.smoker ? "yes" : "no"); }));
+      var body = $("sex-body"), rates = {};
+      ["male", "female"].forEach(function (s) {
+        var y = ft.get(s + "|yes"), n = ft.get(s + "|no"); rates[s] = y / (y + n);
+        var tr = document.createElement("tr");
+        [s, y, n, y + n, pct(y / (y + n))].forEach(function (v, i) { var td = document.createElement("td"); if (i) td.className = "num"; td.textContent = v; tr.appendChild(td); });
+        body.appendChild(tr);
+      });
+      var gap = (rates.male - rates.female) * 100;
+      $("sex-caption").innerHTML = "Men smoke a little more <em>in this sample</em>: a gap of <strong>" + gap.toFixed(1) + " percentage points</strong>, far from the 40 I predicted (H6 ✗). Whether even this gap is more than chance needs a chi-square test, which comes on Day 10, so I don't claim it yet.";
+    })();
+
+    /* ---------- 6. ECDF ---------- */
+    var SM_SORT = sorted(ROWS.filter(function (r) { return r.smoker; }).map(function (r) { return r.charges; }));
+    var NS_SORT = sorted(ROWS.filter(function (r) { return !r.smoker; }).map(function (r) { return r.charges; }));
+    function drawEcdf() {
+      var t = +$("ecdf-t").value, split = $("ecdf-split").checked, svg = $("ecdf-svg"); clear(svg);
+      var L = 50, R = 665, T = 14, B = 240;
+      function X(v) { return L + v / 65000 * (R - L); }
+      function Y(p) { return B - p * (B - T); }
+      [0, 0.25, 0.5, 0.75, 1].forEach(function (p) { el("line", { x1: L, x2: R, y1: Y(p), y2: Y(p), "class": "grid" }, svg); el("text", { x: L - 6, y: Y(p) + 4, "text-anchor": "end", "class": "t-label" }, svg, p); });
+      [0, 10000, 20000, 30000, 40000, 50000, 60000].forEach(function (v) { el("text", { x: X(v), y: B + 16, "text-anchor": "middle", "class": "t-label" }, svg, "$" + v / 1000 + "k"); });
+      function stairs(xs, cls, w, dash, label, labelCls) {
+        var d = "M" + X(0) + "," + Y(0);
+        for (var i = 0; i < xs.length; i++) d += " H" + X(xs[i]).toFixed(1) + " V" + Y((i + 1) / xs.length).toFixed(1);
+        d += " H" + X(65000);
+        el("path", { d: d, fill: "none", "class": cls, "stroke-width": w, "stroke-dasharray": dash || "none" }, svg);
+        if (label) { var ly = Y(0.38 - 0.1 * (legendRow++)); el("line", { x1: X(47000), x2: X(50000), y1: ly - 4, y2: ly - 4, "class": cls, "stroke-width": w, "stroke-dasharray": dash || "none" }, svg); el("text", { x: X(50800), y: ly, "class": labelCls }, svg, label); }
+      }
+      var legendRow = 0;
+      if (split) { stairs(NS_SORT, "s-nonsmoker", 2.4, null, "non-smokers", "t-label"); stairs(SM_SORT, "s-smoker", 2.4, null, "smokers", "t-label"); }
+      stairs(SORTED_CH, "s-all", split ? 1.4 : 2.4, split ? "5 4" : null, split ? "everyone" : null, "t-label");
+      var pa = ecdf(CH, t);
+      el("line", { x1: X(t), x2: X(t), y1: T, y2: B, "class": "s-outlier", "stroke-width": 1.6, "stroke-dasharray": "4 4" }, svg);
+      el("line", { x1: L, x2: X(t), y1: Y(pa), y2: Y(pa), "class": "s-all", "stroke-width": 1, "stroke-dasharray": "3 3" }, svg);
+      el("circle", { cx: X(t), cy: Y(pa), r: 4.5, "class": "f-nonsmoker", style: "fill: var(--text-primary)" }, svg);
+      el("text", { x: X(t) + 10, y: Y(pa) + 18, "class": "t-strong" }, svg, pa.toFixed(3));
+      var ps = ecdf(SM_SORT, t), pn = ecdf(NS_SORT, t);
+      $("ecdf-t-val").textContent = money(t);
+      $("ecdf-all").textContent = pa.toFixed(3);
+      $("ecdf-ns").textContent = pn.toFixed(3);
+      $("ecdf-sm").textContent = ps.toFixed(3);
+      $("ecdf-caption").textContent = pct(pa) + " of everyone paid at most " + money(t) + ": " + pct(pn) + " of non-smokers but only " + pct(ps) + " of smokers. The curve crosses 0.5 at the median (" + money(median(CH)) + ") and 0.75 at Q3 (" + money(Q3) + ").";
+    }
+    $("ecdf-t").addEventListener("input", drawEcdf);
+    $("ecdf-split").addEventListener("change", drawEcdf);
+
+    drawHist(); drawOutliers(); drawScatter(); drawTree(); drawEcdf();
+  })();
+  </script>
+</body>
+</html>

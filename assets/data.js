@@ -1,5 +1,5 @@
 window.SITE = {
-  currentDay: 5,      // day of my 147-day plan I'm on; I update this by hand
+  currentDay: 6,      // day of my 147-day plan I'm on; I update this by hand
   totalDays: 147,
   phases: [
     { name: "Math", from: 1, to: 21 },
@@ -16,6 +16,7 @@ window.SITE = {
     { day: 3, title: "Moving together", about: "Covariance, Pearson as a cosine, correlation vs causation, and Spearman", href: "learn/day03-moving-together.html" },
     { day: 4, title: "Counting chances", about: "Permutations vs combinations, at least one, inclusion–exclusion, shrink-the-room conditionals, independence and Monte Carlo", href: "learn/day04-counting-chances.html" },
     { day: 5, title: "Chance in numbers", about: "Bayes with natural frequencies, random variables, PMF and CDF, expected value, variance and the Bernoulli", href: "learn/day05-chance-in-numbers.html" },
+    { day: 6, title: "What drives medical costs?", about: "Project: an EDA of 1,338 insurance records with predictions written first: skew, a hidden duplicate, masking, Pearson vs Spearman, Bayes on real data and the ECDF", href: "learn/day06-what-drives-medical-costs.html" },
   ],
   projects: [
     {
