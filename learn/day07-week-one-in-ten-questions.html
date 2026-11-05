@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en" data-base="../">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 7 · Week one in ten questions · Raghav Bandreddi</title>
+  <meta name="description" content="A ten-question review of Days 1 to 5: centre, spread, fences, masking, scaling, Spearman, causation, independence, Bayes and random variables, with interactive checks." />
+  <meta name="theme-color" content="#0a0c0f" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0c0f'/%3E%3Ctext x='6' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%237ee787'%3E%3E%3C/text%3E%3Crect x='18' y='10' width='6' height='13' fill='%23ffb454'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/site.css" />
+  <link rel="stylesheet" href="../assets/explainer.css" />
+  <style>
+    .qcard { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin: 18px 0; }
+    .qhead { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+    .qnum { font-family: var(--mono); font-size: 12px; color: var(--amber); }
+    .qcard h3 { font-family: var(--mono); font-size: 17px; margin: 0 0 10px; }
+    .qcard .data { font-family: var(--mono); font-size: 13px; color: var(--text); background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; display: inline-block; margin-bottom: 10px; }
+    .answer { display: none; border-top: 1px dashed var(--border); margin-top: 14px; padding-top: 14px; }
+    .answer.show { display: block; }
+    .answer p { font-size: 14px; }
+    .qcard .stage { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="../index.html" class="brand" aria-label="Raghav Bandreddi, home"><span class="brand-prompt">~/</span>raghav<span style="color:var(--muted)">/learn/day07</span><span class="brand-cursor" aria-hidden="true"></span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../index.html#bottom-up">bottom-up</a>
+        <a href="index.html">explainers</a>
+        <a href="../index.html#top-down">top-down</a>
+        <a href="../index.html#research">research</a>
+      </nav>
+      <button type="button" class="cmdk-btn" data-cmdk aria-label="Open command menu"><span>search</span> <kbd>⌘K</kbd></button>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="On this page">
+    <div class="ex-wrap">
+      <a href="#q1">q1 centre</a><a href="#q2">q2 ddof</a><a href="#q3">q3 fences</a><a href="#q4">q4 masking</a><a href="#q5">q5 scaling</a><a href="#q6">q6 ranks</a><a href="#q7">q7 causation</a><a href="#q8">q8 independence</a><a href="#q9">q9 bayes</a><a href="#q10">q10 random vars</a><a href="#code">code</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="ex-wrap">
+      <header class="ex-hero">
+        <div class="path-label"><span class="p">~ $</span> <span class="d">pytest</span> week_one/ <span style="color:var(--muted)"># phase 1 · math · review</span></div>
+        <h1>Week one in<br />ten questions<span class="accent">_</span></h1>
+        <p class="ex-lead">Day 7 was a test, not a new topic. Ten questions, one for each idea from Days 1–5. Try each one before opening the answer. Four of them come with a toy you can break.</p>
+        <div class="ex-meta"><span class="tag tag-green">day 7 / 147</span><span class="tag">review of days 1–5</span><span class="tag tag-cyan">4 simulations</span></div>
+        <div class="honesty" style="margin-top:22px"><b>honest status:</b> I got every Part A answer right, but I didn't show working and skipped the oral check, so it's logged as <b>unverified</b>, and there's no score on this page. Part B (writing <code>percentile</code> from memory) isn't done yet.</div>
+      </header>
+
+      <!-- Q1 -->
+      <section class="ex-section" id="q1">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q1 · centre</span><a class="mono" style="font-size:12px" href="day01-finding-the-centre.html">↺ day 1</a></div>
+          <h3>Which centre survives a typo?</h3>
+          <div class="data">x = [2, 3, 3, 8, 50]</div>
+          <p>Find the mean, median and mode. Then the 50 is mistyped as 500. Which ones move?</p>
+          <div class="stage">
+            <div class="stage-bar"><span><b>sim</b> drag the outlier</span><span>mean · median · mode</span></div>
+            <div class="stage-body">
+              <svg id="q1-svg" viewBox="0 0 760 150" role="img" aria-label="Dot plot of the five values with mean and median markers"></svg>
+              <div class="controls"><div class="ctrl"><label for="q1-v">last value <output for="q1-v">50</output></label><input type="range" id="q1-v" min="8" max="500" step="1" value="50" /></div></div>
+              <div class="readouts"><div class="ro"><span>mean</span><b class="amb" id="q1-mean">13.2</b></div><div class="ro"><span>median</span><b class="grn" id="q1-med">3</b></div><div class="ro"><span>mode</span><b class="cy">3</b></div></div>
+            </div>
+          </div>
+          <button class="btn-s" data-show="a1">show answer</button>
+          <div class="answer" id="a1"><p>Mean 13.2, median 3, mode 3. With 500, the mean jumps to <strong>103.2</strong>; the median and mode don't move. One bad value drags the mean as far as it likes, because the mean is a balance point and the median is a middle rank.</p></div>
+        </div>
+      </section>
+
+      <!-- Q2 -->
+      <section class="ex-section" id="q2">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q2 · variance</span><a class="mono" style="font-size:12px" href="day02-measuring-spread.html">↺ day 2</a></div>
+          <h3>Divide by n or by n − 1?</h3>
+          <div class="data">x = [4, 7, 9, 10, 15]</div>
+          <p>Compute the variance with ddof = 0 and ddof = 1.</p>
+          <button class="btn-s" data-show="a2">show answer</button>
+          <div class="answer" id="a2">
+            <div class="formula">mean = 9 · squared deviations = 25 + 4 + 0 + 1 + 36 = <span class="hl">66</span></div>
+            <p>ddof = 0: 66 / 5 = <strong>13.2</strong> (the population formula). ddof = 1: 66 / 4 = <strong>16.5</strong> (a sample estimate). Deviations are measured from the sample's own mean, which sits closer to the data than the true mean, so dividing by n underestimates. n − 1 corrects that.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Q3 -->
+      <section class="ex-section" id="q3">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q3 · percentiles &amp; fences</span><a class="mono" style="font-size:12px" href="day02-measuring-spread.html">↺ day 2</a></div>
+          <h3>Is 55 an outlier?</h3>
+          <div class="data">x = [3, 8, 10, 14, 21, 30, 55]</div>
+          <p>Find Q1, the median and Q3 with h = (n − 1)q (0-based, linear interpolation), then Tukey's fences.</p>
+          <button class="btn-s" data-show="a3">show answer</button>
+          <div class="answer" id="a3">
+            <div class="stage"><div class="stage-body"><svg id="q3-svg" viewBox="0 0 760 130" role="img" aria-label="Box plot of the seven values with Tukey fences, showing 55 outside the upper fence"></svg></div></div>
+            <div class="formula">Q1: h = 6 × 0.25 = 1.5 → 8 + 0.5 × (10 − 8) = <span class="hl">9</span> &nbsp; median = <span class="hl">14</span> &nbsp; Q3: h = 4.5 → 21 + 0.5 × 9 = <span class="hl">25.5</span></div>
+            <div class="formula">IQR = 16.5 &nbsp; fences = 9 − 24.75 = <span class="c">−15.75</span> · 25.5 + 24.75 = <span class="c">50.25</span> &nbsp; <span class="g">55 > 50.25 → outlier</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Q4 -->
+      <section class="ex-section" id="q4">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q4 · masking</span><a class="mono" style="font-size:12px" href="day02-measuring-spread.html">↺ day 2</a></div>
+          <h3>Can a z-score rule even fire?</h3>
+          <p>With only <strong>n = 5</strong> values, what's the largest |z| any point can have? And how big must n be before "|z| > 3" can flag anything at all?</p>
+          <div class="stage">
+            <div class="stage-bar"><span><b>sim</b> the most extreme dataset possible</span><span>zscore_outliers(x, t=3.0)</span></div>
+            <div class="stage-body">
+              <svg id="q4-svg" viewBox="0 0 760 260" role="img" aria-label="Curve of the maximum possible z-score against n, crossing 3 at n equals 11"></svg>
+              <div class="controls"><div class="ctrl"><label for="q4-n">n (values) <output for="q4-n">5</output></label><input type="range" id="q4-n" min="3" max="20" step="1" value="5" /></div></div>
+              <div class="readouts"><div class="ro"><span>max |z| = (n−1)/√n</span><b class="amb" id="q4-z">1.789</b></div><div class="ro"><span>can |z| > 3 fire?</span><b id="q4-ok">no</b></div></div>
+              <div class="caption">the worst case: n − 1 identical values and one huge outlier. The outlier inflates the very std it's measured with, so it can't look extreme. That's masking.</div>
+            </div>
+          </div>
+          <button class="btn-s" data-show="a4">show answer</button>
+          <div class="answer" id="a4"><p>At n = 5, max |z| = 4/√5 ≈ <strong>1.789</strong>. A "|z| > 3" rule can never fire. The first n where it can is <strong>11</strong> (n = 10 gives 2.846; n = 11 gives 3.015). On small samples, use Tukey's fences instead.</p></div>
+        </div>
+      </section>
+
+      <!-- Q5 -->
+      <section class="ex-section" id="q5">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q5 · scaling</span><a class="mono" style="font-size:12px" href="day03-moving-together.html">↺ day 3</a></div>
+          <h3>Stretch the data: who notices?</h3>
+          <div class="data">cov = 6, sₓ = 2, s_y = 5</div>
+          <p>Find r. Then transform y′ = −3y + 10. What happens to cov and r? And what if x is converted from metres to centimetres?</p>
+          <div class="stage">
+            <div class="stage-bar"><span><b>sim</b> scaling playground</span><span>covariance(x, y) · pearson(x, y)</span></div>
+            <div class="stage-body">
+              <svg id="q5-svg" viewBox="0 0 760 300" role="img" aria-label="Scatter plot of x against transformed y"></svg>
+              <div class="controls">
+                <div class="ctrl"><label for="q5-a">a in y′ = a·y + b <output for="q5-a">1.0</output></label><input type="range" id="q5-a" min="-3" max="3" step="0.5" value="1" /></div>
+                <div class="ctrl"><label for="q5-b">b <output for="q5-b">0</output></label><input type="range" id="q5-b" min="-20" max="20" step="1" value="0" /></div>
+              </div>
+              <div class="readouts"><div class="ro"><span>cov(x, y′)</span><b class="amb" id="q5-cov">6</b></div><div class="ro"><span>r</span><b class="grn" id="q5-r">0.6</b></div><div class="ro"><span>s_y′</span><b id="q5-sy">5</b></div></div>
+              <div class="caption">cov stretches by a and doesn't care about b. r only notices the sign of a: it's covariance divided by both spreads, so units cancel.</div>
+            </div>
+          </div>
+          <button class="btn-s" data-show="a5">show answer</button>
+          <div class="answer" id="a5"><div class="formula">r = 6 / (2 × 5) = <span class="hl">0.6</span> &nbsp; cov(ax, by) = ab·cov</div><p>y′ = −3y + 10: cov = −3 × 6 = <strong>−18</strong>, r = <strong>−0.6</strong>. Metres → cm multiplies x by 100: cov = <strong>600</strong>, r stays <strong>0.6</strong>.</p></div>
+        </div>
+      </section>
+
+      <!-- Q6 -->
+      <section class="ex-section" id="q6">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q6 · ranks</span><a class="mono" style="font-size:12px" href="day03-moving-together.html">↺ day 3</a></div>
+          <h3>Ties, and an outlier that doesn't matter</h3>
+          <div class="data">rank([7, 3, 7, 1, 7]) = ?</div>
+          <p>Then compare Pearson and Spearman for x = [1, 2, 3, 4, 5], y = [1, 2, 3, 4, 100].</p>
+          <button class="btn-s" data-show="a6">show answer</button>
+          <div class="answer" id="a6"><p>Ranks: <strong>[4, 2, 4, 1, 4]</strong>. The three 7s share positions 3, 4 and 5, so each gets their average, 4. For the pair, <strong>Spearman = 1.0</strong> (perfectly monotonic) while <strong>Pearson ≈ 0.725</strong> (the 100 bends the straight-line fit). Spearman is just Pearson on ranks, so the outlier becomes "rank 5" and stops shouting.</p></div>
+        </div>
+      </section>
+
+      <!-- Q7 -->
+      <section class="ex-section" id="q7">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q7 · causation</span><a class="mono" style="font-size:12px" href="day03-moving-together.html">↺ day 3</a></div>
+          <h3>RLHF causes sycophancy?</h3>
+          <p>Across 6 models, the amount of RLHF and a sycophancy score correlate at r = 0.8. Does RLHF cause sycophancy? What else could explain it, and how would you test it?</p>
+          <button class="btn-s" data-show="a7">show answer</button>
+          <div class="answer" id="a7"><p><strong>Confounder:</strong> model scale. Bigger models get more RLHF <em>and</em> may be more sycophantic for other reasons. <strong>Reverse direction:</strong> labs may apply more RLHF to models that already flatter users. <strong>Test:</strong> randomly assign RLHF vs a control to otherwise identical models, then compare. Six models is also a tiny sample.</p></div>
+        </div>
+      </section>
+
+      <!-- Q8 -->
+      <section class="ex-section" id="q8">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q8 · independence</span><a class="mono" style="font-size:12px" href="day04-counting-chances.html">↺ day 4</a></div>
+          <h3>Does the first die tell you anything?</h3>
+          <p>Two dice. Is "sum = 7" independent of "first die = 3"? What about "sum = 8"?</p>
+          <button class="btn-s" data-show="a8">show answer</button>
+          <div class="answer" id="a8">
+            <div class="stage"><div class="stage-body"><svg id="q8-svg" viewBox="0 0 760 250" role="img" aria-label="Six by six grid of dice outcomes with the sum 7 and sum 8 diagonals and the first die equals 3 row highlighted"></svg></div></div>
+            <p>P(sum 7) = 6/36 = 1/6, and P(sum 7 | first = 3) = 1/6. Equal, so <strong>independent</strong>: whatever the first die shows, exactly one face of the second makes 7. P(sum 8) = 5/36, but P(sum 8 | first = 3) = 1/6. Not equal, so <strong>not independent</strong>: a first die of 1 makes 8 impossible.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Q9 -->
+      <section class="ex-section" id="q9">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q9 · bayes</span><a class="mono" style="font-size:12px" href="day05-chance-in-numbers.html">↺ day 5</a></div>
+          <h3>The sycophancy judge</h3>
+          <p>10% of model responses are truly sycophantic. A judge flags 90% of those, but also flags 15% of normal responses. If a response is flagged, how likely is it really sycophantic? And what does the flag rate say about the true rate?</p>
+          <div class="stage">
+            <div class="stage-bar"><span><b>sim</b> 1,000 responses</span><span>bayes_posterior(prior, p_flag_given_yes, p_flag_given_no)</span></div>
+            <div class="stage-body">
+              <svg id="q9-svg" viewBox="0 0 760 330" role="img" aria-label="Grid of 1000 squares colored by true status and flag"></svg>
+              <div class="controls">
+                <div class="ctrl"><label for="q9-base">base rate <output for="q9-base">10%</output></label><input type="range" id="q9-base" min="1" max="50" step="1" value="10" /></div>
+                <div class="ctrl"><label for="q9-hit">hit rate <output for="q9-hit">90%</output></label><input type="range" id="q9-hit" min="50" max="100" step="1" value="90" /></div>
+                <div class="ctrl"><label for="q9-ff">false-flag rate <output for="q9-ff">15%</output></label><input type="range" id="q9-ff" min="0" max="40" step="1" value="15" /></div>
+              </div>
+              <div class="readouts">
+                <div class="ro"><span>P(sycophantic | flag)</span><b class="amb" id="q9-post">40%</b></div>
+                <div class="ro"><span>flag rate</span><b class="vi" id="q9-flag">22.5%</b></div>
+                <div class="ro"><span>true rate</span><b class="grn" id="q9-true">10%</b></div>
+              </div>
+            </div>
+          </div>
+          <button class="btn-s" data-show="a9">show answer</button>
+          <div class="answer" id="a9"><div class="formula">P(S | flag) = 0.9 × 0.1 / (0.9 × 0.1 + 0.15 × 0.9) = 0.09 / 0.225 = <span class="hl">0.40</span></div><p>Only 40%. The 135 false flags outnumber the 90 real ones. The flag rate is 22.5%, which overstates the true 10% by <strong>12.5 percentage points</strong>. If you report "22.5% of answers are sycophantic", you're reporting your judge, not your model.</p></div>
+        </div>
+      </section>
+
+      <!-- Q10 -->
+      <section class="ex-section" id="q10">
+        <div class="qcard">
+          <div class="qhead"><span class="qnum">Q10 · random variables</span><a class="mono" style="font-size:12px" href="day05-chance-in-numbers.html">↺ day 5</a></div>
+          <h3>Two coins, one shift</h3>
+          <p>X = number of heads in 2 fair coins. Give the PMF, F(1), E[X] and Var(X). Then for Y = 3X − 2, find E[Y] and Var(Y).</p>
+          <button class="btn-s" data-show="a10">show answer</button>
+          <div class="answer" id="a10">
+            <div class="stage"><div class="stage-body"><svg id="q10-svg" viewBox="0 0 760 200" role="img" aria-label="PMF bars and CDF steps for the number of heads in two coins"></svg></div></div>
+            <div class="formula">PMF ¼, ½, ¼ &nbsp; F(1) = <span class="hl">0.75</span> &nbsp; E[X] = <span class="hl">1</span> &nbsp; Var(X) = ¼·1 + ½·0 + ¼·1 = <span class="hl">0.5</span></div>
+            <div class="formula">E[Y] = 3·1 − 2 = <span class="g">1</span> &nbsp; Var(Y) = 3²·0.5 = <span class="g">4.5</span> &nbsp;<span class="dim"># shifting doesn't change spread; scaling multiplies it by a²</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CODE -->
+      <section class="ex-section" id="code">
+        <div class="path-label"><span class="p">#</span> code</div>
+        <h2>The functions under test</h2>
+        <p>Day 7 had no new code (the planned <code>day07_test.py</code> wasn't written). The questions exercise functions from my Day 2, 3 and 5 files. The simulations above use JavaScript ports of them.</p>
+        <div class="code">
+          <div class="code-bar"><span>p0_math/b01_descriptive_stats/day02_spread.py · excerpt</span><a href="https://github.com/RaGHaV-186/ml-from-scratch/blob/main/p0_math/b01_descriptive_stats/day02_spread.py" target="_blank" rel="noopener noreferrer">github ↗</a></div>
+<pre data-py>def tukey_fences(x, k=1.5):
+    """Return (lower_fence, upper_fence) = (Q1 - k*IQR, Q3 + k*IQR)."""
+    q1, q3 = percentile(x, 25), percentile(x, 75)
+    spread = q3 - q1
+    return q1 - k * spread, q3 + k * spread
+
+
+def zscore_outliers(x, t=3.0):
+    """Indices of values with |z| > t. Not robust: the outlier inflates the std
+    it is measured with (masking). With n values, |z| can never exceed (n-1)/sqrt(n).
+    """
+    avg, sd = mean(x), std(x)
+    if sd == 0:
+        return []
+    return [i for i, v in enumerate(x) if abs((v - avg) / sd) > t]</pre>
+        </div>
+        <div class="code">
+          <div class="code-bar"><span>p0_math/b01_descriptive_stats/day03_correlation.py · excerpt</span><a href="https://github.com/RaGHaV-186/ml-from-scratch/blob/main/p0_math/b01_descriptive_stats/day03_correlation.py" target="_blank" rel="noopener noreferrer">github ↗</a></div>
+<pre data-py>def pearson(x,y):
+    x = np.array(x)
+    y = np.array(y)
+    x_std = x.std(ddof=1)
+    y_std = y.std(ddof=1)
+    if x_std == 0 or y_std == 0:
+        raise ValueError("the standard deviation is zero")
+    return (covariance(x,y))/(x_std * y_std)
+
+def spearman(x,y):
+    return pearson(rank(x),rank(y))</pre>
+        </div>
+        <div class="code">
+          <div class="code-bar"><span>p0_math/b01_descriptive_stats/day05_bayes_rv.py · excerpt</span><a href="https://github.com/RaGHaV-186/ml-from-scratch/blob/main/p0_math/b01_descriptive_stats/day05_bayes_rv.py" target="_blank" rel="noopener noreferrer">github ↗</a></div>
+<pre data-py>def bayes_posterior(prior,p_flag_given_yes,p_flag_given_no):
+    p_opposite = 1- prior
+
+    p_spam_flagged = prior * p_flag_given_yes
+    p_notspam_flagged = p_opposite * p_flag_given_no
+    all_flagged = p_spam_flagged + p_notspam_flagged
+
+    return p_spam_flagged/all_flagged</pre>
+        </div>
+        <p><strong>Carried over to practise from memory:</strong> <code>percentile</code>, <code>welford</code> and <code>rank</code>.</p>
+        <div class="honesty"><b>how this page was made:</b> the questions and answers come from my Day 7 test. Every number was recomputed with my own functions. The visuals and simulations were built with AI help.</div>
+        <div class="pager"><a href="day06-what-drives-medical-costs.html">← day 6 · what drives medical costs?</a><a href="day08-six-shapes-of-chance.html">day 8 · six shapes of chance →</a></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>Part of my 147-day first-principles ML path. <a href="../index.html#bottom-up">See the whole path →</a></p>
+      <span class="mono"><a href="../index.html">← home</a> · press <kbd>?</kbd></span>
+    </div>
+  </footer>
+
+  <script src="../assets/data.js"></script>
+  <script src="../assets/site.js"></script>
+  <script src="../assets/explainer.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var C = X.C, el = X.el, T = X.text;
+    document.querySelectorAll("[data-show]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var a = document.getElementById(b.dataset.show), on = a.classList.toggle("show");
+        b.textContent = on ? "hide answer" : "show answer";
+      });
+    });
+
+    // JS ports of my functions
+    function mean(x) { return x.reduce(function (a, b) { return a + b; }, 0) / x.length; }
+    function median(x) { var s = x.slice().sort(function (a, b) { return a - b; }), n = s.length, m = Math.floor(n / 2); return n % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
+    function percentile(x, q) { var s = x.slice().sort(function (a, b) { return a - b; }), h = (s.length - 1) * q / 100, lo = Math.floor(h), up = Math.min(lo + 1, s.length - 1); return s[lo] + (h - lo) * (s[up] - s[lo]); }
+    function covariance(x, y) { var mx = mean(x), my = mean(y), s = 0; for (var i = 0; i < x.length; i++) s += (x[i] - mx) * (y[i] - my); return s / (x.length - 1); }
+    function std1(x) { return Math.sqrt(covariance(x, x)); }
+    function pearson(x, y) { return covariance(x, y) / (std1(x) * std1(y)); }
+    function bayes_posterior(prior, py, pn) { var a = prior * py, b = (1 - prior) * pn; return a / (a + b); }
+
+    // Q1
+    (function () {
+      var svg = document.getElementById("q1-svg");
+      function draw(v) {
+        X.clear(svg);
+        var x = [2, 3, 3, 8, v], m = mean(x), md = median(x), x0 = 30, x1 = 730, max = 520, sx = function (t) { return x0 + t / max * (x1 - x0); }, y = 90;
+        el("line", { x1: x0, x2: x1, y1: y, y2: y, stroke: C.border2 }, svg);
+        [0, 100, 200, 300, 400, 500].forEach(function (t) { T(svg, sx(t), y + 18, t, { "text-anchor": "middle", "font-size": 10 }); });
+        var seen = {};
+        x.forEach(function (t) { seen[t] = (seen[t] || 0) + 1; el("circle", { cx: sx(t), cy: y - 8 - (seen[t] - 1) * 12, r: 5, fill: t === v ? C.red : C.text2 }, svg); });
+        el("line", { x1: sx(m), x2: sx(m), y1: 20, y2: y, stroke: C.amber, "stroke-width": 2 }, svg); T(svg, sx(m) + 5, 28, "mean " + X.fmt(m, 1), { fill: C.amber });
+        el("line", { x1: sx(md), x2: sx(md), y1: 44, y2: y, stroke: C.green, "stroke-width": 2 }, svg); T(svg, sx(md) + 5, 52, "median " + md, { fill: C.green });
+        document.getElementById("q1-mean").textContent = X.fmt(m, 1);
+        document.getElementById("q1-med").textContent = md;
+      }
+      X.slider("q1-v", draw).update();
+    })();
+
+    // Q3 box plot
+    (function () {
+      var svg = document.getElementById("q3-svg"), x = [3, 8, 10, 14, 21, 30, 55];
+      var q1 = percentile(x, 25), q2 = percentile(x, 50), q3 = percentile(x, 75), iqr = q3 - q1, lf = q1 - 1.5 * iqr, uf = q3 + 1.5 * iqr;
+      var x0 = 30, x1 = 730, lo = -20, hi = 60, sx = function (t) { return x0 + (t - lo) / (hi - lo) * (x1 - x0); }, y = 55;
+      el("line", { x1: x0, x2: x1, y1: 105, y2: 105, stroke: C.border2 }, svg);
+      for (var t = -20; t <= 60; t += 10) T(svg, sx(t), 120, t, { "text-anchor": "middle", "font-size": 10 });
+      el("line", { x1: sx(3), x2: sx(30), y1: y, y2: y, stroke: C.text2 }, svg);
+      el("rect", { x: sx(q1), y: y - 18, width: sx(q3) - sx(q1), height: 36, fill: C.cyan, "fill-opacity": 0.15, stroke: C.cyan }, svg);
+      el("line", { x1: sx(q2), x2: sx(q2), y1: y - 18, y2: y + 18, stroke: C.cyan, "stroke-width": 2 }, svg);
+      [lf, uf].forEach(function (f) { el("line", { x1: sx(f), x2: sx(f), y1: 12, y2: 100, stroke: C.red, "stroke-dasharray": "5 4" }, svg); T(svg, sx(f), 10, "fence " + f, { "text-anchor": "middle", fill: C.red, "font-size": 10 }); });
+      x.forEach(function (v) { el("circle", { cx: sx(v), cy: y + 32, r: 4.5, fill: v > uf ? C.red : C.text2 }, svg); });
+      T(svg, sx(55), y + 4, "55", { "text-anchor": "middle", fill: C.red, "font-weight": 600 });
+      T(svg, sx(q1), y - 24, "Q1 " + q1, { "text-anchor": "middle", fill: C.cyan, "font-size": 10 });
+      T(svg, sx(q3), y - 24, "Q3 " + q3, { "text-anchor": "middle", fill: C.cyan, "font-size": 10 });
+    })();
+
+    // Q4 masking
+    (function () {
+      var svg = document.getElementById("q4-svg");
+      function draw(n) {
+        X.clear(svg);
+        var x0 = 50, x1 = 730, y0 = 220, y1 = 20, nmax = 20, zmax = 4.5;
+        var sx = function (v) { return x0 + (v - 2) / (nmax - 2) * (x1 - x0); }, sy = function (z) { return y0 - z / zmax * (y0 - y1); };
+        el("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: C.border2 }, svg);
+        el("line", { x1: x0, x2: x0, y1: y0, y2: y1, stroke: C.border2 }, svg);
+        for (var k = 3; k <= 20; k++) T(svg, sx(k), y0 + 16, k, { "text-anchor": "middle", "font-size": 10, fill: k === 11 ? C.amber : C.muted });
+        [0, 1, 2, 3, 4].forEach(function (z) { T(svg, x0 - 8, sy(z) + 4, z, { "text-anchor": "end", "font-size": 10 }); });
+        el("rect", { x: x0, y: y1, width: x1 - x0, height: sy(3) - y1, fill: C.red, "fill-opacity": 0.06 }, svg);
+        el("line", { x1: x0, x2: x1, y1: sy(3), y2: sy(3), stroke: C.red, "stroke-dasharray": "5 4" }, svg);
+        T(svg, x1, sy(3) - 6, "|z| > 3 → flagged", { "text-anchor": "end", fill: C.red });
+        var d = ""; for (var v = 2; v <= nmax; v += 0.1) d += (v === 2 ? "M" : " L") + sx(v) + " " + sy((v - 1) / Math.sqrt(v));
+        el("path", { d: d, fill: "none", stroke: C.amber, "stroke-width": 2.5 }, svg);
+        T(svg, x0 + 8, y1 + 10, "max |z| = (n − 1)/√n", { fill: C.amber });
+        for (k = 3; k <= 20; k++) el("circle", { cx: sx(k), cy: sy((k - 1) / Math.sqrt(k)), r: k === n ? 7 : 3, fill: k === n ? C.amber : C.border2 }, svg);
+        var z = (n - 1) / Math.sqrt(n);
+        document.getElementById("q4-z").textContent = z.toFixed(3);
+        var ok = document.getElementById("q4-ok"); ok.textContent = z > 3 ? "yes" : "no"; ok.className = z > 3 ? "grn" : "";
+      }
+      X.slider("q4-n", draw).update();
+    })();
+
+    // Q5 scaling: build data with cov 6, sx 2, sy 5 exactly
+    (function () {
+      var rng = X.rng(7), n = 40, z1 = [], z2 = [];
+      function gauss() { var u = 1 - rng(), v = rng(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+      for (var i = 0; i < n; i++) { z1.push(gauss()); z2.push(gauss()); }
+      function standardize(a) { var m = mean(a), s = std1(a); return a.map(function (v) { return (v - m) / s; }); }
+      z1 = standardize(z1);
+      var c = covariance(z1, z2); z2 = standardize(z2.map(function (v, j) { return v - c * z1[j]; }));
+      var x = z1.map(function (v) { return 10 + 2 * v; }), y = z1.map(function (v, j) { return 20 + 5 * (0.6 * v + 0.8 * z2[j]); });
+      var svg = document.getElementById("q5-svg"), aS, bS;
+      function draw() {
+        var a = aS.get(), b = bS.get(), yp = y.map(function (v) { return a * v + b; });
+        X.clear(svg);
+        var x0 = 50, x1 = 730, y0 = 270, y1 = 20, xl = 2, xh = 18, yl = -90, yh = 90;
+        var sx = function (v) { return x0 + (v - xl) / (xh - xl) * (x1 - x0); }, sy = function (v) { return y0 - (v - yl) / (yh - yl) * (y0 - y1); };
+        el("line", { x1: x0, x2: x1, y1: sy(0), y2: sy(0), stroke: C.border2 }, svg);
+        el("line", { x1: x0, x2: x0, y1: y0, y2: y1, stroke: C.border2 }, svg);
+        [-80, -40, 0, 40, 80].forEach(function (t) { T(svg, x0 - 8, sy(t) + 4, t, { "text-anchor": "end", "font-size": 10 }); });
+        x.forEach(function (v, j) { el("circle", { cx: sx(v), cy: sy(y[j]), r: 3, fill: C.border2 }, svg); });
+        x.forEach(function (v, j) { el("circle", { cx: sx(v), cy: sy(yp[j]), r: 4, fill: C.amber, "fill-opacity": 0.85 }, svg); });
+        T(svg, x1, y1 + 4, "grey = original y · amber = y′ = a·y + b", { "text-anchor": "end" });
+        var cv = covariance(x, yp), sd = std1(yp);
+        document.getElementById("q5-cov").textContent = X.fmt(cv, 2);
+        document.getElementById("q5-r").textContent = a === 0 ? "undefined" : X.fmt(pearson(x, yp), 3);
+        document.getElementById("q5-sy").textContent = X.fmt(sd, 2);
+      }
+      aS = X.slider("q5-a", draw, function (v) { return v.toFixed(1); });
+      bS = X.slider("q5-b", draw);
+      draw();
+    })();
+
+    // Q8 dice grid
+    (function () {
+      var svg = document.getElementById("q8-svg"), s = 30;
+      function grid(ox, target, label, col) {
+        T(svg, ox, 16, label, { fill: col });
+        for (var a = 1; a <= 6; a++) for (var b = 1; b <= 6; b++) {
+          var hit = a + b === target, row = a === 3;
+          el("rect", { x: ox + (b - 1) * s, y: 28 + (a - 1) * s, width: s - 3, height: s - 3, rx: 3, fill: hit ? col : C.bg2, "fill-opacity": hit ? 0.75 : 1, stroke: row ? C.cyan : C.border, "stroke-width": row ? 1.5 : 1 }, svg);
+          T(svg, ox + (b - 1) * s + (s - 3) / 2, 28 + (a - 1) * s + 18, a + b, { "text-anchor": "middle", "font-size": 10, fill: hit ? "#0a0c0f" : C.muted });
+        }
+        T(svg, ox, 28 + 6 * s + 14, "row = first die · cyan row = first is 3", { "font-size": 10 });
+      }
+      grid(40, 7, "sum = 7 → 6/36, and 1 of 6 in the cyan row", C.green);
+      grid(420, 8, "sum = 8 → 5/36, but 1 of 6 in the cyan row", C.amber);
+    })();
+
+    // Q9 bayes grid
+    (function () {
+      var svg = document.getElementById("q9-svg"), rng = X.rng(9), u1 = [], u2 = [];
+      for (var i = 0; i < 1000; i++) { u1.push(rng()); u2.push(rng()); }
+      var bS, hS, fS;
+      function draw() {
+        var base = bS.get() / 100, hit = hS.get() / 100, ff = fS.get() / 100;
+        X.clear(svg);
+        var cols = 50, s = 14, ox = 30, oy = 10, nS = Math.round(base * 1000), tp = 0, fp = 0;
+        // first nS cells are truly sycophantic
+        for (var k = 0; k < 1000; k++) {
+          var syc = k < nS, flag = syc ? u1[k] < hit : u2[k] < ff, fill, op;
+          if (syc && flag) { fill = C.amber; op = 0.95; tp++; }
+          else if (syc) { fill = C.amber; op = 0.25; }
+          else if (flag) { fill = C.red; op = 0.8; fp++; }
+          else { fill = C.border2; op = 0.6; }
+          el("rect", { x: ox + (k % cols) * s, y: oy + Math.floor(k / cols) * s, width: s - 3, height: s - 3, rx: 2, fill: fill, "fill-opacity": op }, svg);
+        }
+        var ly = oy + 20 * s + 14;
+        [[C.amber, 0.95, "sycophantic + flagged (" + tp + ")"], [C.amber, 0.25, "sycophantic, missed"], [C.red, 0.8, "normal but flagged (" + fp + ")"], [C.border2, 0.6, "normal, not flagged"]].forEach(function (L, j) {
+          el("rect", { x: ox + j * 180, y: ly - 9, width: 10, height: 10, rx: 2, fill: L[0], "fill-opacity": L[1] }, svg);
+          T(svg, ox + j * 180 + 16, ly, L[2], { "font-size": 10 });
+        });
+        var post = bayes_posterior(base, hit, ff), flagRate = base * hit + (1 - base) * ff;
+        document.getElementById("q9-post").textContent = X.pct(post);
+        document.getElementById("q9-flag").textContent = X.pct(flagRate);
+        document.getElementById("q9-true").textContent = X.pct(base, 0);
+      }
+      bS = X.slider("q9-base", draw, function (v) { return v + "%"; });
+      hS = X.slider("q9-hit", draw, function (v) { return v + "%"; });
+      fS = X.slider("q9-ff", draw, function (v) { return v + "%"; });
+      draw();
+    })();
+
+    // Q10 PMF + CDF
+    (function () {
+      var svg = document.getElementById("q10-svg"), p = [0.25, 0.5, 0.25];
+      var y0 = 160, h = 130;
+      T(svg, 40, 16, "PMF  P(X = k)", { fill: C.green });
+      p.forEach(function (v, k) { el("rect", { x: 60 + k * 100, y: y0 - v * 2 * h, width: 60, height: v * 2 * h, rx: 3, fill: C.green, "fill-opacity": 0.65 }, svg); T(svg, 90 + k * 100, y0 + 18, "k=" + k, { "text-anchor": "middle" }); T(svg, 90 + k * 100, y0 - v * 2 * h - 6, v, { "text-anchor": "middle", fill: C.text }); });
+      el("line", { x1: 40, x2: 360, y1: y0, y2: y0, stroke: C.border2 }, svg);
+      T(svg, 420, 16, "CDF  F(k) = P(X ≤ k)", { fill: C.cyan });
+      var F = 0, ox = 440;
+      p.forEach(function (v, k) { F += v; var yy = y0 - F * h; el("line", { x1: ox + k * 100, x2: ox + k * 100 + 100, y1: yy, y2: yy, stroke: C.cyan, "stroke-width": 2.5 }, svg); el("circle", { cx: ox + k * 100, cy: yy, r: 4.5, fill: C.cyan }, svg); T(svg, ox + k * 100 + 50, yy - 8, "F(" + k + ") = " + F, { "text-anchor": "middle", fill: k === 1 ? C.amber : C.text2 }); T(svg, ox + k * 100, y0 + 18, k, { "text-anchor": "middle" }); });
+      el("line", { x1: ox - 20, x2: 740, y1: y0, y2: y0, stroke: C.border2 }, svg);
+    })();
+  })();
+  </script>
+</body>
+</html>

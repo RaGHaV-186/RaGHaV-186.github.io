@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en" data-base="../">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Day 8 · Six shapes of chance · Raghav Bandreddi</title>
+  <meta name="description" content="Bernoulli, Binomial, Poisson, Exponential, Uniform and Normal through one bakery, with interactive simulations built on my from-scratch Python." />
+  <meta name="theme-color" content="#0a0c0f" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230a0c0f'/%3E%3Ctext x='6' y='22' font-family='monospace' font-size='16' font-weight='700' fill='%237ee787'%3E%3E%3C/text%3E%3Crect x='18' y='10' width='6' height='13' fill='%23ffb454'/%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../assets/site.css" />
+  <link rel="stylesheet" href="../assets/explainer.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+  <header class="site-header" id="top">
+    <div class="container header-inner">
+      <a href="../index.html" class="brand" aria-label="Raghav Bandreddi, home"><span class="brand-prompt">~/</span>raghav<span style="color:var(--muted)">/learn/day08</span><span class="brand-cursor" aria-hidden="true"></span></a>
+      <nav class="site-nav" aria-label="Primary">
+        <a href="../index.html#bottom-up">bottom-up</a>
+        <a href="index.html">explainers</a>
+        <a href="../index.html#top-down">top-down</a>
+        <a href="../index.html#research">research</a>
+      </nav>
+      <button type="button" class="cmdk-btn" data-cmdk aria-label="Open command menu"><span>search</span> <kbd>⌘K</kbd></button>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="On this page">
+    <div class="ex-wrap">
+      <a href="#bakery">bakery</a><a href="#bernoulli">bernoulli</a><a href="#binomial">binomial</a><a href="#poisson">poisson + exponential</a><a href="#memoryless">memoryless</a><a href="#uniform">uniform</a><a href="#normal">normal</a><a href="#which">which shape?</a><a href="#code">code</a><a href="#log">learning log</a>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="ex-wrap">
+      <header class="ex-hero">
+        <div class="path-label"><span class="p">~ $</span> <span class="d">cat</span> day08.md <span style="color:var(--muted)"># phase 1 · math · distributions</span></div>
+        <h1>Six shapes<br />of chance<span class="accent">_</span></h1>
+        <p class="ex-lead">One bakery, six questions, six distributions. Each one is the answer to a different <em>kind</em> of question: yes or no, how many, how long, anywhere in a range, or the sum of many small things. Learn to hear the question, and you'll know the shape.</p>
+        <div class="ex-meta"><span class="tag tag-green">day 8 / 147</span><span class="tag">bernoulli · binomial · poisson · exponential · uniform · normal</span><span class="tag tag-cyan">7 simulations</span></div>
+      </header>
+
+      <!-- 0. BAKERY -->
+      <section class="ex-section" id="bakery">
+        <div class="path-label"><span class="p">#</span> 00</div>
+        <h2>One bakery, six questions</h2>
+        <p>A bakery gets <strong>12 customers an hour</strong>, and <strong>40%</strong> of them buy a croissant. Every question you can ask about this shop has a shape:</p>
+        <div class="shapes" id="shapes"></div>
+        <p>Click any card to jump to it. The rest of the page builds each shape from scratch.</p>
+      </section>
+
+      <!-- 1. BERNOULLI -->
+      <section class="ex-section" id="bernoulli">
+        <div class="path-label"><span class="p">#</span> 01 · bernoulli</div>
+        <h2>One customer: yes or no</h2>
+        <p>Does the next customer buy a croissant? The outcome is <strong>1</strong> (yes) with probability <strong>p</strong> and <strong>0</strong> (no) with probability <strong>1 − p</strong>. That's the whole distribution.</p>
+        <div class="formula">P(1) = <span class="hl">p</span> &nbsp; P(0) = 1 − p &nbsp;<span class="dim">│</span>&nbsp; E[X] = 0·(1 − p) + 1·p = <span class="hl">p</span></div>
+        <p>Variance is trickier. Because X is 0 or 1, <strong>X² = X</strong> (0² = 0 and 1² = 1). So E[X²] = p, and:</p>
+        <div class="formula">Var(X) = E[X²] − (E[X])² = p − p² = <span class="g">p(1 − p)</span> = <span class="c">0.25 − (p − 0.5)²</span></div>
+
+        <div class="predict" data-answer="b">
+          <div class="q">predict first</div>
+          <p>Which customer is hardest to guess: one who buys 10% of the time, 50%, or 90%?</p>
+          <div class="choices"><button data-k="a">p = 0.1</button><button data-k="b">p = 0.5</button><button data-k="c">p = 0.9</button></div>
+          <div class="reveal-a">p = 0.5. At 0.1 or 0.9 you'd guess right most of the time; at 0.5 you're flipping a coin. Variance measures exactly that, and it peaks at 0.25 when p = 0.5. Drag the slider and watch why.</div>
+        </div>
+
+        <div class="stage">
+          <div class="stage-bar"><span><b>sim 1</b> variance is a rectangle</span><span>bernoulli_pmf(k, p)</span></div>
+          <div class="stage-body">
+            <svg id="rect-svg" viewBox="0 0 800 300" role="img" aria-label="A unit square with a p by 1 minus p rectangle shaded, next to the curve p times 1 minus p"></svg>
+            <div class="controls"><div class="ctrl"><label for="rect-p">p (probability of yes) <output for="rect-p">0.30</output></label><input type="range" id="rect-p" min="0" max="1" step="0.01" value="0.3" /></div></div>
+            <div class="readouts">
+              <div class="ro"><span>E[X] = p</span><b class="amb" id="r-e">0.3</b></div>
+              <div class="ro"><span>E[X²] = p</span><b id="r-e2">0.3</b></div>
+              <div class="ro"><span>(E[X])²</span><b id="r-e22">0.09</b></div>
+              <div class="ro"><span>Var = p(1−p)</span><b class="grn" id="r-v">0.21</b></div>
+              <div class="ro"><span>gap to 0.25</span><b class="cy" id="r-g">0.04</b></div>
+            </div>
+            <div class="caption">the shaded rectangle has sides p and 1 − p, so its area is the variance. Of all rectangles that fit, the square wins.</div>
+          </div>
+        </div>
+        <div class="analogy">A spam filter that's right 95% of the time is a Bernoulli with p = 0.95. Its variance is 0.95 × 0.05 = 0.0475, much smaller than a coin's 0.25, because it's very predictable.</div>
+      </section>
+
+      <!-- 2. BINOMIAL -->
+      <section class="ex-section" id="binomial">
+        <div class="path-label"><span class="p">#</span> 02 · binomial</div>
+        <h2>Twenty customers: how many say yes?</h2>
+        <p>Add up <strong>n</strong> independent Bernoullis and you get a Binomial. To get exactly <strong>k</strong> yeses: count the orders they could come in, then multiply by the probability of any one order.</p>
+        <div class="formula">P(k) = <span class="c">C(n, k)</span> · <span class="hl">p<sup>k</sup> (1 − p)<sup>n−k</sup></span> &nbsp;<span class="dim">← orders × one order</span></div>
+        <div class="formula">E = n·p &nbsp; Var = n·p(1 − p) &nbsp;<span class="dim"># means and variances of independent pieces add</span></div>
+        <p>Bakery: 20 customers at p = 0.4 gives a mean of 8 croissant buyers and a variance of 4.8. Now an ML version: you test a model on <strong>20 prompts</strong> and it truly fails 30% of the time (p = 0.3). The mean is 6 failures with a std of about 2.</p>
+
+        <div class="predict" data-answer="b">
+          <div class="q">predict first</div>
+          <p>You rerun that 20-prompt eval many times. Which range of failure counts catches about 90% of runs?</p>
+          <div class="choices"><button data-k="a">5 – 7</button><button data-k="b">3 – 9</button><button data-k="c">1 – 11</button></div>
+          <div class="reveal-a">3–9 catches 92%. My gut said 5–7, which only catches 53%. A 20-prompt eval is <strong>noisy</strong>: the same model can score 3/20 or 9/20 by luck. Run it yourself below.</div>
+        </div>
+
+        <div class="stage">
+          <div class="stage-bar"><span><b>sim 2</b> eval noise simulator</span><span>binomial_pmf(k, n, p)</span></div>
+          <div class="stage-body">
+            <svg id="bin-svg" viewBox="0 0 800 300" role="img" aria-label="Histogram of simulated eval failure counts with the exact Binomial distribution overlaid"></svg>
+            <div class="controls">
+              <div class="ctrl"><label for="bin-n">n (prompts) <output for="bin-n">20</output></label><input type="range" id="bin-n" min="10" max="500" step="10" value="20" /></div>
+              <div class="ctrl"><label for="bin-p">p (true failure rate) <output for="bin-p">0.30</output></label><input type="range" id="bin-p" min="0.05" max="0.95" step="0.05" value="0.3" /></div>
+            </div>
+            <div class="btns"><button class="btn-s primary" id="bin-1">run 1 eval</button><button class="btn-s" id="bin-100">run 100 evals</button><button class="btn-s" id="bin-reset">reset</button></div>
+            <div class="readouts">
+              <div class="ro"><span>mean n·p</span><b class="amb" id="b-mean">6</b></div>
+              <div class="ro"><span>std √(np(1−p))</span><b id="b-std">2.05</b></div>
+              <div class="ro"><span>score ± 2σ</span><b class="grn" id="b-score">±20.5 pp</b></div>
+              <div class="ro"><span>evals run</span><b id="b-runs">0</b></div>
+              <div class="ro"><span>last result</span><b class="cy" id="b-last">–</b></div>
+            </div>
+            <div class="caption">bars = your simulated evals · dots = exact P(k) · shaded = mean ± 1σ and ± 2σ. Try n = 20, then n = 80: the score's spread halves. 4× the prompts buys 2× the precision (the √n law).</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. POISSON + EXPONENTIAL -->
+      <section class="ex-section" id="poisson">
+        <div class="path-label"><span class="p">#</span> 03 · poisson + exponential</div>
+        <h2>One timeline, two questions</h2>
+        <p>Now we only know a <strong>rate</strong>: 12 customers an hour, or 4 spam emails a day. No fixed n. Two questions live on the same timeline:</p>
+        <ul>
+          <li><strong>Poisson</strong> counts: <em>how many</em> arrive in a window?</li>
+          <li><strong>Exponential</strong> times: <em>how long</em> until the next one?</li>
+        </ul>
+        <div class="formula">Poisson: P(k) = λ<sup>k</sup> e<sup>−λ</sup> / k! &nbsp; <span class="hl">E = Var = λ</span></div>
+        <div class="formula">Exponential: P(wait > t) = e<sup>−λt</sup> &nbsp; f(t) = λe<sup>−λt</sup> &nbsp; <span class="hl">E = 1/λ</span></div>
+        <div class="analogy">Rain on a window: drops per minute is Poisson; seconds until the next drop is Exponential. Same rain, two questions.</div>
+        <p>The link: "zero emails in the next t" is Poisson with k = 0, which is e<sup>−λt</sup>, exactly the Exponential's "wait longer than t".</p>
+
+        <div class="stage">
+          <div class="stage-bar"><span><b>sim 3</b> spam arrivals over 24 hours</span><span>sample_exponential(lam, size, rng)</span></div>
+          <div class="stage-body">
+            <svg id="tl-svg" viewBox="0 0 800 380" role="img" aria-label="A 24 hour timeline of random arrivals, with a histogram of daily counts and a histogram of gaps between arrivals"></svg>
+            <div class="controls">
+              <div class="ctrl"><label for="tl-lam">λ (emails per day) <output for="tl-lam">4</output></label><input type="range" id="tl-lam" min="1" max="12" step="1" value="4" /></div>
+            </div>
+            <div class="btns">
+              <button class="btn-s primary" id="tl-1">simulate 1 day</button><button class="btn-s" id="tl-50">simulate 50 days</button><button class="btn-s" id="tl-burst" aria-pressed="false">spam campaigns: off</button><button class="btn-s" id="tl-reset">reset</button>
+            </div>
+            <div class="readouts">
+              <div class="ro"><span>days</span><b id="t-days">0</b></div>
+              <div class="ro"><span>mean count</span><b class="amb" id="t-mean">–</b></div>
+              <div class="ro"><span>variance</span><b class="vi" id="t-var">–</b></div>
+              <div class="ro"><span>mean gap</span><b class="cy" id="t-gap">–</b></div>
+              <div class="ro"><span>spam-free days</span><b id="t-zero">–</b></div>
+            </div>
+            <div class="caption">For a real Poisson, variance ≈ mean. Turn on campaigns (same average rate, but bursty) and the variance shoots past the mean. That's <strong>overdispersion</strong>: my "mean 4, variance 20" inbox wasn't Poisson, it was bursts.</div>
+          </div>
+        </div>
+        <p>With λ = 4/day: P(no spam all day) = e<sup>−4</sup> ≈ 0.018, so a spam-free day comes about once every 55 days. The mean gap is ¼ day = 6 hours.</p>
+      </section>
+
+      <!-- 4. MEMORYLESS -->
+      <section class="ex-section" id="memoryless">
+        <div class="path-label"><span class="p">#</span> 04 · memoryless</div>
+        <h2>The bus is never "due"</h2>
+        <p>After 12 quiet hours, surely spam is "due"? No. For the Exponential, how long you've already waited changes nothing. Drag the slider: cut the curve at any point, rescale what's left, and it is the same curve again.</p>
+        <div class="formula">P(wait > s + t | wait > s) = e<sup>−λ(s+t)</sup> / e<sup>−λs</sup> = <span class="hl">e<sup>−λt</sup></span> <span class="dim"># s cancels</span></div>
+        <div class="stage">
+          <div class="stage-bar"><span><b>sim 4</b> cut and rescale</span><span>exponential_cdf(t, lam)</span></div>
+          <div class="stage-body">
+            <svg id="mem-svg" viewBox="0 0 800 280" role="img" aria-label="Survival curve of the exponential distribution, with the tail after the waited time rescaled to overlay the original"></svg>
+            <div class="controls"><div class="ctrl"><label for="mem-s">already waited (hours) <output for="mem-s">12</output></label><input type="range" id="mem-s" min="0" max="36" step="1" value="12" /></div></div>
+            <div class="readouts">
+              <div class="ro"><span>P(spam in next 1 h) · fresh</span><b class="amb" id="m-a">15.4%</b></div>
+              <div class="ro"><span>· after waiting</span><b class="grn" id="m-b">15.4%</b></div>
+              <div class="ro"><span>P(quiet that long)</span><b id="m-c">13.5%</b></div>
+            </div>
+            <div class="caption">dotted white = original P(wait > t) · dashed amber = the curve after s hours · solid amber = what's left after waiting s hours, rescaled and slid back to 0. They overlap exactly. Server crashes after 3 quiet weeks work the same way.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. UNIFORM -->
+      <section class="ex-section" id="uniform">
+        <div class="path-label"><span class="p">#</span> 05 · uniform + sampling</div>
+        <h2>A dart on a ruler</h2>
+        <p>If every point in [a, b] is equally likely, probability is just <strong>slice width ÷ total width</strong>. A timetabled bus every 20 minutes: wait ~ Uniform(0, 20), mean 10, P(wait &lt; 5) = 5/20 = 25%.</p>
+        <div class="formula">P(slice) = width / <span class="hl">(b − a)</span> &nbsp; E = (a + b)/2 &nbsp; Var = (b − a)²/12</div>
+        <p>Here's the trick that makes it powerful: throw a dart U on a 1-metre ruler and paint the first <strong>p</strong> metres "FLAG". Then <code>U &lt; p</code> is a Bernoulli(p). That's exactly how my <code>sample_bernoulli</code> works.</p>
+        <div class="stage">
+          <div class="stage-bar"><span><b>sim 5</b> darts → bernoulli, darts → exponential</span><span>sample_bernoulli · sample_exponential</span></div>
+          <div class="stage-body">
+            <svg id="dart-svg" viewBox="0 0 800 400" role="img" aria-label="Darts thrown at a ruler with a flagged section, and the same darts mapped through the inverse exponential CDF"></svg>
+            <div class="controls">
+              <div class="ctrl"><label for="dart-p">p (painted FLAG) <output for="dart-p">0.40</output></label><input type="range" id="dart-p" min="0.05" max="0.95" step="0.05" value="0.4" /></div>
+              <div class="ctrl"><label for="dart-lam">λ for t = −ln(1 − U)/λ <output for="dart-lam">0.20</output></label><input type="range" id="dart-lam" min="0.05" max="0.5" step="0.01" value="0.2" /></div>
+            </div>
+            <div class="btns"><button class="btn-s primary" id="dart-1">throw 1 dart</button><button class="btn-s" id="dart-100">throw 100</button><button class="btn-s" id="dart-reset">reset</button></div>
+            <div class="readouts">
+              <div class="ro"><span>darts</span><b id="d-n">0</b></div>
+              <div class="ro"><span>flagged share</span><b class="amb" id="d-f">–</b></div>
+              <div class="ro"><span>mean t</span><b class="cy" id="d-t">–</b></div>
+              <div class="ro"><span>1/λ (target)</span><b id="d-tt">5.0</b></div>
+            </div>
+            <div class="caption">top: the same uniform dart answers a yes/no question. bottom: push it through the inverse CDF and uniform darts pile up into an exponential shape. That's <strong>inverse-transform sampling</strong>. At λ = 0.2/min (the bakery's 12 per hour), the mean wait is 1/λ = 5 minutes.</div>
+          </div>
+        </div>
+        <div class="analogy">Two buses, same 3 per hour: timetabled every 20 minutes gives an average wait of 10 minutes. Random arrivals give an average wait of 20 minutes, twice as long. The Uniform's "not too long" guarantee is gone.</div>
+      </section>
+
+      <!-- 6. NORMAL -->
+      <section class="ex-section" id="normal">
+        <div class="path-label"><span class="p">#</span> 06 · normal</div>
+        <h2>Many small things add up to a bell</h2>
+        <p>Roll one die: flat. Two dice: a triangle. Ten dice: a bell. Highs and lows cancel out, so totals near the middle can happen in millions of ways and extreme totals in almost none.</p>
+        <div class="stage">
+          <div class="stage-bar"><span><b>sim 6</b> dice → bell</span><span>normal_pdf(x, mu, sigma)</span></div>
+          <div class="stage-body">
+            <svg id="dice-svg" viewBox="0 0 800 280" role="img" aria-label="Exact distribution of the sum of several dice, with a normal curve overlaid"></svg>
+            <div class="controls"><div class="ctrl"><label for="dice-n">number of dice <output for="dice-n">1</output></label><input type="range" id="dice-n" min="1" max="10" step="1" value="1" /></div></div>
+            <div class="readouts">
+              <div class="ro"><span>μ = 3.5·d</span><b class="amb" id="dc-mu">3.5</b></div>
+              <div class="ro"><span>σ = √(35/12·d)</span><b id="dc-sd">1.71</b></div>
+              <div class="ro"><span>ways to hit the min</span><b class="vi" id="dc-min">1 in 6</b></div>
+              <div class="ro"><span>most likely total</span><b class="grn" id="dc-top">–</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="formula">f(x) = 1/(σ√(2π)) · e<sup>−(x−μ)²/(2σ²)</sup> &nbsp; <span class="hl">z = (x − μ)/σ</span></div>
+        <p>Every Normal is the same curve, just shifted by μ and stretched by σ. So we measure in <strong>z-scores</strong>: how many σ away from the mean. 68% of values lie within 1σ, 95% within 2σ, 99.7% within 3σ.</p>
+        <div class="stage">
+          <div class="stage-bar"><span><b>sim 7</b> where do you stand?</span><span>z = (x − μ)/σ</span></div>
+          <div class="stage-body">
+            <svg id="z-svg" viewBox="0 0 800 260" role="img" aria-label="Normal curve of heights with mean 170 and sd 10, shaded up to a chosen height"></svg>
+            <div class="controls">
+              <div class="ctrl"><label for="z-x">height x (cm) <output for="z-x">190</output></label><input type="range" id="z-x" min="135" max="205" step="1" value="190" /></div>
+            </div>
+            <div class="btns"><button class="btn-s" id="z-bands" aria-pressed="false">show 68 / 95 / 99.7</button><button class="btn-s" id="z-fence" aria-pressed="false">show Tukey fences</button></div>
+            <div class="readouts">
+              <div class="ro"><span>z</span><b class="amb" id="z-z">2.00</b></div>
+              <div class="ro"><span>taller than</span><b class="grn" id="z-p">97.7%</b></div>
+              <div class="ro"><span>|Z| this far or more</span><b id="z-t">4.6%</b></div>
+            </div>
+            <div class="caption">heights ~ N(170, 10). The Tukey fence from Day 2 sits at Q3 + 1.5·IQR = 0.67σ + 2.02σ ≈ 2.7σ, so for normal data only about 0.7% gets flagged. And Chebyshev guarantees at least 75% within 2σ for <em>any</em> shape.</div>
+          </div>
+        </div>
+        <p>ML version: answer lengths ~ N(200, 30 tokens). 95% fall in 140–260 tokens. A 320-token answer is z = (320 − 200)/30 = <strong>4</strong>, rarer than 1 in 15,000. Worth a look in the logs.</p>
+      </section>
+
+      <!-- 7. WHICH -->
+      <section class="ex-section" id="which">
+        <div class="path-label"><span class="p">#</span> 07 · decision rule</div>
+        <h2>Hear the question, pick the shape</h2>
+        <div class="formula" style="white-space:normal;line-height:1.9">
+          a <span class="hl">time</span> until something → <span class="c">Exponential</span><br />
+          a <span class="hl">count</span> with known n → <span class="c">Bernoulli</span> (n = 1) / <span class="c">Binomial</span><br />
+          a <span class="hl">count</span> with only a rate → <span class="c">Poisson</span><br />
+          <span class="hl">equally likely</span> in a range → <span class="c">Uniform</span><br />
+          a <span class="hl">sum of many</span> small effects → <span class="c">Normal</span>
+        </div>
+        <div id="quiz"></div>
+      </section>
+
+      <!-- 8. CODE -->
+      <section class="ex-section" id="code">
+        <div class="path-label"><span class="p">#</span> 08 · code</div>
+        <h2>The code behind every simulation</h2>
+        <p>Every simulation above runs a JavaScript port of these functions. They're written from scratch with only <code>math</code> and NumPy's random generator, and checked against <code>scipy.stats</code>.</p>
+        <div class="code">
+          <div class="code-bar"><span>p0_math/b02_distributions/day08_distributions.py</span><span class="badge me">written by me</span></div>
+<pre data-py>import math
+
+import numpy as np
+
+
+def bernoulli_pmf(k, p):
+    if p > 1 or p < 0:
+        raise ValueError
+
+    if k == 1:
+        return p
+    elif k == 0:
+        return 1 - p
+    else:
+        return 0
+
+
+def binomial_pmf(k, n, p):
+    if p > 1 or p < 0:
+        raise ValueError
+    if k < 0 or k > n:
+        return 0
+
+    return math.comb(n, k) * (p**k) * ((1 - p) ** (n - k))
+
+
+def poisson_pmf(k, lam):
+    if lam <= 0:
+        raise ValueError
+    if k < 0:
+        return 0
+
+    return (lam**k) * (math.exp(-lam)) / math.factorial(k)
+
+
+def exponential_pdf(t, lam):
+    if lam <= 0:
+        raise ValueError
+
+    if t < 0:
+        return 0
+
+    return lam * math.exp(-lam * t)
+
+
+def exponential_cdf(t, lam):
+    if lam <= 0:
+        raise ValueError
+
+    if t < 0:
+        return 0
+
+    return 1 - math.exp(-lam * t)
+
+
+def uniform_pdf(x, a, b):
+    if b <= a:
+        raise ValueError
+    if x >= a and x <= b:
+        return 1 / (b - a)
+    else:
+        return 0
+
+
+def normal_pdf(x, mu, sigma):
+    if sigma <= 0:
+        raise ValueError
+
+    return math.exp(-((x - mu) ** 2) / (2 * sigma**2)) / (
+        sigma * math.sqrt(2 * math.pi)
+    )
+
+
+def sample_bernoulli(p, size, rng):
+    if p > 1 or p < 0:
+        raise ValueError
+
+    u = rng.random(size)
+    return (u < p).astype(int)
+
+
+def sample_exponential(lam, size, rng):
+    if lam <= 0:
+        raise ValueError
+
+    u = rng.random(size)
+    return -np.log(1 - u) / lam</pre>
+        </div>
+        <p style="font-size:13px">
+          <span class="badge ai">tests by AI</span> &nbsp;<code>test_day08_distributions.py</code> and <code>test_day08_recall.py</code> (18/18 passing) &nbsp;·&nbsp;
+          <span class="badge mix">AI-assisted</span> &nbsp;<code>day08_recall.py</code> (percentile, welford, rank: partly from memory, fixed to spec with AI help) &nbsp;·&nbsp;
+          <a href="https://github.com/RaGHaV-186/ml-from-scratch/tree/main/p0_math/b02_distributions" target="_blank" rel="noopener noreferrer">view on GitHub ↗</a>
+        </p>
+      </section>
+
+      <!-- 9. LOG -->
+      <section class="ex-section" id="log">
+        <div class="path-label"><span class="p">#</span> 09 · learning log</div>
+        <h2>Where I slipped (so you don't)</h2>
+        <p>I predict before I check. Here are the honest results from the day's lessons.</p>
+        <table class="tbl">
+          <thead><tr><th>moment</th><th>my answer</th><th>result</th></tr></thead>
+          <tbody>
+            <tr><td>20 prompts at p = 0.3, which range?</td><td>5–7</td><td class="no">✗ only 53%; 3–9 is 92%</td></tr>
+            <tr><td>X² for a 0/1 variable</td><td>"always 1"</td><td class="no">✗ X² = X</td></tr>
+            <tr><td>p − (E[X])²</td><td>"0"</td><td class="no">✗ the E[X²] vs (E[X])² trap</td></tr>
+            <tr><td>Which p maximises variance</td><td>0.5 (0 and 1 give zero)</td><td class="ok">✓</td></tr>
+            <tr><td>Spam Binomial: n and k</td><td>"k = 10, n = 2"</td><td class="no">✗ n = 10, k = 9</td></tr>
+            <tr><td>Why Poisson, not Binomial</td><td>"n trials vs a time frame"</td><td class="ok">✓ unknown n, only a rate</td></tr>
+            <tr><td>Mean 4, variance 20</td><td>"one day didn't follow the average"</td><td class="mid">~ it's bursts: overdispersion</td></tr>
+            <tr><td>Count or time? (4 items)</td><td>4/4</td><td class="ok">✓</td></tr>
+            <tr><td>Exponential spam (3 parts)</td><td>¼ day; e^(−4×0.5); memoryless</td><td class="ok">✓</td></tr>
+            <tr><td>Uniform: flag 95%</td><td>U &lt; 95</td><td class="no">✗ U &lt; 0.95 (0–1, not 0–100)</td></tr>
+            <tr><td>z for 320 tokens</td><td>320 − 200/30 = 4</td><td class="mid">~ right value, missing brackets</td></tr>
+            <tr><td>Identify six scenarios</td><td>6/6</td><td class="ok">✓</td></tr>
+            <tr><td>Quiz</td><td>4/5</td><td class="mid">~ mixed up Poisson and Exponential once</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Still working on:</strong> E[X²] vs (E[X])², keeping n / k / p straight, brackets, and explaining from a blank page (recognition is easier than recall).</p>
+
+        <div class="honesty"><b>how this page was made:</b> the maths, the reasoning and the Python are mine, from my Day 8 lessons. The visuals and simulations were built with AI help and are checked against my functions. Every number on this page was recomputed with my code.</div>
+        <div class="pager"><a href="day07-week-one-in-ten-questions.html">← day 7 · week one in ten questions</a><a href="index.html">all explainers →</a></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>Part of my 147-day first-principles ML path. <a href="../index.html#bottom-up">See the whole path →</a></p>
+      <span class="mono"><a href="../index.html">← home</a> · press <kbd>?</kbd></span>
+    </div>
+  </footer>
+
+  <script src="../assets/data.js"></script>
+  <script src="../assets/site.js"></script>
+  <script src="../assets/explainer.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var C = X.C, el = X.el, T = X.text;
+
+    // ---- JS ports of my Python functions ----
+    function comb(n, k) { if (k < 0 || k > n) return 0; k = Math.min(k, n - k); var r = 1; for (var i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; }
+    function binomial_pmf(k, n, p) { if (k < 0 || k > n) return 0; return Math.exp(Math.log(comb(n, k)) + k * Math.log(p) + (n - k) * Math.log(1 - p)); }
+    function poisson_pmf(k, lam) { if (k < 0) return 0; var lf = 0; for (var i = 2; i <= k; i++) lf += Math.log(i); return Math.exp(k * Math.log(lam) - lam - lf); }
+    function exponential_pdf(t, lam) { return t < 0 ? 0 : lam * Math.exp(-lam * t); }
+    function exponential_cdf(t, lam) { return t < 0 ? 0 : 1 - Math.exp(-lam * t); }
+    function normal_pdf(x, mu, s) { return Math.exp(-((x - mu) * (x - mu)) / (2 * s * s)) / (s * Math.sqrt(2 * Math.PI)); }
+    function sample_exponential(lam, rng) { return -Math.log(1 - rng()) / lam; }
+    function erf(x) { var s = x < 0 ? -1 : 1; x = Math.abs(x); var t = 1 / (1 + 0.3275911 * x); var y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return s * y; }
+    function Phi(z) { return 0.5 * (1 + erf(z / Math.SQRT2)); }
+
+    // ---- 0. overview cards ----
+    (function () {
+      var cards = [
+        { id: "bernoulli", n: "Bernoulli", q: "Does this customer buy?", f: function (x) { return x < 0.5 ? (x > 0.15 && x < 0.3 ? 0.6 : 0) : (x > 0.6 && x < 0.75 ? 0.4 : 0); } },
+        { id: "binomial", n: "Binomial", q: "Buyers among the next 20?", f: function (x) { return binomial_pmf(Math.round(x * 20), 20, 0.4) * 5; } },
+        { id: "poisson", n: "Poisson", q: "Customers this hour?", f: function (x) { return poisson_pmf(Math.round(x * 24), 12) * 8; } },
+        { id: "poisson", n: "Exponential", q: "Minutes until the next one?", f: function (x) { return Math.exp(-x * 4) * 0.9; } },
+        { id: "uniform", n: "Uniform", q: "Wait for a timetabled bus?", f: function (x) { return x > 0.1 && x < 0.9 ? 0.5 : 0; } },
+        { id: "normal", n: "Normal", q: "Total of many small effects?", f: function (x) { return Math.exp(-Math.pow((x - 0.5) / 0.15, 2) / 2) * 0.9; } },
+      ];
+      var box = document.getElementById("shapes");
+      cards.forEach(function (c, i) {
+        var a = document.createElement("a"); a.className = "shape"; a.href = "#" + c.id;
+        var svg = el("svg", { viewBox: "0 0 200 46", "aria-hidden": "true" }, a);
+        var cols = [C.green, C.cyan, C.amber, C.amber, C.violet, C.red];
+        if (i === 0) {
+          el("rect", { x: 50, y: 46 - 0.6 * 46, width: 36, height: 0.6 * 46, rx: 2, fill: cols[0], "fill-opacity": 0.8 }, svg);
+          el("rect", { x: 114, y: 46 - 0.4 * 46, width: 36, height: 0.4 * 46, rx: 2, fill: cols[0], "fill-opacity": 0.8 }, svg);
+        } else if (i === 3 || i === 5) {
+          var d = "M0 46"; for (var x = 0; x <= 1.0001; x += 0.02) d += " L" + (x * 200) + " " + (46 - c.f(x) * 46); d += " L200 46 Z";
+          el("path", { d: d, fill: cols[i], "fill-opacity": 0.25, stroke: cols[i], "stroke-width": 1.5 }, svg);
+        } else {
+          for (var k = 0; k < 25; k++) { var h = c.f(k / 25 + 0.02) * 46; if (h > 0.5) el("rect", { x: k * 8, y: 46 - h, width: 6, height: h, rx: 1, fill: cols[i], "fill-opacity": 0.8 }, svg); }
+        }
+        var b = document.createElement("b"); b.textContent = c.n; a.appendChild(b);
+        var s = document.createElement("span"); s.textContent = c.q; a.appendChild(s);
+        box.appendChild(a);
+      });
+    })();
+
+    // ---- 1. rectangle variance ----
+    (function () {
+      var svg = document.getElementById("rect-svg");
+      function draw(p) {
+        X.clear(svg);
+        var S = 230, ox = 30, oy = 40;
+        el("rect", { x: ox, y: oy, width: S, height: S, fill: "none", stroke: C.border2, "stroke-dasharray": "4 4" }, svg);
+        el("rect", { x: ox, y: oy, width: p * S, height: (1 - p) * S, fill: C.green, "fill-opacity": 0.28, stroke: C.green }, svg);
+        T(svg, ox + p * S / 2, oy - 8, "p = " + p.toFixed(2), { "text-anchor": "middle", fill: C.amber });
+        T(svg, ox - 8, oy + (1 - p) * S / 2 + 4, "1−p", { "text-anchor": "end", fill: C.amber });
+        if (p > 0.12 && p < 0.92) T(svg, ox + p * S / 2, oy + (1 - p) * S / 2 + 4, (p * (1 - p)).toFixed(3), { "text-anchor": "middle", fill: C.text, "font-size": 13, "font-weight": 600 });
+        T(svg, ox, oy + S + 22, "area = p(1−p) = variance", { fill: C.muted });
+        // curve
+        var x0 = 330, x1 = 770, y0 = 270, y1 = 40, sx = function (v) { return x0 + v * (x1 - x0); }, sy = function (v) { return y0 - v / 0.25 * (y0 - y1); };
+        el("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: C.border2 }, svg);
+        el("line", { x1: x0, x2: x1, y1: sy(0.25), y2: sy(0.25), stroke: C.cyan, "stroke-dasharray": "3 4", "stroke-opacity": 0.6 }, svg);
+        T(svg, x1, sy(0.25) - 6, "0.25 max", { "text-anchor": "end", fill: C.cyan });
+        var d = ""; for (var v = 0; v <= 1.0001; v += 0.01) d += (v ? " L" : "M") + sx(v) + " " + sy(v * (1 - v));
+        el("path", { d: d, fill: "none", stroke: C.green, "stroke-width": 2.5 }, svg);
+        [0, 0.25, 0.5, 0.75, 1].forEach(function (t) { T(svg, sx(t), y0 + 16, t, { "text-anchor": "middle" }); });
+        T(svg, x0, y1 - 14, "Var(X) = p(1−p)", { fill: C.green, "font-size": 12 });
+        var vp = p * (1 - p);
+        el("line", { x1: sx(p), x2: sx(p), y1: sy(vp), y2: sy(0.25), stroke: C.cyan, "stroke-width": 3 }, svg);
+        if (Math.abs(p - 0.5) > 0.06) T(svg, sx(p) + (p < 0.5 ? 8 : -8), (sy(vp) + sy(0.25)) / 2 + 4, "(p−0.5)²", { fill: C.cyan, "text-anchor": p < 0.5 ? "start" : "end" });
+        el("line", { x1: sx(p), x2: sx(p), y1: y0, y2: sy(vp), stroke: C.amber, "stroke-dasharray": "2 3" }, svg);
+        el("circle", { cx: sx(p), cy: sy(vp), r: 6, fill: C.amber }, svg);
+        document.getElementById("r-e").textContent = p.toFixed(2);
+        document.getElementById("r-e2").textContent = p.toFixed(2);
+        document.getElementById("r-e22").textContent = (p * p).toFixed(3);
+        document.getElementById("r-v").textContent = vp.toFixed(3);
+        document.getElementById("r-g").textContent = Math.pow(p - 0.5, 2).toFixed(3);
+      }
+      X.slider("rect-p", draw, function (v) { return v.toFixed(2); }).update();
+    })();
+
+    // ---- 2. binomial eval noise ----
+    (function () {
+      var svg = document.getElementById("bin-svg"), rng = X.rng(8), counts = {}, runs = 0, last = null;
+      var nS = X.slider("bin-n", function () { reset(); }), pS = X.slider("bin-p", function () { reset(); }, function (v) { return v.toFixed(2); });
+      function one() { var n = nS.get(), p = pS.get(), k = 0; for (var i = 0; i < n; i++) if (rng() < p) k++; counts[k] = (counts[k] || 0) + 1; runs++; last = k; }
+      function reset() { counts = {}; runs = 0; last = null; draw(); }
+      function draw() {
+        X.clear(svg);
+        var n = nS.get(), p = pS.get(), mu = n * p, sd = Math.sqrt(n * p * (1 - p));
+        var lo = Math.max(0, Math.floor(mu - 4.5 * sd)), hi = Math.min(n, Math.ceil(mu + 4.5 * sd));
+        if (hi - lo < 14) { lo = Math.max(0, Math.floor(mu - 7)); hi = Math.min(n, lo + 14); }
+        var x0 = 50, x1 = 770, y0 = 250, y1 = 25, bw = (x1 - x0) / (hi - lo + 1);
+        var maxP = 0; for (var k = lo; k <= hi; k++) maxP = Math.max(maxP, binomial_pmf(k, n, p));
+        var maxF = 0; for (var c in counts) maxF = Math.max(maxF, counts[c] / runs);
+        var top = Math.max(maxP, maxF) * 1.1;
+        var sx = function (k) { return x0 + (k - lo + 0.5) * bw; }, sy = function (v) { return y0 - v / top * (y0 - y1); };
+        [[2, 0.06], [1, 0.1]].forEach(function (b) { var a = Math.max(lo - 0.5, mu - b[0] * sd), z = Math.min(hi + 0.5, mu + b[0] * sd); el("rect", { x: sx(a) , y: y1, width: (z - a) * bw, height: y0 - y1, fill: C.amber, "fill-opacity": b[1] }, svg); T(svg, sx(mu + b[0] * sd), y1 + 12 + (b[0] === 1 ? 14 : 0), "±" + b[0] + "σ", { fill: C.amber, "text-anchor": "end", "font-size": 10 }); });
+        for (k = lo; k <= hi; k++) {
+          var f = (counts[k] || 0) / (runs || 1);
+          if (f > 0) el("rect", { x: sx(k) - bw * 0.4, y: sy(f), width: bw * 0.8, height: y0 - sy(f), fill: k === last ? C.cyan : C.green, "fill-opacity": k === last ? 0.95 : 0.55, rx: 1.5 }, svg);
+          var pr = binomial_pmf(k, n, p);
+          el("circle", { cx: sx(k), cy: sy(pr), r: Math.max(1.6, Math.min(3.5, bw / 4)), fill: C.text }, svg);
+        }
+        el("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: C.border2 }, svg);
+        var step = Math.max(1, Math.ceil((hi - lo) / 12));
+        for (k = lo; k <= hi; k += step) T(svg, sx(k), y0 + 16, k, { "text-anchor": "middle" });
+        T(svg, x1, y0 + 34, "failures out of " + n, { "text-anchor": "end" });
+        el("line", { x1: sx(mu), x2: sx(mu), y1: y1, y2: y0, stroke: C.amber, "stroke-width": 1.5 }, svg);
+        T(svg, sx(mu) + 5, y1 + 2, "mean " + X.fmt(mu, 1), { fill: C.amber });
+        document.getElementById("b-mean").textContent = X.fmt(mu, 1);
+        document.getElementById("b-std").textContent = sd.toFixed(2);
+        document.getElementById("b-score").textContent = "±" + (2 * sd / n * 100).toFixed(1) + " pp";
+        document.getElementById("b-runs").textContent = runs;
+        document.getElementById("b-last").textContent = last == null ? "–" : last + "/" + n;
+      }
+      document.getElementById("bin-1").onclick = function () { one(); draw(); };
+      document.getElementById("bin-100").onclick = function () { for (var i = 0; i < 100; i++) one(); draw(); };
+      document.getElementById("bin-reset").onclick = reset;
+      draw();
+    })();
+
+    // ---- 3. timeline ----
+    (function () {
+      var svg = document.getElementById("tl-svg"), rng = X.rng(42), days = [], gaps = [], lastDay = [], burst = false, carry = 0;
+      var lamS = X.slider("tl-lam", function () { reset(); });
+      function simDay() {
+        var lam = lamS.get(), rate = lam;
+        if (burst) rate = rng() < 0.2 ? lam * 4 : lam * 0.25;
+        var t = carry > 0 ? carry : sample_exponential(rate / 24, rng), arr = [];
+        while (t < 24) { arr.push(t); t += sample_exponential(rate / 24, rng); }
+        carry = t - 24;
+        for (var i = 1; i < arr.length; i++) gaps.push(arr[i] - arr[i - 1]);
+        days.push(arr.length); lastDay = arr;
+      }
+      function reset() { days = []; gaps = []; lastDay = []; carry = 0; draw(); }
+      function draw() {
+        X.clear(svg);
+        var lam = lamS.get();
+        // timeline strip
+        var x0 = 30, x1 = 770, y = 60, sx = function (h) { return x0 + h / 24 * (x1 - x0); };
+        el("rect", { x: x0, y: y - 18, width: x1 - x0, height: 36, rx: 6, fill: C.bg2, stroke: C.border }, svg);
+        for (var h = 0; h <= 24; h += 3) { el("line", { x1: sx(h), x2: sx(h), y1: y + 18, y2: y + 24, stroke: C.border2 }, svg); T(svg, sx(h), y + 36, h + "h", { "text-anchor": "middle", "font-size": 10 }); }
+        T(svg, x0, y - 26, days.length ? "day " + days.length + ": " + lastDay.length + " arrivals" : "press simulate", { fill: C.text2 });
+        for (var i = 0; i < lastDay.length; i++) {
+          if (i > 0) { var a = sx(lastDay[i - 1]), b = sx(lastDay[i]); el("path", { d: "M" + a + " " + (y + 4) + " Q" + (a + b) / 2 + " " + (y - 14) + " " + b + " " + (y + 4), fill: "none", stroke: C.cyan, "stroke-opacity": 0.6 }, svg); }
+          el("line", { x1: sx(lastDay[i]), x2: sx(lastDay[i]), y1: y - 12, y2: y + 12, stroke: C.amber, "stroke-width": 2.5 }, svg);
+        }
+        T(svg, x1, y - 26, "│ = arrival · arc = gap", { "text-anchor": "end", "font-size": 10 });
+        // counts hist
+        var hx0 = 30, hx1 = 380, hy0 = 340, hy1 = 130;
+        var mean = lam, maxK = Math.max(8, Math.ceil(lam + 4 * Math.sqrt(lam)), days.reduce(function (m, v) { return Math.max(m, v); }, 0));
+        maxK = Math.min(maxK, 40);
+        var bw = (hx1 - hx0) / (maxK + 1), freq = {};
+        days.forEach(function (d) { var k = Math.min(d, maxK); freq[k] = (freq[k] || 0) + 1; });
+        var top = 0; for (var k = 0; k <= maxK; k++) top = Math.max(top, poisson_pmf(k, lam), (freq[k] || 0) / (days.length || 1)); top *= 1.15;
+        var hy = function (v) { return hy0 - v / top * (hy0 - hy1); };
+        for (k = 0; k <= maxK; k++) {
+          var f = (freq[k] || 0) / (days.length || 1);
+          if (f) el("rect", { x: hx0 + k * bw + 1, y: hy(f), width: bw - 2, height: hy0 - hy(f), fill: C.amber, "fill-opacity": 0.55, rx: 1 }, svg);
+          el("circle", { cx: hx0 + (k + 0.5) * bw, cy: hy(poisson_pmf(k, lam)), r: 2.6, fill: C.text }, svg);
+        }
+        el("line", { x1: hx0, x2: hx1, y1: hy0, y2: hy0, stroke: C.border2 }, svg);
+        var st = Math.ceil(maxK / 10); for (k = 0; k <= maxK; k += st) T(svg, hx0 + (k + 0.5) * bw, hy0 + 14, k, { "text-anchor": "middle", "font-size": 10 });
+        T(svg, hx0, hy1 - 10, "POISSON · arrivals per day", { fill: C.amber });
+        // gaps hist
+        var gx0 = 420, gx1 = 770, maxT = Math.min(24, 4.5 * 24 / lam), nb = 18, gbw = (gx1 - gx0) / nb, gf = new Array(nb).fill(0);
+        gaps.forEach(function (g) { var j = Math.floor(g / maxT * nb); if (j < nb) gf[j]++; });
+        var dens = gf.map(function (c) { return c / (gaps.length || 1) / (maxT / nb); });
+        var r = lam / 24, gtop = Math.max(r, Math.max.apply(null, dens)) * 1.15;
+        var gy = function (v) { return hy0 - v / gtop * (hy0 - hy1); };
+        dens.forEach(function (d, j) { if (d) el("rect", { x: gx0 + j * gbw + 1, y: gy(d), width: gbw - 2, height: hy0 - gy(d), fill: C.cyan, "fill-opacity": 0.45, rx: 1 }, svg); });
+        var path = ""; for (var t = 0; t <= maxT; t += maxT / 80) path += (t ? " L" : "M") + (gx0 + t / maxT * (gx1 - gx0)) + " " + gy(exponential_pdf(t, r));
+        el("path", { d: path, fill: "none", stroke: C.text, "stroke-width": 2 }, svg);
+        el("line", { x1: gx0, x2: gx1, y1: hy0, y2: hy0, stroke: C.border2 }, svg);
+        for (var q = 0; q <= 4; q++) T(svg, gx0 + q / 4 * (gx1 - gx0), hy0 + 14, X.fmt(q / 4 * maxT, 1) + "h", { "text-anchor": "middle", "font-size": 10 });
+        T(svg, gx0, hy1 - 10, "EXPONENTIAL · hours between arrivals", { fill: C.cyan });
+        // readouts
+        var n = days.length, m = n ? days.reduce(function (a, b) { return a + b; }, 0) / n : 0;
+        var v = n > 1 ? days.reduce(function (a, b) { return a + (b - m) * (b - m); }, 0) / (n - 1) : 0;
+        document.getElementById("t-days").textContent = n;
+        document.getElementById("t-mean").textContent = n ? m.toFixed(2) : "–";
+        document.getElementById("t-var").textContent = n > 1 ? v.toFixed(2) : "–";
+        document.getElementById("t-gap").textContent = gaps.length ? (gaps.reduce(function (a, b) { return a + b; }, 0) / gaps.length).toFixed(1) + "h" : "–";
+        document.getElementById("t-zero").textContent = n ? days.filter(function (d) { return d === 0; }).length + " / " + n : "–";
+      }
+      document.getElementById("tl-1").onclick = function () { simDay(); draw(); };
+      document.getElementById("tl-50").onclick = function () { for (var i = 0; i < 50; i++) simDay(); draw(); };
+      document.getElementById("tl-reset").onclick = reset;
+      var bb = document.getElementById("tl-burst");
+      bb.onclick = function () { burst = !burst; bb.setAttribute("aria-pressed", burst); bb.textContent = "spam campaigns: " + (burst ? "on" : "off"); reset(); };
+      draw();
+    })();
+
+    // ---- 4. memoryless ----
+    (function () {
+      var svg = document.getElementById("mem-svg"), lam = 4 / 24;
+      function draw(s) {
+        X.clear(svg);
+        var x0 = 50, x1 = 770, y0 = 240, y1 = 30, TM = 48;
+        var sx = function (t) { return x0 + t / TM * (x1 - x0); }, sy = function (v) { return y0 - v * (y0 - y1); };
+        el("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: C.border2 }, svg);
+        el("line", { x1: x0, x2: x0, y1: y0, y2: y1, stroke: C.border2 }, svg);
+        for (var h = 0; h <= TM; h += 6) T(svg, sx(h), y0 + 16, h + "h", { "text-anchor": "middle", "font-size": 10 });
+        [0, 0.5, 1].forEach(function (v) { T(svg, x0 - 8, sy(v) + 4, v, { "text-anchor": "end", "font-size": 10 }); });
+        T(svg, x0 + 6, y1 - 10, "P(still no spam after t)", { fill: C.text2 });
+        var orig = ""; for (var t = 0; t <= TM; t += 0.5) orig += (t ? " L" : "M") + sx(t) + " " + sy(Math.exp(-lam * t));
+        if (s > 0) el("rect", { x: x0, y: y1, width: sx(s) - x0, height: y0 - y1, fill: C.red, "fill-opacity": 0.06 }, svg);
+        if (s > 0) T(svg, (x0 + sx(s)) / 2, y0 - 8, "waited " + s + "h", { "text-anchor": "middle", fill: C.red, "font-size": 10 });
+        // tail from s, rescaled, slid back
+        var tail = "", slid = "";
+        for (t = s; t <= TM; t += 0.5) tail += (t === s ? "M" : " L") + sx(t) + " " + sy(Math.exp(-lam * t));
+        for (t = 0; t <= TM - s; t += 0.5) slid += (t ? " L" : "M") + sx(t) + " " + sy(Math.exp(-lam * (t + s)) / Math.exp(-lam * s));
+        el("path", { d: tail, fill: "none", stroke: C.amber, "stroke-width": 2, "stroke-dasharray": "5 4" }, svg);
+        el("path", { d: slid, fill: "none", stroke: C.amber, "stroke-width": 3, "stroke-opacity": 0.85 }, svg);
+        el("path", { d: orig, fill: "none", stroke: C.text, "stroke-width": 1.4, "stroke-dasharray": "2 5" }, svg);
+        el("circle", { cx: sx(s), cy: sy(Math.exp(-lam * s)), r: 5, fill: C.amber }, svg);
+        T(svg, x1, sy(0.62), "rescaled tail = same curve", { "text-anchor": "end", fill: C.amber });
+        document.getElementById("m-a").textContent = X.pct(exponential_cdf(1, lam));
+        document.getElementById("m-b").textContent = X.pct((Math.exp(-lam * s) - Math.exp(-lam * (s + 1))) / Math.exp(-lam * s));
+        document.getElementById("m-c").textContent = X.pct(Math.exp(-lam * s));
+      }
+      X.slider("mem-s", draw).update();
+    })();
+
+    // ---- 5. darts ----
+    (function () {
+      var svg = document.getElementById("dart-svg"), rng = X.rng(5), darts = [];
+      var pS = X.slider("dart-p", function () { draw(); }, function (v) { return v.toFixed(2); });
+      var lS = X.slider("dart-lam", function () { draw(); }, function (v) { return v.toFixed(2); });
+      function draw() {
+        X.clear(svg);
+        var p = pS.get(), lam = lS.get();
+        // ruler
+        var x0 = 40, x1 = 760, ry = 70, sx = function (u) { return x0 + u * (x1 - x0); };
+        el("rect", { x: x0, y: ry - 16, width: x1 - x0, height: 32, rx: 4, fill: C.bg2, stroke: C.border2 }, svg);
+        el("rect", { x: x0, y: ry - 16, width: p * (x1 - x0), height: 32, rx: 4, fill: C.amber, "fill-opacity": 0.22, stroke: C.amber }, svg);
+        T(svg, sx(p / 2), ry + 4, "FLAG", { "text-anchor": "middle", fill: C.amber, "font-weight": 600, "font-size": 12 });
+        for (var i = 0; i <= 10; i++) { el("line", { x1: sx(i / 10), x2: sx(i / 10), y1: ry + 16, y2: ry + 22, stroke: C.border2 }, svg); T(svg, sx(i / 10), ry + 34, (i / 10).toFixed(1), { "text-anchor": "middle", "font-size": 10 }); }
+        T(svg, x0, ry - 26, "U ~ Uniform(0, 1) · flag if U < p", { fill: C.text2 });
+        darts.forEach(function (u, j) { var recent = j >= darts.length - 1; el("circle", { cx: sx(u), cy: ry - 8 + ((j * 7919) % 17), r: recent ? 5 : 2.4, fill: u < p ? C.amber : C.text2, "fill-opacity": recent ? 1 : 0.6 }, svg); });
+        // inverse transform
+        var ix0 = 80, ix1 = 520, iy0 = 370, iy1 = 140, TM = Math.min(40, 4.5 / lam);
+        var tx = function (t) { return ix0 + t / TM * (ix1 - ix0); }, uy = function (u) { return iy0 - u * (iy0 - iy1); };
+        el("line", { x1: ix0, x2: ix1, y1: iy0, y2: iy0, stroke: C.border2 }, svg);
+        el("line", { x1: ix0, x2: ix0, y1: iy0, y2: iy1, stroke: C.border2 }, svg);
+        T(svg, ix0 - 10, iy1 + 4, "U=1", { "text-anchor": "end", "font-size": 10 }); T(svg, ix0 - 10, iy0 + 4, "0", { "text-anchor": "end", "font-size": 10 });
+        for (var q = 0; q <= 4; q++) T(svg, tx(q / 4 * TM), iy0 + 16, X.fmt(q / 4 * TM, 1), { "text-anchor": "middle", "font-size": 10 });
+        T(svg, ix1, iy0 + 32, "t (minutes)", { "text-anchor": "end", "font-size": 10 });
+        T(svg, ix0, iy1 - 14, "U = F(t) = 1 − e^(−λt)   →   t = −ln(1 − U)/λ", { fill: C.cyan });
+        var d = ""; for (var t = 0; t <= TM; t += TM / 100) d += (t ? " L" : "M") + tx(t) + " " + uy(exponential_cdf(t, lam));
+        el("path", { d: d, fill: "none", stroke: C.cyan, "stroke-width": 2.2 }, svg);
+        var show = darts.slice(-25);
+        show.forEach(function (u, j) {
+          var t = -Math.log(1 - u) / lam, op = j === show.length - 1 ? 0.9 : 0.18;
+          if (t > TM) return;
+          el("path", { d: "M" + ix0 + " " + uy(u) + " H" + tx(t) + " V" + iy0, fill: "none", stroke: C.amber, "stroke-opacity": op, "stroke-width": j === show.length - 1 ? 1.6 : 1 }, svg);
+          el("circle", { cx: ix0, cy: uy(u), r: 2.5, fill: C.amber, "fill-opacity": op + 0.2 }, svg);
+        });
+        // histogram of t on the right
+        var hx0 = 570, hx1 = 770, nb = 12, cnt = new Array(nb).fill(0), ts = darts.map(function (u) { return -Math.log(1 - u) / lam; });
+        ts.forEach(function (t) { var j = Math.floor(t / TM * nb); if (j < nb) cnt[j]++; });
+        var dens = cnt.map(function (c) { return c / (ts.length || 1) / (TM / nb); }), top = Math.max(lam, Math.max.apply(null, dens)) * 1.15, bw = (hx1 - hx0) / nb;
+        var hy = function (v) { return iy0 - v / top * (iy0 - iy1); };
+        dens.forEach(function (v, j) { if (v) el("rect", { x: hx0 + j * bw + 1, y: hy(v), width: bw - 2, height: iy0 - hy(v), fill: C.amber, "fill-opacity": 0.5, rx: 1 }, svg); });
+        var cp = ""; for (t = 0; t <= TM; t += TM / 60) cp += (t ? " L" : "M") + (hx0 + t / TM * (hx1 - hx0)) + " " + hy(exponential_pdf(t, lam));
+        el("path", { d: cp, fill: "none", stroke: C.text, "stroke-width": 1.8 }, svg);
+        el("line", { x1: hx0, x2: hx1, y1: iy0, y2: iy0, stroke: C.border2 }, svg);
+        T(svg, hx0, iy1 - 14, "resulting t → exponential", { fill: C.text2 });
+        var n = darts.length;
+        document.getElementById("d-n").textContent = n;
+        document.getElementById("d-f").textContent = n ? X.pct(darts.filter(function (u) { return u < p; }).length / n) : "–";
+        document.getElementById("d-t").textContent = n ? (ts.reduce(function (a, b) { return a + b; }, 0) / n).toFixed(1) : "–";
+        document.getElementById("d-tt").textContent = (1 / lam).toFixed(1);
+      }
+      document.getElementById("dart-1").onclick = function () { darts.push(rng()); draw(); };
+      document.getElementById("dart-100").onclick = function () { for (var i = 0; i < 100; i++) darts.push(rng()); draw(); };
+      document.getElementById("dart-reset").onclick = function () { darts = []; draw(); };
+      draw();
+    })();
+
+    // ---- 6. dice → bell ----
+    (function () {
+      var svg = document.getElementById("dice-svg");
+      function dist(d) { var w = [1]; for (var i = 0; i < d; i++) { var nw = new Array(w.length + 6).fill(0); for (var s = 0; s < w.length; s++) for (var f = 1; f <= 6; f++) nw[s + f] += w[s]; w = nw; } return w; }
+      function draw(d) {
+        X.clear(svg);
+        var w = dist(d), total = Math.pow(6, d), lo = d, hi = 6 * d, mu = 3.5 * d, sd = Math.sqrt(35 / 12 * d);
+        var x0 = 40, x1 = 770, y0 = 240, y1 = 30, bw = (x1 - x0) / (hi - lo + 1);
+        var top = 0; for (var s = lo; s <= hi; s++) top = Math.max(top, w[s] / total); top = Math.max(top, d > 1 ? normal_pdf(mu, mu, sd) : 0) * 1.12;
+        var sx = function (v) { return x0 + (v - lo + 0.5) * bw; }, sy = function (v) { return y0 - v / top * (y0 - y1); };
+        var best = lo; for (s = lo; s <= hi; s++) { if (w[s] > w[best]) best = s; var pr = w[s] / total; el("rect", { x: sx(s) - bw * 0.42, y: sy(pr), width: bw * 0.84, height: y0 - sy(pr), fill: C.violet, "fill-opacity": 0.6, rx: 1.5 }, svg); }
+        if (d > 1) { var pth = ""; for (var x = lo - 0.5; x <= hi + 0.5; x += (hi - lo) / 160) pth += (x === lo - 0.5 ? "M" : " L") + (x0 + (x - lo + 0.5) * bw) + " " + sy(normal_pdf(x, mu, sd)); el("path", { d: pth, fill: "none", stroke: C.amber, "stroke-width": 2.2 }, svg); T(svg, x1, y1, "normal_pdf(x, μ, σ)", { "text-anchor": "end", fill: C.amber }); }
+        el("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: C.border2 }, svg);
+        var st = Math.max(1, Math.ceil((hi - lo) / 14)); for (s = lo; s <= hi; s += st) T(svg, sx(s), y0 + 16, s, { "text-anchor": "middle", "font-size": 10 });
+        T(svg, x0, y0 + 34, "total of " + d + (d === 1 ? " die" : " dice"), { "font-size": 10 });
+        document.getElementById("dc-mu").textContent = X.fmt(mu, 1);
+        document.getElementById("dc-sd").textContent = sd.toFixed(2);
+        document.getElementById("dc-min").textContent = "1 in " + (total >= 1e6 ? (total / 1e6).toFixed(1) + "M" : total.toLocaleString("en"));
+        document.getElementById("dc-top").textContent = best + (w[best] > 1 ? " (" + (w[best] >= 1e6 ? (w[best] / 1e6).toFixed(1) + "M" : w[best].toLocaleString("en")) + " ways)" : "");
+      }
+      X.slider("dice-n", draw).update();
+    })();
+
+    // ---- 7. z-scores ----
+    (function () {
+      var svg = document.getElementById("z-svg"), bands = false, fence = false, mu = 170, sd = 10;
+      function draw(xv) {
+        X.clear(svg);
+        var x0 = 40, x1 = 770, y0 = 210, y1 = 30, lo = 130, hi = 210;
+        var sx = function (v) { return x0 + (v - lo) / (hi - lo) * (x1 - x0); }, top = normal_pdf(mu, mu, sd) * 1.1, sy = function (v) { return y0 - v / top * (y0 - y1); };
+        if (bands) [[3, 0.05, "99.7%"], [2, 0.08, "95%"], [1, 0.12, "68%"]].forEach(function (b) {
+          el("rect", { x: sx(mu - b[0] * sd), y: y1, width: sx(mu + b[0] * sd) - sx(mu - b[0] * sd), height: y0 - y1, fill: C.cyan, "fill-opacity": b[1] }, svg);
+          T(svg, sx(mu + b[0] * sd) - 4, y1 + 12 + (3 - b[0]) * 13, b[2], { "text-anchor": "end", fill: C.cyan, "font-size": 10 });
+        });
+        var area = "M" + sx(lo) + " " + y0; for (var v = lo; v <= xv; v += 0.5) area += " L" + sx(v) + " " + sy(normal_pdf(v, mu, sd)); area += " L" + sx(xv) + " " + y0 + " Z";
+        el("path", { d: area, fill: C.green, "fill-opacity": 0.22 }, svg);
+        var c = ""; for (v = lo; v <= hi; v += 0.5) c += (v === lo ? "M" : " L") + sx(v) + " " + sy(normal_pdf(v, mu, sd));
+        el("path", { d: c, fill: "none", stroke: C.text, "stroke-width": 2 }, svg);
+        el("line", { x1: x0, x2: x1, y1: y0, y2: y0, stroke: C.border2 }, svg);
+        for (var k = -4; k <= 4; k++) { var hv = mu + k * sd; if (hv < lo || hv > hi) continue; T(svg, sx(hv), y0 + 16, hv, { "text-anchor": "middle", "font-size": 10 }); T(svg, sx(hv), y0 + 30, (k > 0 ? "+" : "") + k + "σ", { "text-anchor": "middle", "font-size": 9.5, fill: C.border2 }); }
+        if (fence) [-1, 1].forEach(function (s) { var fx = mu + s * 2.698 * sd; el("line", { x1: sx(fx), x2: sx(fx), y1: y1, y2: y0, stroke: C.red, "stroke-dasharray": "5 4", "stroke-width": 1.5 }, svg); T(svg, sx(fx) + (s > 0 ? 5 : -5), y0 - 30, "fence ≈ " + (s > 0 ? "+" : "−") + "2.7σ", { fill: C.red, "font-size": 10, "text-anchor": s > 0 ? "start" : "end" }); });
+        el("line", { x1: sx(xv), x2: sx(xv), y1: y1 - 6, y2: y0, stroke: C.amber, "stroke-width": 2 }, svg);
+        T(svg, sx(xv), y1 - 10, xv + " cm", { "text-anchor": "middle", fill: C.amber, "font-weight": 600 });
+        var z = (xv - mu) / sd;
+        document.getElementById("z-z").textContent = z.toFixed(2);
+        document.getElementById("z-p").textContent = X.pct(Phi(z));
+        document.getElementById("z-t").textContent = X.pct(2 * (1 - Phi(Math.abs(z))));
+      }
+      var zs = X.slider("z-x", draw); zs.update();
+      var b1 = document.getElementById("z-bands"), b2 = document.getElementById("z-fence");
+      b1.onclick = function () { bands = !bands; b1.setAttribute("aria-pressed", bands); zs.update(); };
+      b2.onclick = function () { fence = !fence; b2.setAttribute("aria-pressed", fence); zs.update(); };
+    })();
+
+    // ---- 8. which-shape quiz ----
+    (function () {
+      var qs = [
+        ["Minutes until the next customer walks in", "Exponential"],
+        ["Does this one customer buy a croissant?", "Bernoulli"],
+        ["Croissant buyers among the next 20 customers", "Binomial"],
+        ["Customers in the next hour, knowing only '12 per hour'", "Poisson"],
+        ["Your wait for a bus that comes every 20 minutes on a timetable", "Uniform"],
+        ["Total weight of 50 croissants, each a little off", "Normal"],
+      ];
+      var opts = ["Bernoulli", "Binomial", "Poisson", "Exponential", "Uniform", "Normal"], box = document.getElementById("quiz"), score = 0, done = 0;
+      var sc = document.createElement("p"); sc.className = "caption"; sc.textContent = "score: 0 / 6";
+      qs.forEach(function (q, i) {
+        var d = document.createElement("div"); d.className = "predict"; d.style.marginTop = "10px";
+        d.innerHTML = '<div class="q">scenario ' + (i + 1) + '</div><p>' + q[0] + '</p><div class="choices">' + opts.map(function (o) { return '<button data-k="' + o + '">' + o + "</button>"; }).join("") + "</div>";
+        var answered = false;
+        d.querySelectorAll("button").forEach(function (b) {
+          b.onclick = function () {
+            d.querySelectorAll("button").forEach(function (o) { o.classList.remove("right", "wrong"); });
+            var ok = b.dataset.k === q[1];
+            b.classList.add(ok ? "right" : "wrong");
+            d.querySelector('[data-k="' + q[1] + '"]').classList.add("right");
+            if (!answered) { answered = true; done++; if (ok) score++; sc.textContent = "score: " + score + " / 6" + (done === 6 ? (score === 6 ? " · you can hear the shapes." : " · reread the decision rule above.") : ""); }
+          };
+        });
+        box.appendChild(d);
+      });
+      box.appendChild(sc);
+    })();
+  })();
+  </script>
+</body>
+</html>
